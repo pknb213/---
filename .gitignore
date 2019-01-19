@@ -1,0 +1,6 @@
+## Flask Git Ignore File ##
+
+*.log
+*.bak
+
+.idea/
