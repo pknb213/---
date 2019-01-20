@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}
+    CkEditor4 Test
+{% endblock %}
+{% block head %}
+    <script src="//cdn.ckeditor.com/4.5.3/standard/ckeditor.js"></script>
+{% endblock %}
+{% block body %}
+    <form class="container" action="/ckeditor4_process" method="POST">
+        <h1> CK Editor 4 <button type="submit" class="btn btn-primary float-right">등록</button></h1>
+    </form>
+    <textarea name="editor1"></textarea>
+    <script>
+        CKEDITOR.replace( 'editor1', {
+            filebrowserImageUploadUrl: '/ckupload/'
+        });
+    </script>
+{% endblock %}
