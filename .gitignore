@@ -2,6 +2,7 @@
 
 *.log
 *.bak
-.FlaskServer/__pycache__/
+*.pyc
 
+.FlaskServer/__pycache__/
 .idea/
