@@ -4,13 +4,17 @@ import random
 import datetime
 from flask import render_template, request, current_app, make_response, url_for, redirect
 
-@app.route('/')
+@app.route('/index')
 def index():
     return render_template('index.html')
 
 @app.route('/upload')
 def ckeditor4():
     return render_template('ckeditor4.html')
+
+@app.route('/')
+def production_main():
+    return render_template('production_main.html')
 
 @app.errorhandler(404)
 def page_not_found(e):

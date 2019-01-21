@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %} 생산관리 페이지 {% endblock %}
+{% block body %}
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+ <div class="container-fluid">
+  <div class="navbar-header">
+   <a class="navbar-brand" href="/"> Title </a>
+   </div>
+ </div>
+</nav>
+
+<div class="container-fluid">
+ <div class="row">
+  <div class="col-sm-3 col-md-2 sidebar" style="background-color: white;">
+   <ul class="nav nav-sidebar">
+    <li class="active">
+     <a href="/">
+      "Hello Happy World"
+      <span class="sr-only">(current)</span>
+     </a>
+    </li>
+    <li>
+     <a href="/">
+      "Happy Lucky Smile"
+     </a>
+    </li>
+   </ul>
+  </div>
+  <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+   <h1 class="page-header">Dashboard</h1>
+   <div class="row placeholders">
+    <div class="col-xs-6 col-sm-3 placeholder"><h4> date </h4></div>
+    <div class="col-xs-6 col-sm-3 placeholder"><h4> date2 </h4></div>
+    <div class="col-xs-6 col-sm-3 placeholder"><h4> 검색 </h4></div>
+   </div>
+   <hr/>
+   <div class="row placeholders">
+    <div class="col-xs-6 col-sm-2 placeholder"><h4> 전체 </h4></div>
+    <div class="col-xs-6 col-sm-2 placeholder"><h4> 생산실적조회 </h4></div>
+    <div class="col-xs-6 col-sm-2 placeholder"><h4> 생산게획입력 </h4></div>
+    <div class="col-xs-6 col-sm-3 placeholder"><h4> 출고 </h4></div>
+    <div class="col-xs-6 col-sm-3 placeholder"><h4> 등록 </h4></div>
+   </div>
+   <hr/>
+   <div class="table-responsive">
+    <table class="table table-striped">
+     <thead>
+      <tr>
+       <th>1</th>
+       <th>2</th>
+       <th>3</th>
+      </tr>
+     </thead>
+     <tbody>
+      <tr>
+       <th>1</th>
+       <th>2</th>
+       <th>3</th>
+      </tr>
+      <tr>
+       <th>1</th>
+       <th>2</th>
+       <th>3</th>
+      </tr>
+      <tr>
+       <th>1</th>
+       <th>2</th>
+       <th>3</th>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+  </div>
+ </div>
+</div>
+
+{% endblock %}
