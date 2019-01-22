@@ -4,4 +4,5 @@
 *.bak
 *.pyc
 
+.FlaskServer/__pycache__/
 .idea/
