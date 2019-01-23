@@ -60,13 +60,9 @@ def ckeditor4():
 def production_main():
     now = datetime.datetime.today().strftime('%Y-%m-%d')
     try:
-        db_object = Mongodb_connection()
-        rows_collection = db_object.db_conn(db_object.db_client(db_ip, db_port), 'test1')
-        rows_list = list(rows_collection.find())  # cursor type -> list type
+        rows_list = search_query(now, now)
     except:
         print("Db_error : production_main()")
-    finally:
-        db_object.db_close(db_ip, db_port)
     return render_template('production_main.html', rows=rows_list, now_sdate=now, now_edate=now)
 
 @app.errorhandler(404)
@@ -130,10 +126,13 @@ def data_search():
                 list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]))
             else:
                 print("Day Error")
+                return redirect('/')
         else:
             print("month Error")
+            return redirect('/')
     else:
         print("Year Error")
+        return redirect('/')
 
     return render_template('production_main.html', rows=list, now_sdate=_sdate, now_edate=_edate)
 
@@ -153,7 +152,13 @@ def all_collection_show():
 @app.route('/insert_plan')
 def insert_plan():
 
-    return render_template('insert_list.html')
+    return render_template('plan_list.html', rows = {1,2,3,4})
+
+@app.route('/excel_table', methods=['POST'])
+def excel_table():
+
+    return redirect('/insert_plan')
+    #return render_template('plan_list.html, rows=rows_list
 
 @app.route('/insert_product')
 def insert_product():
