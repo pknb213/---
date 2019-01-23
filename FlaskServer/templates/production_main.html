@@ -21,7 +21,7 @@
      </a>
     </li>
     <li class="nav-item active">
-     <a class="nav-link" href="/">
+     <a class="nav-link" href="/shipment_main">
       "출하관리 화면"
      </a>
     </li>
@@ -32,9 +32,9 @@
    <hr/>
   <form class="form-inline" action="/search" method="POST">
    <div class="row container-fluid">
-    <input type="date" name="startDate" class="col-2 btn-primary">
+    <input type="date" name="startDate" value={{now_sdate}} class="col-2 btn-primary">
     <div class="col-sm-1"></div>
-    <input type="date" name="endDate" class="col-2 btn-primary ">
+    <input type="date" name="endDate" value={{now_edate}} class="col-2 btn-primary ">
     <button type="submit" class="btn col-1 btn-warning">검색</button>
    </div>
   </form>
@@ -42,10 +42,25 @@
   <form class="form-inline">
    <div class="row container-fluid">
     <button type="button" class="btn btn-primary col-1" onclick="location.href='/all_collection'">전체</button>
-    <button type="button" class="btn btn-warning col-2 offset-sm-3 ">생산실적조회</button>
-    <button type="button" class="btn btn-warning col-2 ">생산계획입력</button>
+    <button type="button" class="btn btn-warning col-2 offset-3 ">생산실적조회</button>
+    <!--<button type="button" class="btn btn-warning col-2 ">생산계획입력</button>-->
+    <a href="/insert_plan" class="btn btn-warning col-2" onclick="winPop(this.href, {name:'insert_excel',width:1500,height:1000}); return false;">생산계획입력 </a>
     <button type="button" class="btn btn-warning col-1 ">출고</button>
-    <button type="button" class="btn btn-warning col-1 ">등록</button>
+    <!--<button type="button" class="btn btn-warning col-1 ">등록</button>-->
+    <a href="/insert_product" class="btn btn-warning col-1" onclick="winPop(this.href, {name:'insert_sn',width:1500,height:600}); return false;">등록 </a>
+    <script>
+     function winPop(url, opts) {
+      var popupName = opts.name || 'popup';
+      var options = '';
+      options += 'width=' + (opts.width ? opts.width : 200) + ', height=' + (opts.height ? opts.height : 200);
+      options += opts.left && opts.width ? ', left=' + opts.left : ', left=' + ( (screen.availWidth - opts.width) / 2);
+      options += opts.top && opts.height ? ', top=' + opts.top : ', top=' + ( (screen.availHeight - opts.height) / 2);
+      options += opts.scrollbars ? ', scrollbars=' + opts.scrollbars : ', scrollbars=no';
+      options += opts.resizable ? ', resizable=' + opts.resizable : ', resizable=no';
+      console.log(popupName);
+      window.open(url, popupName, options);
+     }
+    </script>
    </div>
   </form>
    <hr/>
@@ -64,11 +79,11 @@
      <tbody>
       {% for row in rows %}
       <tr>
-       <th><div class="checkbox"><label><input type="checkbox" value="">{{ row["model"] }}</label></div></th>
-       <th>{{ row["sn"] }}</th>
-       <th>{{ row["week"] }}</th>
-       <th>{{ row["location"] }}</th>
-       <th>{{ row["quality"] }}</th>
+       <th><div class="checkbox"><label><input type="checkbox" value=""> {{ row["model"] }}</label></div></th>
+       <th> {{ row["sn"] }}</th>
+       <th> {{ row["week"] }}</th>
+       <th> {{ row["location"] }}</th>
+       <th> {{ row["quality"] }}</th>
       </tr>
       {% endfor %}
      </tbody>

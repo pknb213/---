@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}생산계획입력{% endblock %}
+{% block body %}
+ <div class="container-fluid">
+  <div class="col-10 col-offset-2">
+   <h1 class="page-header">등록 화면</h1>
+   <hr/>
+  </div>
+  <form class="form-inline" action="/search" method="POST">
+   <div class="row">
+    <button type="button" class="btn btn-warning col-2" onclick="location.href='/all_collection'">업로드</button>
+    <button type="submit" class="btn col-1 btn-warning">검색</button>
+    <hr/>
+   </div>
+  </form>
+  <div class="table-responsive">
+    {% if rows[0] %}
+    <table class="table table-striped table-bordered">
+     <thead class="thead-dark">
+      <tr>
+       <th>모델명</th>
+       <th>시리얼 넘버</th>
+       <th>생산 주차</th>
+       <th>위치</th>
+       <th>품질검사 여부</th>
+      </tr>
+     </thead>
+     <tbody>
+      {% for row in rows %}
+      <tr>
+       <th><div class="checkbox"><label><input type="checkbox" value=""> {{ row["model"] }}</label></div></th>
+       <th> {{ row["sn"] }}</th>
+       <th> {{ row["week"] }}</th>
+       <th> {{ row["location"] }}</th>
+       <th> {{ row["quality"] }}</th>
+      </tr>
+      {% endfor %}
+     </tbody>
+    </table>
+    {% else %}
+    <h3> No Notice in the Database</h3>
+    {% endif %}
+   </div>
+ </div>
+
+
+ <a href="{{ url_for('index') }}">go somewhere nice</a>
+{% endblock %}

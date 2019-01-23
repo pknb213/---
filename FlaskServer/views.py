@@ -3,13 +3,50 @@ import os
 import random
 import datetime
 import pymongo
+import pandas
 from flask import render_template, request, current_app, make_response, url_for, redirect
 
-port = 27019
-conn = pymongo.MongoClient('211.106.106.186', port)
-
+db_ip = '211.106.106.186'
+db_port = 27019
+'''
+conn = pymongo.MongoClient(db_ip, db_port)
 db = conn.get_database('ERP_test')
 rows_collection = db.get_collection('test1')
+print(type(rows_collection))
+'''
+query = {}
+
+class Mongodb_connection:
+    def __init__(self):
+        # print(" ~~ ", sep = '\n')
+        print("MongoDB connecting", end=' >> ')
+
+    def db_client(self, ip, port):
+        return pymongo.MongoClient(ip, port)
+
+    def db_conn(self, client, coll):
+        db = client.get_database('ERP_test')
+        print("Connect", end=' >> ')
+        return db.get_collection(coll)
+
+    def db_close(self, ip, port):
+        print("Disconnect")
+        return self.db_client(ip, port).close()
+
+def make_read_excel():
+    # make excel file
+    '''
+    writer = pd.ExcelWriter('static/excel_for_flask.xlsx')
+    df = pd.DataFrame({"col_{}".format(i):list(np.random.randint(0, 100, 100)) for i in range(0, 8)})
+    df.to_excel(writer, 'sheet1')
+    writer.save()
+    '''
+    ## read excel file
+    df = pandas.read_excel('static/excel_for_flask.xlsx')
+    ## 아주 다행히도, dataframe을 html 문서로 바로 변환해주는 형식이 있습니다.
+    return df.to_html()
+
+
 
 @app.route('/index')
 def index():
@@ -21,9 +58,16 @@ def ckeditor4():
 
 @app.route('/')
 def production_main():
-    rows = rows_collection.find()
-    rows_list = list(rows)
-    return render_template('production_main.html', rows=rows_list)
+    now = datetime.datetime.today().strftime('%Y-%m-%d')
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(db_ip, db_port), 'test1')
+        rows_list = list(rows_collection.find())  # cursor type -> list type
+    except:
+        print("Db_error : production_main()")
+    finally:
+        db_object.db_close(db_ip, db_port)
+    return render_template('production_main.html', rows=rows_list, now_sdate=now, now_edate=now)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -31,25 +75,45 @@ def page_not_found(e):
 
 def week_num(year,mon,day):
     n = datetime.datetime(year,mon,day)
-    print(n) # calender date
+    #print(n) # calender date
     n = n.isocalendar()
-    print(n) # week num
+    #print(n) # week num
     n = list(n) # casting tuple -> list
     year = str(year) # casting int -> str
     result = year[2:4] + str(n[1]) # slice 2~4 char + week num
     return result
 
 def search_query(sdate, edate):
-    rows = rows_collection.find({'$and': [{'week': {'$gte': sdate}},{'week': {'$lte': edate}}]})
-    rows_list = list(rows)
+    #rows_list = list(rows_collection.find({'$and': [{'week': {'$gte': sdate}},{'week': {'$lte': edate}}]}))
+
+    query["$and"] = [
+        {
+            u"week": {
+                u"$gte": sdate
+            }
+        },
+        {
+            u"week": {
+                u"$lte": edate
+            }
+        }
+    ]
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(db_ip, db_port), 'test1')
+        rows_list = list(rows_collection.find(query))  # cursor type -> list type
+    except:
+        print("Db_error : search_query()")
+    finally:
+        db_object.db_close(db_ip, db_port)
     return rows_list
 
 @app.route('/search', methods=['POST'])
 def data_search():
-    sdate = request.values.get("startDate")
-    edate = request.values.get("endDate")
-    sdate = sdate.split('-')
-    edate = edate.split('-')
+    _sdate = request.values.get("startDate")
+    _edate = request.values.get("endDate")
+    sdate = _sdate.split('-')
+    edate = _edate.split('-')
     for i in range(0,3):
         sdate[i] = int(sdate[i])
         edate[i] = int(edate[i])
@@ -71,13 +135,29 @@ def data_search():
     else:
         print("Year Error")
 
-    return render_template('production_main.html', rows=list)
+    return render_template('production_main.html', rows=list, now_sdate=_sdate, now_edate=_edate)
 
 @app.route('/all_collection')
 def all_collection_show():
-    rows = rows_collection.find()
-    rows_list = list(rows)
-    return render_template('production_main.html', rows=rows_list)
+    now = datetime.datetime.today().strftime('%Y-%m-%d')
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(db_ip, db_port), 'test1')
+        rows_list = list(rows_collection.find())   # cursor type -> list type
+    except:
+        print("Db_error : all_collection_show()")
+    finally:
+        db_object.db_close(db_ip, db_port)
+    return render_template('production_main.html', rows=rows_list, now_sdate=now, now_edate=now)
+
+@app.route('/insert_plan')
+def insert_plan():
+
+    return render_template('insert_list.html')
+
+@app.route('/insert_product')
+def insert_product():
+    return render_template('insert_popup.html')
 
 @app.route('/ckprocess', methods=['POST'])
 def ckeditor4_process():
@@ -117,3 +197,7 @@ def ckupload():
     response = make_response(res)
     response.headers["Content-Type"] = "text/html"
     return response
+
+@app.route('/shipment_main')
+def shipment_main():
+    return render_template('shipment_main.html')
