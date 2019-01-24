@@ -4,11 +4,14 @@ import random
 import datetime
 import pymongo
 import pandas
+from werkzeug.utils import secure_filename
 from flask import render_template, request, current_app, make_response, url_for, redirect
 
-db_ip = '211.106.106.186'
-db_port = 27019
+db_ip = '192.168.0.3'
+db_port = 27017
 '''
+ip = '211.106.106.183'
+port = 27019
 conn = pymongo.MongoClient(db_ip, db_port)
 db = conn.get_database('ERP_test')
 rows_collection = db.get_collection('test1')
@@ -34,17 +37,26 @@ class Mongodb_connection:
         return self.db_client(ip, port).close()
 
 def make_read_excel():
+    import numpy as np
     # make excel file
     '''
-    writer = pd.ExcelWriter('static/excel_for_flask.xlsx')
-    df = pd.DataFrame({"col_{}".format(i):list(np.random.randint(0, 100, 100)) for i in range(0, 8)})
+    writer = pandas.ExcelWriter('./FaskServer/static/excel/test.xlsx')
+    df = pandas.DataFrame({"col_{}".format(i):list(np.random.randint(0, 100, 100)) for i in range(0, 8)})
     df.to_excel(writer, 'sheet1')
     writer.save()
-    '''
+    
     ## read excel file
-    df = pandas.read_excel('static/excel_for_flask.xlsx')
+    df = pandas.read_excel('./FaskServer/abc.xlsx', sheet_name='Sheet1')
     ## 아주 다행히도, dataframe을 html 문서로 바로 변환해주는 형식이 있습니다.
-    return df.to_html()
+    #return df.to_html()
+    print(df.head())
+    if os.path.isfile(df):
+        xl = pandas.ExcelFile('static/excel/생산계획.xlsx')
+    else:
+        print("Eroor < load fail : %s" % (df))
+    return xl.parse(''.join(xl.sheet_names))
+    '''
+
 
 
 
@@ -147,6 +159,8 @@ def all_collection_show():
         print("Db_error : all_collection_show()")
     finally:
         db_object.db_close(db_ip, db_port)
+        #print(rows_list)
+        print(rows_list[0])
     return render_template('production_main.html', rows=rows_list, now_sdate=now, now_edate=now)
 
 @app.route('/insert_plan')
@@ -154,11 +168,71 @@ def insert_plan():
 
     return render_template('plan_list.html', rows = {1,2,3,4})
 
-@app.route('/excel_table', methods=['POST'])
-def excel_table():
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'xlsx'])
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-    return redirect('/insert_plan')
-    #return render_template('plan_list.html, rows=rows_list
+@app.route('/excel_table', methods=['GET','POST'])
+def excel_table():
+    '''
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            print("NO")
+        print(request.files['file'])
+        f = request.files['file']
+        data_xls = pandas.read_excel(f)
+    '''
+
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            print('No file part')
+            return redirect('/insert_plan')
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            print('No selected file')
+            return redirect('/insert_plan')
+        if file and allowed_file(file.filename):
+            #filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+
+            #df = pandas.read_excel('abc.xlsx', sheet_name='sheet1', engine='xlrd')
+            df = pandas.read_excel('./FlaskServer/static/excel/생산계획.xlsx', sheet_name='sheet1', engine='xlrd')
+            print(df.head())
+            #return df.to_html()
+
+            print(df)
+            print(type(df))
+
+            print(df['월'])
+            rows_list = []
+            '''
+            rows_list.append(list(df['월']))
+            rows_list.append(list(df['주차']))
+            rows_list.append(list(df['모델코드']))
+            rows_list.append(list(df['모델명']))
+            rows_list.append(list(df['수량']))
+            print (rows_list)
+            for i in rows_list:
+                print(i)
+            print(rows_list[1])
+            '''
+
+            rows_list.append(list(df.loc[0]))
+            rows_list.append(list(df.loc[1]))
+            rows_list.append(list(df.loc[2]))
+            rows_list.append(list(df.loc[3]))
+            rows_list.append(list(df.loc[4]))
+
+
+            return render_template('plan_list.html', rows=rows_list)
+            #return redirect(url_for('insert_plan', filename=file.filename))
+
+    #return df.to_html()
+    #return make_read_excel()
+    #return render_template('plan_list.html', rows=rows_list)
 
 @app.route('/insert_product')
 def insert_product():
