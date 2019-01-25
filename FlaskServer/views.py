@@ -4,16 +4,15 @@ import random
 import datetime
 import pymongo
 import pandas
-from werkzeug.utils import secure_filename
 from flask import render_template, request, current_app, make_response, url_for, redirect
 
-db_ip = '192.168.0.3'
-db_port = 27017
+db_ip = '222.106.48.150'
+db_port = 27019
 '''
 ip = '211.106.106.183'
 port = 27019
 conn = pymongo.MongoClient(db_ip, db_port)
-db = conn.get_database('ERP_test')
+db = conn.get_database('ERP_testbk')
 rows_collection = db.get_collection('test1')
 print(type(rows_collection))
 '''
@@ -28,9 +27,11 @@ class Mongodb_connection:
         return pymongo.MongoClient(ip, port)
 
     def db_conn(self, client, coll):
-        db = client.get_database('ERP_test')
+        #db = client.get_database("ERP_testbk")
+        db = client['ERP_test']
         print("Connect", end=' >> ')
-        return db.get_collection(coll)
+        #return db.get_collection(coll)
+        return db[coll]
 
     def db_close(self, ip, port):
         print("Disconnect")
@@ -57,9 +58,6 @@ def make_read_excel():
     return xl.parse(''.join(xl.sheet_names))
     '''
 
-
-
-
 @app.route('/index')
 def index():
     return render_template('index.html')
@@ -74,7 +72,8 @@ def production_main():
     try:
         rows_list = search_query(now, now)
     except:
-        print("Db_error : production_main()")
+        print("Db_error : production_main()", end=" >> ")
+        #return render_template('404.html'), 404
     return render_template('production_main.html', rows=rows_list, now_sdate=now, now_edate=now)
 
 @app.errorhandler(404)
@@ -101,13 +100,13 @@ def search_query(sdate, edate):
         rows_collection = db_object.db_conn(db_object.db_client(db_ip, db_port), 'test1')
         rows_list = list(rows_collection.find(query))  # cursor type -> list type
     except:
-        print("Db_error : search_query()")
+        print("Db_error : search_query()", end=" >> ")
     finally:
         db_object.db_close(db_ip, db_port)
     return rows_list
 
 def week_num(year,mon,day):
-    n = datetime.datetime(year,mon,day)
+    n = datetime.datetime(year, mon, day)
     #print(n) # calender date
     n = n.isocalendar()
     #print(n) # week num
