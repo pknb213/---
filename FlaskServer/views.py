@@ -81,16 +81,6 @@ def production_main():
 def page_not_found(e):
 	return render_template('404.html'), 404
 
-def week_num(year,mon,day):
-    n = datetime.datetime(year,mon,day)
-    #print(n) # calender date
-    n = n.isocalendar()
-    #print(n) # week num
-    n = list(n) # casting tuple -> list
-    year = str(year) # casting int -> str
-    result = year[2:4] + str(n[1]) # slice 2~4 char + week num
-    return result
-
 def search_query(sdate, edate):
     #rows_list = list(rows_collection.find({'$and': [{'week': {'$gte': sdate}},{'week': {'$lte': edate}}]}))
 
@@ -115,6 +105,19 @@ def search_query(sdate, edate):
     finally:
         db_object.db_close(db_ip, db_port)
     return rows_list
+
+def week_num(year,mon,day):
+    n = datetime.datetime(year,mon,day)
+    #print(n) # calender date
+    n = n.isocalendar()
+    #print(n) # week num
+    n = list(n) # casting tuple -> list
+    wn = str(n[1])
+    if len(wn) == 1:
+        wn = '0' + wn
+    year = str(year) # casting int -> str
+    result = year[2:4] + str(wn) # slice 2~4 char + week num
+    return result
 
 @app.route('/search', methods=['POST'])
 def data_search():
