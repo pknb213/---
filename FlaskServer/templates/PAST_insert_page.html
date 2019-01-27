@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %} 등록 {% endblock %}
+{% block body %}
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#insert_modal"> 111</button>
+
+<!-- The Modal -->
+<div class="modal" id="insert_modal">
+    <div class="modal-dialog modal-lg">
+        <form class="form-inline" action="/insert_data" method="POST" enctype=multipart/form-data>
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h1 class="page-header">등 록</h1>
+                </div>
+                <hr/>
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <thead class="thead-dark">
+                            <tr>
+                                <th>모델명</th>
+                                <th>시리얼넘버</th>
+                                <th>담당자</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <th>
+                                    <select class="from-control" id="model" name="model">
+                                        <option>Indy3</option>
+                                        <option>Indy5</option>
+                                        <option>Indy7</option>
+                                        <option>Opti</option>
+                                        <option>Step-pc2</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    <input type="text" class="form-control" id="sn" name="sn"></th>
+                                <th>
+                                    <input type="text" class="form-control" id="header" name="header"></th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning">확 인</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

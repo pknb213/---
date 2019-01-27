@@ -27,11 +27,14 @@ class Mongodb_connection:
         return pymongo.MongoClient(ip, port)
 
     def db_conn(self, client, coll):
-        #db = client.get_database("ERP_testbk")
-        db = client['ERP_test']
+        try:
+            db = client['ERP_test']
+        except:
+            print("Connected fail (Database)")
+            client.db_close(db_ip, db_port)
         print("Connect", end=' >> ')
-        #return db.get_collection(coll)
         return db[coll]
+        #return db.get_collection(coll)
 
     def db_close(self, ip, port):
         print("Disconnect")
@@ -170,20 +173,75 @@ def insert_plan():
 
     return render_template('plan_list.html', rows = {1,2,3,4})
 
+def insert_query(collection, list):
+
+    query =  {'model': list[0], 'sn': list[1], 'header': list[2], 'data': list[3], 'quality': list[4], 'site': list[5], 'csState': list[6], 'shipment': list[7], 'key': list[8]}
+
+    result = list(collection.insertOne( { 'item': "card", 'qty': 15 } ))  # cursor type -> list type
+    print(result)
+    return result
+
+@app.route('/insert_data', methods=["POST"])
+def insert_data():
+    date = datetime.datetime.today().strftime('%Y-%m-%d')
+    now = date.split('-')
+    for i in range(0, 3):
+        now[i] = int(now[i])
+    now = week_num(now[0], now[1], now[2])
+    # Input value
+    _model = request.values.get("model")
+    _sn = request.values.get("sn")
+    _header = request.values.get("header")
+    print(_model, end=" ")
+    print(_sn, end=" ")
+    print(_header, end=" ")
+
+    # Auto value
+    _date = now
+    _quality = 'N'
+    _site = '대전'
+    _csState = 'N'
+    _show = 1
+    _shipment = 'N'
+    _key = _sn + str(_show)
+    print(_date, end=" ")
+    print(_quality, end=" ")
+    print(_site, end=" ")
+    print(_csState, end=" ")
+    print(_show, end=" ")
+    print(_shipment, end=" ")
+    print(_key)
+
+    data_list = [_model,_sn,_header,_date,_quality,_site,_csState,_show,_shipment,_key]
+
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(db_ip, db_port), 'test1')
+       # result = insert_query(collection, data_list)
+        #result = list(rows_collection.insert_one({ 'ename' : "김디디", 'depart' : "디자인팀", 'status' : "B", 'height': 177 } ))
+        result = list(rows_collection.insert_one( {"hhfah":111}))
+        #db.getCollection("test1").insertOne({ 'ename' : "김디디", 'depart' : "디자인팀", 'status' : "B", 'height': 177 } )  // in mongo db
+        print("rss : ", end=" ")
+        print(result)
+        print("rss ty : ", end=" ")
+        print(type(result))
+    except:
+        print("Db_error : insert_data()", end=" >> ")
+    finally:
+        db_object.db_close(db_ip, db_port)
+
+    return redirect('/')
+
+@app.route('/shipment_data', methods=["POST"])
+def shipment():
+    return render_template('shipment.html')
+
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'xlsx'])
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/excel_table', methods=['GET','POST'])
+@app.route('/excel_table', methods=['POST'])
 def excel_table():
-    '''
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            print("NO")
-        print(request.files['file'])
-        f = request.files['file']
-        data_xls = pandas.read_excel(f)
-    '''
 
     if request.method == 'POST':
         # check if the post request has the file part
@@ -210,17 +268,6 @@ def excel_table():
 
             print(df['월'])
             rows_list = []
-            '''
-            rows_list.append(list(df['월']))
-            rows_list.append(list(df['주차']))
-            rows_list.append(list(df['모델코드']))
-            rows_list.append(list(df['모델명']))
-            rows_list.append(list(df['수량']))
-            print (rows_list)
-            for i in rows_list:
-                print(i)
-            print(rows_list[1])
-            '''
 
             rows_list.append(list(df.loc[0]))
             rows_list.append(list(df.loc[1]))
@@ -238,7 +285,7 @@ def excel_table():
 
 @app.route('/insert_product')
 def insert_product():
-    return render_template('insert_popup.html')
+    return render_template('xxx.html')
 
 @app.route('/ckprocess', methods=['POST'])
 def ckeditor4_process():
