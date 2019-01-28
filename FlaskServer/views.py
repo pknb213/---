@@ -253,12 +253,27 @@ def insert_data():
 @app.route('/shipment_data', methods=["POST"])
 def shipment():
 
+    _model = request.values.getlist("model")
+    _sn = request.values.getlist("sn")
+    _location = request.values.getlist("location")
+    _key = request.values.getlist("key")
+    _shipment = request.values.getlist("shipment")
 
-    data = request.values.get("key[]")
-    data2 = request.values.get("key[0]")
-    print (data)
-    print (data2)
+    print (_model)
+    print(_sn)
+    print (_location)
+    print(_key)
+    print(_shipment)
 
+    _checkbox = request.values.getlist("checkYN")
+    print(_checkbox)
+
+    ''' 
+    체크박스 체크된 것들을 출고 DB로 insert 하는 것
+    1) _checkbox list의 값을 참조하여 일치하는 Doc을 Find query 하기.
+    2) 해당 Doc의 state를 0으로 안보이게 Update query 하기.
+    3) 출고 DB로 해당 Doc을 Insert query 하기. ( 출고 DB Schema 설계 )
+    '''
    #for i in range(0,len(datas)):
     #    print(str(i) + " " + str(datas[i]))
 

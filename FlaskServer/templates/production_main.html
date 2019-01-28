@@ -35,8 +35,45 @@
         //alert(typeof(result));
 
         //alert(result[0]+ "\n" + result[1] +  "\n" + result[2] +  "\n" + result[3] +  "\n" + result[4] );
-    })
+    });
  }
+
+ function change(){
+     /*var tmp = $('[name=checkYN[]]').prop('checked'); // 변수에 넣기
+     if(tmp == true) {
+         return $('[name=YN[]]').val('Y');
+     }else{
+         return $('[name=YN[]]').val('N');
+     }
+     alert(tmp);*/
+     var result = $('input[name="checkYN"]').each(function (){
+            //var tmp = $('[name=checkYN]').is('checked'); // 변수에 넣기
+             //if(tmp == true) {
+             if($("input:checkbox[name=checkYN]").is(":checked") == true){
+                 return $('[name=YN]').val('Y');
+             }else{
+                 return $('[name=YN]').val('N');
+             }
+     });
+
+}
+ $('input:checkbox[name="checkYN"]').each(function() {
+
+      this.checked = true; //checked 처리
+
+      if(this.checked){//checked 처리된 항목의 값
+
+            alert(this.value);
+
+      }
+
+         if($('#checkYN').is(":checked")){
+             $("#YN").val("Y");
+         }else{
+             $("#YN").val("N");
+         }
+ });
+
 </script>
 {% endblock %}
 {% block title %} 생산관리 페이지 {% endblock %}
@@ -113,12 +150,15 @@
                               {% for row in rows %}
                               <tr>
                                 <th><div class="checkbox">
-                                    <input type="checkbox" name="checkbox2"> {{ row["model"] }}
-                                    <input type="hidden" name=key[] value="{{ row['key'] }}">
+                                    <input type="checkbox" id="checkYN" name="checkYN" value="{{ row['key'] }}"> {{ row["model"] }}
+                                    <input type="hidden" name="model" value="{{ row['model'] }}">
+                                    <input type="hidden" name="sn" value="{{ row['sn'] }}">
+                                    <input type="hidden" name="location" value="{{ row['location'] }}">
+                                    <input type="hidden" name=key value="{{ row['key'] }}">
                                 </div></th>
                                 <th> {{ row["sn"] }}</th>
                                 <th> {{ row["location"] }}</th>
-                                <th><input type="text" class="form-control" name="des"></th>
+                                <th><input type="text" class="form-control" name="shipment"></th>
                               </tr>
                               {% endfor %}
                               </tbody>
