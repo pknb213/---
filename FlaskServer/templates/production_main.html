@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'main_base.html' %}
 {% block head %}
 <script>
  function winPop(url, opts) {
@@ -27,34 +27,18 @@
                 alert(a);
             }
         });
-        //result = $('input:checkbox[name="checkbox"]').val();
-        //result = result.split(",");
-        //result = "'"+ result.replace(/'/gi,'"') +"'";
-        //result = JSON.parse(result)
-        //result = result.search('model');
-        //alert(typeof(result));
 
-        //alert(result[0]+ "\n" + result[1] +  "\n" + result[2] +  "\n" + result[3] +  "\n" + result[4] );
     });
  }
 
  function change(){
-     /*var tmp = $('[name=checkYN[]]').prop('checked'); // 변수에 넣기
+     var tmp = $('[name=checkYN[]]').prop('checked'); // 변수에 넣기
      if(tmp == true) {
          return $('[name=YN[]]').val('Y');
      }else{
          return $('[name=YN[]]').val('N');
      }
-     alert(tmp);*/
-     var result = $('input[name="checkYN"]').each(function (){
-            //var tmp = $('[name=checkYN]').is('checked'); // 변수에 넣기
-             //if(tmp == true) {
-             if($("input:checkbox[name=checkYN]").is(":checked") == true){
-                 return $('[name=YN]').val('Y');
-             }else{
-                 return $('[name=YN]').val('N');
-             }
-     });
+     alert(tmp);
 
 }
  $('input:checkbox[name="checkYN"]').each(function() {
@@ -77,36 +61,9 @@
 </script>
 {% endblock %}
 {% block title %} 생산관리 페이지 {% endblock %}
-
+{% block body_title %}Title{% endblock %}
+{% block main_title %}생산관리 화면{% endblock %}
 {% block body %}
-<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
- <ul class="navbar-nav">
-  <li class="navbar-item active">
-   <a class="nav-link" href="/"><h3>Title</h3></a>
-   </li>
- </ul>
-</nav>
-
-<div class="container-fluid">
- <div class="row">
-  <div class="col-2" style="background-color: white;">
-   <ul class="nav nav-tabs flex-column">
-    <li class="nav-item active">
-     <a class="nav-link" href="/">
-      "생산관리 화면"
-      <span class="sr-only">(current)</span>
-     </a>
-    </li>
-    <li class="nav-item active">
-     <a class="nav-link" href="/shipment_main">
-      "출하관리 화면"
-     </a>
-    </li>
-   </ul>
-  </div>
-  <div class="col-10 col-offset-2">
-   <h1 class="page-header">생산관리 화면</h1>
-   <hr/>
   <form class="form-inline" action="/search" method="POST">
    <div class="row container-fluid">
     <input type="date" name="startDate" value={{now_sdate}} class="col-2 btn-primary">
@@ -115,8 +72,7 @@
     <button type="submit" class="btn col-1 btn-warning">검색</button>
    </div>
   </form>
-   <hr/>
-
+  <hr/>
    <div class="row container-fluid">
     <button type="button" class="btn btn-primary col-1" onclick="location.href='/all_collection'">전체</button>
     <button type="button" class="btn btn-warning col-2 offset-3" onclick="hi(); return false;">생산실적조회</button>

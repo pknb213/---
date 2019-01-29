@@ -1,7 +1,12 @@
-{% extends 'base.html' %}
+{% extends 'main_base.html' %}
+{% block head %}
+{% endblock %}
 {% block title %} 출하관리 페이지 {% endblock %}
+{% block body_title %}Title{% endblock %}
+{% block main_title %}출하관리 화면{% endblock %}
 {% block body %}
  <h1>777 Success :)</h1>
  <p>Happy Hello Wolrd !!.<p>
+  <p>{{ rows }}<p>
  <a href="{{ url_for('index') }}">go somewhere nice</a>
 {% endblock %}

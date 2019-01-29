@@ -15,6 +15,29 @@ rows_collection = db.get_collection('test1')
 print(type(rows_collection))
 '''
 
+''' Define
+class Mongodb_connection
+    def make_read_excel()
+def index()
+def ckeditor4()
+def production_main()
+def page_not_found(e)
+    def search_query(sdate, edate)
+    def week_num(year, mon, day)
+def data_search()
+def all_collection_show()
+def insert_plan()
+    def data_insert_query(collection, _dataList)
+def insert_data()
+def shipment()
+    def allowed_file(filename)
+def excel_table()
+def ckeditor4_process()
+    def gen_rnd_filename()
+def ckupload()
+
+def shipment_main()
+'''
 
 class Mongodb_connection:
     _ip = '222.106.48.150'
@@ -87,9 +110,7 @@ def production_main():
     except Exception as e:
         print("DB_error : production_main()", end=" >> ")
         print(e)
-        # return render_template('404.html'), 404
-
-    modal_rows = {}
+        return render_template('404.html'), 404
 
     return render_template('production_main.html', rows=rows_list, now_sdate=date, now_edate=date)
 
@@ -427,4 +448,15 @@ def ckupload():
 
 @app.route('/shipment_main')
 def shipment_main():
-    return render_template('shipment_main.html')
+    query = {u"_show": {u"$eq": '1'}}
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'test2')
+        rows_list = list(rows_collection.find(query))  # cursor type -> list type
+    except Exception as e:
+        print("DB_error : all_collection_show()", end=" >> ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    return render_template('shipment_main.html', rows=rows_list)
