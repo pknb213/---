@@ -101,8 +101,9 @@ def page_not_found(e):
 
 def search_query(sdate, edate):
     # rows_list = list(rows_collection.find({'$and': [{'week': {'$gte': sdate}},{'week': {'$lte': edate}}]}))
-    query = {}
-    query["$and"] = [
+    # query = {}
+    # query["$and"] = [
+    query = {"$and": [
         {
             u"week": {
                 u"$gte": sdate
@@ -112,8 +113,14 @@ def search_query(sdate, edate):
             u"week": {
                 u"$lte": edate
             }
+        },
+        {
+            u"show": {
+                u"$eq": '1'
+            }
         }
-    ]
+    ]}
+
     try:
         db_object = Mongodb_connection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
@@ -151,15 +158,15 @@ def data_search():
         edate[i] = int(edate[i])
 
     if int(sdate[0]) < int(edate[0]):
-        list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]))
+        rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]))
     elif int(sdate[0]) == int(edate[0]):
         if int(sdate[1]) < int(edate[1]):
-            list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]))
+            rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]))
         elif int(sdate[1]) == int(edate[1]):
             if int(sdate[2]) < int(edate[2]):
-                list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]))
+                rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]))
             elif int(sdate[2]) == int(edate[2]):
-                list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]))
+                rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]))
             else:
                 print("Day Error")
                 return redirect('/')
@@ -170,23 +177,22 @@ def data_search():
         print("Year Error")
         return redirect('/')
 
-    return render_template('production_main.html', rows=list, now_sdate=_sdate, now_edate=_edate)
+    return render_template('production_main.html', rows=rows_list, now_sdate=_sdate, now_edate=_edate)
 
 
 @app.route('/all_collection')
 def all_collection_show():
     now = datetime.datetime.today().strftime('%Y-%m-%d')
+    query = {u"show": {u"$eq": '1'}}
     try:
         db_object = Mongodb_connection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
-        rows_list = list(rows_collection.find())  # cursor type -> list type
+        rows_list = list(rows_collection.find(query))  # cursor type -> list type
     except Exception as e:
-        print("DB_error : all_collection_show()")
+        print("DB_error : all_collection_show()", end=" >> ")
         print(e)
     finally:
         db_object.db_close()
-        # print(rows_list)
-        print(rows_list[0])
     return render_template('production_main.html', rows=rows_list, now_sdate=now, now_edate=now)
 
 
@@ -195,9 +201,10 @@ def insert_plan():
     return render_template('plan_list.html', rows={})
 
 
-def data_insert_query(collection, list):
-    query = {'model': list[0], 'sn': list[1], 'header': list[2], 'week': list[3], 'quality': list[4],
-             'location': list[5], 'csState': list[6], 'shipment': list[7], 'key': list[8]}
+def data_insert_query(collection, _dataList):
+    month = datetime.datetime.today().strftime('%m') # Str type
+    query = {'model': _dataList[0], 'sn': _dataList[1], 'header': _dataList[2], 'month': month, 'week': _dataList[3], 'quality': _dataList[4],
+             'location': _dataList[5], 'csState': _dataList[6], 'show': _dataList[7], 'shipment': _dataList[8], 'key': _dataList[9]}
     result = collection.insert_one(query)  # Insert_one objcet is not callable => List type X
     return result
 
@@ -233,7 +240,7 @@ def insert_data():
     print(_show, end=" ")
     print(_shipment, end=" ")
     print(_key)
-
+    # 0 ~ 9 : 10 value
     data_list = [_model, _sn, _header, _date, _quality, _site, _csState, _show, _shipment, _key]
 
     try:
@@ -242,7 +249,7 @@ def insert_data():
         data_insert_query(rows_collection, data_list)
 
     except Exception as e:
-        print("DB_error : insert_data()")
+        print("DB_error : insert_data()", end=" >> ")
         print(e)
     finally:
         db_object.db_close()
@@ -252,33 +259,75 @@ def insert_data():
 
 @app.route('/shipment_data', methods=["POST"])
 def shipment():
+    if request.values.get("data_empty"):
+        print("shipment POST data is empty", end=" >> ")
+        print(request.values.get("data_empty"))
+        return redirect('/')
+    else:
+        try:
+            _model = request.values.getlist("model")
+            _sn = request.values.getlist("sn")
+            _location = request.values.getlist("location")
+            _key = request.values.getlist("key")
+            _shipment = request.values.getlist("shipment")
+            _checkbox = request.values.getlist("checkYN") # Checked the key value
 
-    _model = request.values.getlist("model")
-    _sn = request.values.getlist("sn")
-    _location = request.values.getlist("location")
-    _key = request.values.getlist("key")
-    _shipment = request.values.getlist("shipment")
+            print(_checkbox)
+            print(_model)
+            print(_sn)
+            print(_location)
+            print(_key)
+            print(_shipment)
 
-    print (_model)
-    print(_sn)
-    print (_location)
-    print(_key)
-    print(_shipment)
+        except Exception as e:
+            print("POST_error : shipment()", end=" >> ")
+            print(e)
 
-    _checkbox = request.values.getlist("checkYN")
-    print(_checkbox)
+        try:
+            find_result = []
+            rows = []
+            db_object = Mongodb_connection()
+            for i in range(0, len(_checkbox)):
+                # return find() -> Cursor Type
+                # return insert() -> Object Type
+                # return update() -> Dict Type
+                rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
+                find_result.append(rows_collection.find({
 
-    ''' 
-    체크박스 체크된 것들을 출고 DB로 insert 하는 것
-    1) _checkbox list의 값을 참조하여 일치하는 Doc을 Find query 하기.
-    2) 해당 Doc의 state를 0으로 안보이게 Update query 하기.
-    3) 출고 DB로 해당 Doc을 Insert query 하기. ( 출고 DB Schema 설계 )
-    '''
-   #for i in range(0,len(datas)):
-    #    print(str(i) + " " + str(datas[i]))
+                    u"key": {
+                        u"$eq": _checkbox[i]
+                    }
 
+                }))
 
-    return redirect('/')
+                rows += list(find_result[i])
+            print(rows)
+
+            for j in range(0, len(_checkbox)):
+                rows_collection.update({
+
+                    '_id': rows[j]['_id']
+                }, {
+                    '$set': {'show': '0'}
+                }
+                )
+
+            for k in range(0, len(_checkbox)):
+                rows_collection = db_object.db_conn(db_object.db_client(), 'test2')
+                rows_collection.insert({
+
+                    '_model': rows[k]['model'], '_sn': rows[k]['sn'], '_month': rows[k]['month'], '_week': rows[k]['week'], '_outDate': '0', '_office': rows[k]['location'], '_contractNum': '0',
+                    '_sum': '0', '_deliveryDate': '0', '_expectPayDate': '0', '_realPayDate': '0', '_show': '1', '_key': rows[k]['key']
+
+                })
+
+        except Exception as e:
+            print("DB_error : shipment()", end=" >> ")
+            print(e)
+        finally:
+            db_object.db_close()
+
+        return redirect('/')
 
 
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'xlsx'])
@@ -318,7 +367,7 @@ def excel_table():
                 return render_template('plan_list.html', rows=rows_list)
                 # return redirect(url_for('insert_plan', filename=file.filename))
     except Exception as e:
-        print(" Excel_table() Error ")
+        print(" Excel_error : excel_table()", end=" >> ")
         print(e)
         render_template('404.html'), 404
 
@@ -369,6 +418,12 @@ def ckupload():
     response.headers["Content-Type"] = "text/html"
     return response
 
+
+'''
+
+
+
+'''
 
 @app.route('/shipment_main')
 def shipment_main():

@@ -150,11 +150,11 @@
                               {% for row in rows %}
                               <tr>
                                 <th><div class="checkbox">
-                                    <input type="checkbox" id="checkYN" name="checkYN" value="{{ row['key'] }}"> {{ row["model"] }}
-                                    <input type="hidden" name="model" value="{{ row['model'] }}">
-                                    <input type="hidden" name="sn" value="{{ row['sn'] }}">
-                                    <input type="hidden" name="location" value="{{ row['location'] }}">
-                                    <input type="hidden" name=key value="{{ row['key'] }}">
+                                    <input type="checkbox" id="checkYN" name="checkYN" value="{{ row['key'] }}"/> {{ row["model"] }}
+                                    <input type="hidden" name="model" value="{{ row['model'] }}"/>
+                                    <input type="hidden" name="sn" value="{{ row['sn'] }}"/>
+                                    <input type="hidden" name="location" value="{{ row['location'] }}"/>
+                                    <input type="hidden" name=key value="{{ row['key'] }}"/>
                                 </div></th>
                                 <th> {{ row["sn"] }}</th>
                                 <th> {{ row["location"] }}</th>
@@ -165,6 +165,7 @@
                           </table>
                           {% else %}
                           <h3> No Notice in the CheckBox</h3>
+                          <input type="hidden" name="data_empty" value='{{ true }}'/>
                           {% endif %}
                       </div>
                   </div>
@@ -244,9 +245,7 @@
      <tbody>
       {% for row in rows %}
       <tr>
-       <th><div class="checkbox">
-           <input type="checkbox" value="{{ row }}" name="checkbox"> {{ row["model"] }}
-       </div></th>
+       <th> {{ row["model"] }}</th>
        <th> {{ row["sn"] }}</th>
        <th> {{ row["week"] }}</th>
        <th> {{ row["location"] }}</th>
