@@ -15,29 +15,6 @@ rows_collection = db.get_collection('test1')
 print(type(rows_collection))
 '''
 
-''' Define
-class Mongodb_connection
-    def make_read_excel()
-def index()
-def ckeditor4()
-def production_main()
-def page_not_found(e)
-    def search_query(sdate, edate)
-    def week_num(year, mon, day)
-def data_search()
-def all_collection_show()
-def insert_plan()
-    def data_insert_query(collection, _dataList)
-def insert_data()
-def shipment()
-    def allowed_file(filename)
-def excel_table()
-def ckeditor4_process()
-    def gen_rnd_filename()
-def ckupload()
-
-def shipment_main()
-'''
 
 class Mongodb_connection:
     _ip = '222.106.48.150'
@@ -100,11 +77,15 @@ def ckeditor4():
 
 @app.route('/')
 def production_main():
-    date = datetime.datetime.today().strftime('%Y-%m-%d')
-    now = date.split('-')
-    for i in range(0, 3):
-        now[i] = int(now[i])
-    now = week_num(now[0], now[1], now[2])
+    try:
+        date = datetime.datetime.today().strftime('%Y-%m-%d')
+        now = date.split('-')
+        for i in range(0, 3):
+            now[i] = int(now[i])
+        now = week_num(now[0], now[1], now[2])
+    except Exception as e:
+        print("Date_error : production_main()", end=" >> ")
+        print(e)
     try:
         rows_list = search_query(now, now)
     except Exception as e:
@@ -112,7 +93,7 @@ def production_main():
         print(e)
         return render_template('404.html'), 404
 
-    return render_template('production_main.html', rows=rows_list, now_sdate=date, now_edate=date)
+    return render_template('production_main.html', rows=rows_list, now_sdate=date, now_edate=date, shipment_modal_rows=shipment_modal_rows())
 
 
 @app.errorhandler(404)
@@ -198,7 +179,7 @@ def data_search():
         print("Year Error")
         return redirect('/')
 
-    return render_template('production_main.html', rows=rows_list, now_sdate=_sdate, now_edate=_edate)
+    return render_template('production_main.html', rows=rows_list, now_sdate=_sdate, now_edate=_edate, shipment_modal_rows=shipment_modal_rows())
 
 
 @app.route('/all_collection')
@@ -214,7 +195,7 @@ def all_collection_show():
         print(e)
     finally:
         db_object.db_close()
-    return render_template('production_main.html', rows=rows_list, now_sdate=now, now_edate=now)
+    return render_template('production_main.html', rows=rows_list, now_sdate=now, now_edate=now, shipment_modal_rows=shipment_modal_rows())
 
 
 @app.route('/insert_plan')
@@ -281,8 +262,11 @@ def insert_data():
 @app.route('/shipment_data', methods=["POST"])
 def shipment():
     if request.values.get("data_empty"):
-        print("shipment POST data is empty", end=" >> ")
+        print("shipment POST data is empty")
         print(request.values.get("data_empty"))
+        return redirect('/')
+    elif not len(request.values.getlist("checkYN")):
+        print("shipment rows is empty")
         return redirect('/')
     else:
         try:
@@ -338,7 +322,7 @@ def shipment():
                 rows_collection.insert({
 
                     '_model': rows[k]['model'], '_sn': rows[k]['sn'], '_month': rows[k]['month'], '_week': rows[k]['week'], '_outDate': '0', '_office': rows[k]['location'], '_contractNum': '0',
-                    '_sum': '0', '_deliveryDate': '0', '_expectPayDate': '0', '_realPayDate': '0', '_show': '1', '_key': rows[k]['key']
+                    '_shipment': _shipment[k], '_sum': '0', '_deliveryDate': '0', '_expectPayDate': '0', '_realPayDate': '0', '_show': '1', '_key': rows[k]['key']
 
                 })
 
@@ -446,8 +430,22 @@ def ckupload():
 
 '''
 
+
 @app.route('/shipment_main')
 def shipment_main():
+    try:
+        date = datetime.datetime.today().strftime('%Y-%m-%d')
+        sdate = datetime.datetime.today().strftime('%Y-01-01')
+        '''
+        now = date.split('-')
+        for i in range(0, 3):
+            now[i] = int(now[i])
+        now = week_num(now[0], now[1], now[2])
+        '''
+    except Exception as e:
+        print("Date_error : production_main()", end=" >> ")
+        print(e)
+
     query = {u"_show": {u"$eq": '1'}}
     try:
         db_object = Mongodb_connection()
@@ -459,4 +457,26 @@ def shipment_main():
     finally:
         db_object.db_close()
 
-    return render_template('shipment_main.html', rows=rows_list)
+    return render_template('shipment_main.html', rows=rows_list, now_sdate=sdate, now_edate=date)
+
+
+def shipment_modal_rows():
+    query = {"$and": [{u"quality": {u"$eq": 'N'}}, {u"show": {u"$eq": '1'}}]}
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
+        rows_list = list(rows_collection.find(query))  # cursor type -> list type
+    except Exception as e:
+        print("DB_error : all_collection_show()", end=" >> ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    return rows_list
+
+
+@app.route('/insert_information', methods=["POST"])
+def insert_insert_information():
+
+
+    return redirect('/shipment_main')
