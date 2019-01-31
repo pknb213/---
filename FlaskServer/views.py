@@ -5,6 +5,7 @@ import datetime
 import pymongo
 import pandas
 from flask import render_template, request, current_app, make_response, url_for, redirect
+from bson.objectid import ObjectId # For ObjectId to work
 
 '''
 ip = '211.106.106.183'
@@ -78,6 +79,7 @@ def ckeditor4():
 @app.route('/')
 def production_main():
     try:
+        page = 'p_page'
         date = datetime.datetime.today().strftime('%Y-%m-%d')
         now = date.split('-')
         for i in range(0, 3):
@@ -87,7 +89,7 @@ def production_main():
         print("Date_error : production_main()", end=" >> ")
         print(e)
     try:
-        rows_list = search_query(now, now)
+        rows_list = search_query(now, now, page)
     except Exception as e:
         print("DB_error : production_main()", end=" >> ")
         print(e)
@@ -101,31 +103,55 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 
-def search_query(sdate, edate):
+def search_query(sdate, edate, page):
     # rows_list = list(rows_collection.find({'$and': [{'week': {'$gte': sdate}},{'week': {'$lte': edate}}]}))
     # query = {}
     # query["$and"] = [
-    query = {"$and": [
-        {
-            u"week": {
-                u"$gte": sdate
+
+    if page == 'p_page':
+        coll = 'test1'
+        query = {"$and": [
+            {
+                u"week": {
+                    u"$gte": sdate
+                }
+            },
+            {
+                u"week": {
+                    u"$lte": edate
+                }
+            },
+            {
+                u"show": {
+                    u"$eq": '1'
+                }
             }
-        },
-        {
-            u"week": {
-                u"$lte": edate
+        ]}
+    elif page == 's_page':
+        coll = 'test2'
+        query = {"$and": [
+            {
+                u"_product_week": {
+                    u"$gte": sdate
+                }
+            },
+            {
+                u"_product_week": {
+                    u"$lte": edate
+                }
+            },
+            {
+                u"_show": {
+                    u"$eq": '1'
+                }
             }
-        },
-        {
-            u"show": {
-                u"$eq": '1'
-            }
-        }
-    ]}
+        ]}
+    else:
+        print("page parameter is wrong")
 
     try:
         db_object = Mongodb_connection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
+        rows_collection = db_object.db_conn(db_object.db_client(), coll)
         rows_list = list(rows_collection.find(query))  # cursor type -> list type
     except Exception as e:
         print("DB_error : search_query()", end=" >> ")
@@ -148,9 +174,9 @@ def week_num(year, mon, day):
     result = year[2:4] + str(wn)  # slice 2~4 char + week num
     return result
 
-
 @app.route('/search', methods=['POST'])
 def data_search():
+    _page = request.values.get("page")
     _sdate = request.values.get("startDate")
     _edate = request.values.get("endDate")
     sdate = _sdate.split('-')
@@ -160,15 +186,15 @@ def data_search():
         edate[i] = int(edate[i])
 
     if int(sdate[0]) < int(edate[0]):
-        rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]))
+        rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]), _page)
     elif int(sdate[0]) == int(edate[0]):
         if int(sdate[1]) < int(edate[1]):
-            rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]))
+            rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]), _page)
         elif int(sdate[1]) == int(edate[1]):
             if int(sdate[2]) < int(edate[2]):
-                rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]))
+                rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]), _page)
             elif int(sdate[2]) == int(edate[2]):
-                rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]))
+                rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]), _page)
             else:
                 print("Day Error")
                 return redirect('/')
@@ -179,13 +205,18 @@ def data_search():
         print("Year Error")
         return redirect('/')
 
-    return render_template('production_main.html', rows=rows_list, now_sdate=_sdate, now_edate=_edate, shipment_modal_rows=shipment_modal_rows())
-
+    if _page == 'p_page':
+        return render_template('production_main.html', rows=rows_list, now_sdate=_sdate, now_edate=_edate, shipment_modal_rows=shipment_modal_rows())
+    elif _page == 's_page':
+        return render_template('shipment_main.html', rows=rows_list, now_sdate=_sdate, now_edate=_edate)
+    else:
+        print("POST hidden page value error ")
 
 @app.route('/all_collection')
 def all_collection_show():
     now = datetime.datetime.today().strftime('%Y-%m-%d')
-    query = {u"show": {u"$eq": '1'}}
+    #query = {u"show": {u"$eq": '1'}}
+    query = {u"detail.show": {u"$eq": "1"}}
     try:
         db_object = Mongodb_connection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
@@ -195,7 +226,13 @@ def all_collection_show():
         print(e)
     finally:
         db_object.db_close()
-    return render_template('production_main.html', rows=rows_list, now_sdate=now, now_edate=now, shipment_modal_rows=shipment_modal_rows())
+    print(rows_list)
+    new_list = []
+    for i in range(0, len(rows_list)):
+        new_list.append({"model":rows_list[i]['model'], "sn":rows_list[i]['sn'], "week": rows_list[i]['date']['week'], "location": rows_list[i]['location'], "state":rows_list[i]['detail']['state']})
+    print(new_list)
+    print(type(new_list))
+    return render_template('production_main.html', rows=new_list, now_sdate=now, now_edate=now, shipment_modal_rows=shipment_modal_rows())
 
 
 @app.route('/insert_plan')
@@ -204,10 +241,15 @@ def insert_plan():
 
 
 def data_insert_query(collection, _dataList):
-    month = datetime.datetime.today().strftime('%m') # Str type
-    query = {'model': _dataList[0], 'sn': _dataList[1], 'header': _dataList[2], 'month': month, 'week': _dataList[3], 'quality': _dataList[4],
-             'location': _dataList[5], 'csState': _dataList[6], 'show': _dataList[7], 'shipment': _dataList[8], 'key': _dataList[9]}
-    result = collection.insert_one(query)  # Insert_one objcet is not callable => List type X
+    date = datetime.datetime.today().strftime('%Y%m%d') # Str type
+    #query = {'model': _dataList[0], 'sn': _dataList[1], 'header': _dataList[2], 'month': month, 'week': _dataList[3], 'quality': _dataList[4],
+    #         'location': _dataList[5], 'state': _dataList[6], 'show': _dataList[7], 'shipment': _dataList[8], 'key': _dataList[9]}
+    #result = collection.insert_one(query)  # Insert_one objcet is not callable => List type X
+
+    query = {'model': _dataList[0], 'sn': _dataList[1],  'location': _dataList[5],
+             'date': {'month': date, 'week': _dataList[3]},
+             'detail': {'header': _dataList[2], 'quality': _dataList[4], 'show': _dataList[7], 'state': _dataList[6]}}
+    result = collection.insert_one(query)
     return result
 
 
@@ -228,22 +270,18 @@ def insert_data():
     print(_header, end=" ")
 
     # Auto value
-    _date = now
+    _week = now
     _quality = 'N'
     _site = '대전'
-    _csState = 'N'
+    _state = '재고'        # 재고, 판매, 기증, 내수용, A/S입고, 폐기
     _show = '1'
-    _shipment = 'N'
-    _key = _sn + str(_show)
-    print(_date, end=" ")
+    print(_week, end=" ")
     print(_quality, end=" ")
     print(_site, end=" ")
-    print(_csState, end=" ")
+    print(_state, end=" ")
     print(_show, end=" ")
-    print(_shipment, end=" ")
-    print(_key)
-    # 0 ~ 9 : 10 value
-    data_list = [_model, _sn, _header, _date, _quality, _site, _csState, _show, _shipment, _key]
+    # 0 ~ 7 : 8 value
+    data_list = [_model, _sn, _header, _week, _quality, _site, _state, _show]
 
     try:
         db_object = Mongodb_connection()
@@ -270,6 +308,7 @@ def shipment():
         return redirect('/')
     else:
         try:
+            _shipment_date = datetime.datetime.today().strftime('%Y-%m-%d')
             _model = request.values.getlist("model")
             _sn = request.values.getlist("sn")
             _location = request.values.getlist("location")
@@ -304,7 +343,6 @@ def shipment():
                     }
 
                 }))
-
                 rows += list(find_result[i])
             print(rows)
 
@@ -313,7 +351,7 @@ def shipment():
 
                     '_id': rows[j]['_id']
                 }, {
-                    '$set': {'show': '0'}
+                    '$set': {'show': '0', 'shipment': 'Y'}
                 }
                 )
 
@@ -321,7 +359,7 @@ def shipment():
                 rows_collection = db_object.db_conn(db_object.db_client(), 'test2')
                 rows_collection.insert({
 
-                    '_model': rows[k]['model'], '_sn': rows[k]['sn'], '_month': rows[k]['month'], '_week': rows[k]['week'], '_outDate': '0', '_office': rows[k]['location'], '_contractNum': '0',
+                    '_model': rows[k]['model'], '_sn': rows[k]['sn'], '_shipment_date': _shipment_date, '_product_week': rows[k]['week'], '_outDate': '0', '_office': rows[k]['location'], '_contractNum': '0',
                     '_shipment': _shipment[k], '_sum': '0', '_deliveryDate': '0', '_expectPayDate': '0', '_realPayDate': '0', '_show': '1', '_key': rows[k]['key']
 
                 })
@@ -476,7 +514,72 @@ def shipment_modal_rows():
 
 
 @app.route('/insert_information', methods=["POST"])
-def insert_insert_information():
+def insert_information():
+    if request.values.get("data_empty"):
+        print("insert_information POST data is empty")
+        print(request.values.get("data_empty"))
+        return redirect('shipment_main')
+    elif not len(request.values.getlist("check_box")):
+        print("insert_information rows is empty")
+        return redirect('shipment_main')
+    else:
+        try:
+            _update_date = datetime.datetime.today().strftime('%Y-%m-%d')
+            _checkbox = request.values.getlist("check_box") # Checked the Object _id value
+            _contractNum = request.values.getlist("contractNum")
+            _sum = request.values.getlist("sum")
+            _deliveryDate = request.values.getlist("deliveryDate")
+            _expectPayDate = request.values.getlist("expectPayDate")
+            _realPayDate = request.values.getlist("realPayDate")
 
+            print(_checkbox)
+            print(_contractNum)
+            print(_sum)
+            print(_deliveryDate)
+            print(_expectPayDate)
+            print(_realPayDate)
+            print(len(_checkbox))
 
-    return redirect('/shipment_main')
+        except Exception as e:
+            print("POST_error : insert_insert_information()", end=" >> ")
+            print(e)
+        try:
+            find_result = []
+            rows = []
+            db_object = Mongodb_connection()
+            for i in range(0, len(_checkbox)):
+                # return find() -> Cursor Type
+                # return insert() -> Object Type
+                # return update() -> Dict Type
+                rows_collection = db_object.db_conn(db_object.db_client(), 'test2')
+                find_result.append(rows_collection.find({
+
+                    u"_id": {
+                        u"$eq": ObjectId(_checkbox[i])
+                    }
+
+                }))
+                print(find_result[i]) # Cursor Type
+                rows += list(find_result[i])
+            print(rows)
+            for j in range(0, len(_checkbox)):
+                rows_collection.update({
+
+                    '_id': rows[j]['_id']
+                }, {
+                    '$set': {
+                        '_contractNum': _contractNum[j],
+                        '_sum': _sum[j],
+                        '_deliveryDate': _deliveryDate[j],
+                        '_expectPayDate': _expectPayDate[j],
+                        '_realPayDate': _realPayDate[j]
+                    }
+                })
+
+        except Exception as e:
+            print("DB_error : shipment()", end=" >> ")
+            print(e)
+        finally:
+            db_object.db_close()
+
+        return redirect('/shipment_main')

@@ -62,26 +62,27 @@
 
 </script>
 {% endblock %}
-{% block title %} 생산관리 페이지 {% endblock %}
+{% block title %} 재고관리 페이지 {% endblock %}
 {% block body_title %}Title{% endblock %}
-{% block main_title %}생산관리 화면{% endblock %}
+{% block main_title %}재고관리 화면{% endblock %}
 {% block body %}
 <form class="form-inline" action="/search" method="POST">
     <div class="row container-fluid">
         <input type="date" name="startDate" value={{now_sdate}} class="col-2 btn-primary">
         <input type="date" name="endDate" value={{now_edate}} class="col-2 btn-primary date_box">
+        <input type="hidden" name="page" value="p_page"/>
         <button type="submit" class="btn col-1 btn-warning">검색</button>
     </div>
 </form>
 <hr/>
 <div class="row container-fluid">
     <button type="button" class="btn btn-primary col-1" onclick="location.href='/all_collection'">전체</button>
-    <button type="button" class="btn btn-warning col-2 offset-3" onclick="">생산실적조회</button>
-    <!--<button type="button" class="btn btn-warning col-2 ">생산계획입력</button>-->
-    <a href="/insert_plan" class="btn btn-warning col-2"
+    <button type="button" class="btn btn-primary col-1">필터 예정</button>
+    <!--<button type="button" class="btn btn-warning col-1 offset-3" onclick="">생산실적조회</button>-->
+    <a href="/insert_plan" class="btn btn-warning col-1 offset-3"
        onclick="winPop(this.href, {name:'insert_excel',width:1500,height:800}); return false;">생산계획입력 </a>
-    <button type="button" class="btn btn-warning col-1 " data-toggle="modal" data-target="#shipment_modal">출고</button>
-    <!--<button type="button" class="btn btn-warning col-1 ">등록</button>-->
+    <!--<button type="button" class="btn btn-warning col-1 " data-toggle="modal" data-target="#shipment_modal">출고</button>-->
+    <button type="button" class="btn btn-warning col-1 " data-toggle="modal" data-target="#shipment_modal">상태 변경</button>
     <!-- The Modal -->
     <div class="modal fade" id="shipment_modal">
         <div class="modal-dialog modal-lg">
@@ -132,7 +133,7 @@
                     </div>
                     <!-- Modal Footer -->
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-warning" onclick="location.href='/shipment_data'">확 인
+                        <button type="submit" class="btn btn-warning">확 인
                         </button>
                     </div>
 
@@ -170,6 +171,8 @@
                                             <option>Indy7</option>
                                             <option>Opti</option>
                                             <option>Step-pc2</option>
+                                            <option>Core</option>
+                                            <option>Conty</option>
                                         </select>
                                     </th>
                                     <th>
@@ -202,8 +205,8 @@
             <th>시리얼 넘버</th>
             <th>생산 주차</th>
             <th>위치</th>
-            <th>품질검사 여부</th>
-        </tr>
+            <th>상태</th>
+            <th>추적</th>
         </thead>
         <tbody>
         {% for row in rows %}
@@ -212,7 +215,8 @@
             <th> {{ row["sn"] }}</th>
             <th> {{ row["week"] }}</th>
             <th> {{ row["location"] }}</th>
-            <th> {{ row["quality"] }}</th>
+            <th> {{ row["state"] }} </th>
+            <th> 상세조회</th>
         </tr>
         {% endfor %}
         </tbody>
