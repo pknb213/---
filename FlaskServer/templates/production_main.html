@@ -89,8 +89,8 @@
             <form class="form-inline" action="/shipment_data" method="POST" enctype=multipart/form-data>
                 <div class="modal-content">
                     <!-- Modal Header -->
-                    <div class="modal-header">
-                        <h1 class="page-header">출 고</h1>
+                    <div class="modal-header text-white bg-secondary">
+                        <h1 class="page-header">상태 변경 화면</h1>
                     </div>
                     <!-- Modal Body -->
                     <div class="modal-body">
@@ -102,7 +102,7 @@
                                     <th>모델명</th>
                                     <th>시리얼넘버</th>
                                     <th>위치</th>
-                                    <th>출고지</th>
+                                    <th>상태</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -110,17 +110,24 @@
                                 <tr>
                                     <th>
                                         <div class="checkbox">
-                                            <input type="checkbox" id="checkYN" name="checkYN"
-                                                   value="{{ row['key'] }}"/> {{ row["model"] }}
-                                            <input type="hidden" name="model" value="{{ row['model'] }}"/>
-                                            <input type="hidden" name="sn" value="{{ row['sn'] }}"/>
-                                            <input type="hidden" name="location" value="{{ row['location'] }}"/>
-                                            <input type="hidden" name=key value="{{ row['key'] }}"/>
+                                            <input type="checkbox" name="check_box"
+                                                   value="{{ row['_id'] }}"/> {{ row["model"] }}
+                                            <input type="hidden" name="id" value='{{ row["_id"] }}'/>
                                         </div>
                                     </th>
                                     <th> {{ row["sn"] }}</th>
-                                    <th> {{ row["location"] }}</th>
-                                    <th><input type="text" class="form-control" name="shipment"></th>
+                                    <th><input type="text" class="form-control" name="location"
+                                               value='{{ row["location"] }}'></th>
+                                    <th>
+                                        <select class="form-control" name="state" value='{{ row["state"] }}'>
+                                            <option>재고</option>
+                                            <option>판매</option>
+                                            <option>기증</option>
+                                            <option>내수용</option>
+                                            <option>A/S 입고</option>
+                                            <option>불량</option>
+                                            <option>폐기</option>
+                                        </select></th>
                                 </tr>
                                 {% endfor %}
                                 </tbody>

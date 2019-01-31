@@ -112,17 +112,17 @@ def search_query(sdate, edate, page):
         coll = 'test1'
         query = {"$and": [
             {
-                u"week": {
+                u"date.week": {
                     u"$gte": sdate
                 }
             },
             {
-                u"week": {
+                u"date.week": {
                     u"$lte": edate
                 }
             },
             {
-                u"show": {
+                u"detail.show": {
                     u"$eq": '1'
                 }
             }
@@ -158,7 +158,15 @@ def search_query(sdate, edate, page):
         print(e)
     finally:
         db_object.db_close()
-    return rows_list
+
+    new_list = []
+    for i in range(0, len(rows_list)):
+        new_list.append(
+            {"model": rows_list[i]['model'], "sn": rows_list[i]['sn'], "week": rows_list[i]['date']['week'],
+             "location": rows_list[i]['location'], "state": rows_list[i]['detail']['state']})
+    print(new_list)
+
+    return new_list
 
 
 def week_num(year, mon, day):
@@ -229,9 +237,8 @@ def all_collection_show():
     print(rows_list)
     new_list = []
     for i in range(0, len(rows_list)):
-        new_list.append({"model":rows_list[i]['model'], "sn":rows_list[i]['sn'], "week": rows_list[i]['date']['week'], "location": rows_list[i]['location'], "state":rows_list[i]['detail']['state']})
+        new_list.append({"model": rows_list[i]['model'], "sn": rows_list[i]['sn'], "week": rows_list[i]['date']['week'], "location": rows_list[i]['location'], "state": rows_list[i]['detail']['state']})
     print(new_list)
-    print(type(new_list))
     return render_template('production_main.html', rows=new_list, now_sdate=now, now_edate=now, shipment_modal_rows=shipment_modal_rows())
 
 
@@ -240,16 +247,16 @@ def insert_plan():
     return render_template('plan_list.html', rows={})
 
 
-def data_insert_query(collection, _dataList):
+def data_insert_query(collection, dataList):
     date = datetime.datetime.today().strftime('%Y%m%d') # Str type
-    #query = {'model': _dataList[0], 'sn': _dataList[1], 'header': _dataList[2], 'month': month, 'week': _dataList[3], 'quality': _dataList[4],
-    #         'location': _dataList[5], 'state': _dataList[6], 'show': _dataList[7], 'shipment': _dataList[8], 'key': _dataList[9]}
+    #query = {'model': dataList[0], 'sn': dataList[1], 'header': dataList[2], 'month': month, 'week': dataList[3], 'quality': dataList[4],
+    #         'location': dataList[5], 'state': dataList[6], 'show': dataList[7], 'shipment': dataList[8], 'key': dataList[9]}
     #result = collection.insert_one(query)  # Insert_one objcet is not callable => List type X
 
-    query = {'model': _dataList[0], 'sn': _dataList[1],  'location': _dataList[5],
-             'date': {'month': date, 'week': _dataList[3]},
-             'detail': {'header': _dataList[2], 'quality': _dataList[4], 'show': _dataList[7], 'state': _dataList[6]}}
-    result = collection.insert_one(query)
+    query = {'model': dataList[0], 'sn': dataList[1],  'location': [dataList[5]],
+             'date': {'month': date, 'week': dataList[3]},
+             'detail': {'header': dataList[2], 'quality': dataList[4], 'show': dataList[7], 'state': [dataList[6]]}}
+    result = collection.insert(query)
     return result
 
 
@@ -303,26 +310,25 @@ def shipment():
         print("shipment POST data is empty")
         print(request.values.get("data_empty"))
         return redirect('/')
-    elif not len(request.values.getlist("checkYN")):
+    elif not len(request.values.getlist("check_box")):
         print("shipment rows is empty")
         return redirect('/')
     else:
         try:
             _shipment_date = datetime.datetime.today().strftime('%Y-%m-%d')
-            _model = request.values.getlist("model")
-            _sn = request.values.getlist("sn")
+            _checked_id = request.values.getlist("check_box")  # Checked the Object _id value
+            _id = request.values.getlist("id")
             _location = request.values.getlist("location")
-            _key = request.values.getlist("key")
-            _shipment = request.values.getlist("shipment")
-            _checkbox = request.values.getlist("checkYN") # Checked the key value
+            _state = request.values.getlist("state")
 
-            print(_checkbox)
-            print(_model)
-            print(_sn)
-            print(_location)
-            print(_key)
-            print(_shipment)
+            print(_checked_id, end=" ")
+            print(_id, end=" ")
+            print(_location, end=" ")
+            print(_state)
 
+            for i in range(0, len(_id)):
+                row_list = [{'id': _id[i], 'location': _location[i], 'state': _state[i]} ]
+            print(row_list)
         except Exception as e:
             print("POST_error : shipment()", end=" >> ")
             print(e)
@@ -331,31 +337,31 @@ def shipment():
             find_result = []
             rows = []
             db_object = Mongodb_connection()
-            for i in range(0, len(_checkbox)):
+            for i in range(0, len(_checked_id)):
                 # return find() -> Cursor Type
                 # return insert() -> Object Type
                 # return update() -> Dict Type
                 rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
                 find_result.append(rows_collection.find({
 
-                    u"key": {
-                        u"$eq": _checkbox[i]
+                    u"_id": {
+                        u"$eq": ObjectId(_checked_id[i])
                     }
 
                 }))
                 rows += list(find_result[i])
             print(rows)
-
-            for j in range(0, len(_checkbox)):
+            for j in range(0, len(_checked_id)):
                 rows_collection.update({
 
-                    '_id': rows[j]['_id']
+                    '_id': ObjectId(row_list[j]['id'])
                 }, {
-                    '$set': {'show': '0', 'shipment': 'Y'}
+                    #'$push': {'location': row_list[j]['location'], 'detail.state': {'$each': row_list[j]['state']}}
+                    '$push': {'location': row_list[j]['location'], 'detail.state': row_list[j]['state']}
                 }
                 )
-
-            for k in range(0, len(_checkbox)):
+            # ----------------------------여기까지 했뜸 !!
+            for k in range(0, len(_checked_id)):
                 rows_collection = db_object.db_conn(db_object.db_client(), 'test2')
                 rows_collection.insert({
 
@@ -499,7 +505,8 @@ def shipment_main():
 
 
 def shipment_modal_rows():
-    query = {"$and": [{u"quality": {u"$eq": 'N'}}, {u"show": {u"$eq": '1'}}]}
+    # Must be a change quality value.
+    query = {"$and": [{u"detail.quality": {u"$eq": 'N'}}, {u"detail.show": {u"$eq": '1'}}]}
     try:
         db_object = Mongodb_connection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
@@ -510,6 +517,11 @@ def shipment_modal_rows():
     finally:
         db_object.db_close()
 
+    new_list = []
+    for i in range(0, len(rows_list)):
+        new_list.append({"model": rows_list[i]['model'], "sn": rows_list[i]['sn'],
+                         "location": rows_list[i]['location'], "state": rows_list[i]['detail']['state']})
+    print(new_list)
     return rows_list
 
 
