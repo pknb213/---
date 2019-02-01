@@ -94,8 +94,7 @@ def production_main():
         print("DB_error : production_main()", end=" >> ")
         print(e)
         return render_template('404.html'), 404
-
-    return render_template('production_main.html', rows=rows_list, now_sdate=date, now_edate=date, shipment_modal_rows=shipment_modal_rows())
+    return render_template('production_main.html', rows=rows_list, now_sdate=date, now_edate=date, shipment_modal_rows=shipment_modal_rows(), crows=custom_list())
 
 
 @app.errorhandler(404)
@@ -158,16 +157,25 @@ def search_query(sdate, edate, page):
         print(e)
     finally:
         db_object.db_close()
+    if len(rows_list):
+        new_list = []
+        for i in range(0, len(rows_list)):
+            if len(rows_list[i]['location']) == 1:
+                lo_point = 0
+            else:
+                lo_point = -1
+            if len(rows_list[i]['detail']['state']) == 1:
+                st_point = 0
+            else:
+                st_point = -1
+            new_list.append(
+                {"model": rows_list[i]['model'], "sn": rows_list[i]['sn'], "week": rows_list[i]['date']['week'],
+                 "location": rows_list[i]['location'][lo_point], "state": rows_list[i]['detail']['state'][st_point]})
+        print(new_list)
 
-    new_list = []
-    for i in range(0, len(rows_list)):
-        new_list.append(
-            {"model": rows_list[i]['model'], "sn": rows_list[i]['sn'], "week": rows_list[i]['date']['week'],
-             "location": rows_list[i]['location'], "state": rows_list[i]['detail']['state']})
-    print(new_list)
-
-    return new_list
-
+        return new_list
+    else:
+        return rows_list
 
 def week_num(year, mon, day):
     n = datetime.datetime(year, mon, day)
@@ -214,7 +222,7 @@ def data_search():
         return redirect('/')
 
     if _page == 'p_page':
-        return render_template('production_main.html', rows=rows_list, now_sdate=_sdate, now_edate=_edate, shipment_modal_rows=shipment_modal_rows())
+        return render_template('production_main.html', rows=rows_list, now_sdate=_sdate, now_edate=_edate, shipment_modal_rows=shipment_modal_rows(), crows=custom_list())
     elif _page == 's_page':
         return render_template('shipment_main.html', rows=rows_list, now_sdate=_sdate, now_edate=_edate)
     else:
@@ -237,9 +245,9 @@ def all_collection_show():
     print(rows_list)
     new_list = []
     for i in range(0, len(rows_list)):
-        new_list.append({"model": rows_list[i]['model'], "sn": rows_list[i]['sn'], "week": rows_list[i]['date']['week'], "location": rows_list[i]['location'], "state": rows_list[i]['detail']['state']})
+        new_list.append({"model": rows_list[i]['model'], "sn": rows_list[i]['sn'], "week": rows_list[i]['date']['week'], "location": rows_list[i]['location'][-1], "state": rows_list[i]['detail']['state'][-1]})
     print(new_list)
-    return render_template('production_main.html', rows=new_list, now_sdate=now, now_edate=now, shipment_modal_rows=shipment_modal_rows())
+    return render_template('production_main.html', rows=new_list, now_sdate=now, now_edate=now, shipment_modal_rows=shipment_modal_rows(), crows=custom_list())
 
 
 @app.route('/insert_plan')
@@ -253,9 +261,10 @@ def data_insert_query(collection, dataList):
     #         'location': dataList[5], 'state': dataList[6], 'show': dataList[7], 'shipment': dataList[8], 'key': dataList[9]}
     #result = collection.insert_one(query)  # Insert_one objcet is not callable => List type X
 
-    query = {'model': dataList[0], 'sn': dataList[1],  'location': [dataList[5]],
-             'date': {'month': date, 'week': dataList[3]},
-             'detail': {'header': dataList[2], 'quality': dataList[4], 'show': dataList[7], 'state': [dataList[6]]}}
+    query = {'model': dataList[0], 'sn': dataList[1], 'location': [dataList[5]],
+             'date': {'p_date': date, 'week': dataList[3], 's_date': [date]},
+             'detail': {'header': dataList[2], 'quality': dataList[4], 'show': dataList[7],
+                        'state': [dataList[6]]}}
     result = collection.insert(query)
     return result
 
@@ -315,7 +324,7 @@ def shipment():
         return redirect('/')
     else:
         try:
-            _shipment_date = datetime.datetime.today().strftime('%Y-%m-%d')
+            _date = datetime.datetime.today().strftime('%Y%m%d')
             _checked_id = request.values.getlist("check_box")  # Checked the Object _id value
             _id = request.values.getlist("id")
             _location = request.values.getlist("location")
@@ -325,50 +334,35 @@ def shipment():
             print(_id, end=" ")
             print(_location, end=" ")
             print(_state)
-
+            row_list = []
             for i in range(0, len(_id)):
-                row_list = [{'id': _id[i], 'location': _location[i], 'state': _state[i]} ]
+                row_list.append({'id': _id[i], 'location': _location[i], 'state': _state[i]})
+            print("POST row_list : ", end=" ")
             print(row_list)
         except Exception as e:
             print("POST_error : shipment()", end=" >> ")
             print(e)
 
         try:
-            find_result = []
-            rows = []
             db_object = Mongodb_connection()
             for i in range(0, len(_checked_id)):
-                # return find() -> Cursor Type
-                # return insert() -> Object Type
-                # return update() -> Dict Type
-                rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
-                find_result.append(rows_collection.find({
+                for j in range(0, len(row_list)):
+                    if _checked_id[i] == row_list[j]['id']:
+                        print("Change !! ", end=" ")
+                        print(_checked_id[i], end=" <-- ")
+                        print(row_list[j])
+                        rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
+                        # return find() -> Cursor Type
+                        # return insert() -> Object Type
+                        # return update() -> Dict Type
+                        rows_collection.update({
 
-                    u"_id": {
-                        u"$eq": ObjectId(_checked_id[i])
-                    }
+                            '_id': ObjectId(row_list[j]['id'])
+                        }, {
+                            '$push': {'location': row_list[j]['location'], 'detail.state': row_list[j]['state']
+                                      , 'date.s_date': _date}
 
-                }))
-                rows += list(find_result[i])
-            print(rows)
-            for j in range(0, len(_checked_id)):
-                rows_collection.update({
-
-                    '_id': ObjectId(row_list[j]['id'])
-                }, {
-                    #'$push': {'location': row_list[j]['location'], 'detail.state': {'$each': row_list[j]['state']}}
-                    '$push': {'location': row_list[j]['location'], 'detail.state': row_list[j]['state']}
-                }
-                )
-            # ----------------------------여기까지 했뜸 !!
-            for k in range(0, len(_checked_id)):
-                rows_collection = db_object.db_conn(db_object.db_client(), 'test2')
-                rows_collection.insert({
-
-                    '_model': rows[k]['model'], '_sn': rows[k]['sn'], '_shipment_date': _shipment_date, '_product_week': rows[k]['week'], '_outDate': '0', '_office': rows[k]['location'], '_contractNum': '0',
-                    '_shipment': _shipment[k], '_sum': '0', '_deliveryDate': '0', '_expectPayDate': '0', '_realPayDate': '0', '_show': '1', '_key': rows[k]['key']
-
-                })
+                        })
 
         except Exception as e:
             print("DB_error : shipment()", end=" >> ")
@@ -503,6 +497,34 @@ def shipment_main():
 
     return render_template('shipment_main.html', rows=rows_list, now_sdate=sdate, now_edate=date)
 
+def custom_list():
+    query = {"$and": [{u"detail.quality": {u"$eq": 'N'}}, {u"detail.show": {u"$eq": '1'}}]}
+    print("c_list()")
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
+        rows_list = list(rows_collection.find(query))  # cursor type -> list type
+    except Exception as e:
+        print("DB_error : ()", end=" >> ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    if len(rows_list):
+        sdata = []
+        sloca = []
+        sdate = []
+        nlist = []
+        id = []
+        for i in range(0, len(rows_list)):
+            id.append(rows_list[i]['_id'])
+            sdata.append(rows_list[i]['detail']['state'])
+            sloca.append(rows_list[i]['location'])
+            sdate.append(rows_list[i]['date']['s_date'])
+            nlist.append({'_id': id[i], 'sdata': sdata[i], 'sloca': sloca[i], 'sdate': sdate[i]})
+        print(nlist)
+        return nlist
+    return rows_list
 
 def shipment_modal_rows():
     # Must be a change quality value.
@@ -517,12 +539,32 @@ def shipment_modal_rows():
     finally:
         db_object.db_close()
 
-    new_list = []
-    for i in range(0, len(rows_list)):
-        new_list.append({"model": rows_list[i]['model'], "sn": rows_list[i]['sn'],
-                         "location": rows_list[i]['location'], "state": rows_list[i]['detail']['state']})
-    print(new_list)
-    return rows_list
+    print(rows_list)
+
+    if len(rows_list):
+        new_list = []
+        for i in range(0, len(rows_list)):
+            if len(rows_list[i]['location']) == 1:
+                lo_point = 0
+            else:
+                lo_point = -1
+            if len(rows_list[i]['detail']['state']) == 1:
+                st_point = 0
+            else:
+                st_point = -1
+            if len(rows_list[i]['date']['s_date']) == 1:
+                sd_point = 0
+            else:
+                sd_point = -1
+            new_list.append({"_id": rows_list[i]['_id'], "model": rows_list[i]['model'], "sn": rows_list[i]['sn'],
+                             "location": rows_list[i]['location'][lo_point],
+                             "s_date": rows_list[i]['date']['s_date'][sd_point],
+                             "state": rows_list[i]['detail']['state'][st_point]})
+        print("new list", end=": ")
+        print(new_list)
+        return new_list
+    else:
+        return rows_list
 
 
 @app.route('/insert_information', methods=["POST"])
@@ -595,3 +637,47 @@ def insert_information():
             db_object.db_close()
 
         return redirect('/shipment_main')
+
+
+@app.route('/detail_modal', methods=["POST"])
+def detail_modal():
+    date = datetime.datetime.today().strftime('%Y-%m-%d')
+    now = date.split('-')
+    for i in range(0, 3):
+        now[i] = int(now[i])
+    now = week_num(now[0], now[1], now[2])
+
+    # Input value
+    _model = request.values.get("model")
+    _sn = request.values.get("sn")
+    _header = request.values.get("header")
+    print(_model, end=" ")
+    print(_sn, end=" ")
+    print(_header, end=" ")
+
+    # Auto value
+    _week = now
+    _quality = 'N'
+    _site = '대전'
+    _state = '재고'        # 재고, 판매, 기증, 내수용, A/S입고, 폐기
+    _show = '1'
+    print(_week, end=" ")
+    print(_quality, end=" ")
+    print(_site, end=" ")
+    print(_state, end=" ")
+    print(_show, end=" ")
+    # 0 ~ 7 : 8 value
+    data_list = [_model, _sn, _header, _week, _quality, _site, _state, _show]
+
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
+        data_insert_query(rows_collection, data_list)
+
+    except Exception as e:
+        print("DB_error : insert_data()", end=" >> ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    return redirect('/all_collection')
