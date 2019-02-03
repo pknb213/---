@@ -78,130 +78,11 @@
 <div class="row container-fluid">
     <button type="button" class="btn btn-primary col-1" onclick="location.href='/all_collection'">전체</button>
     <button type="button" class="btn btn-primary col-1">필터 예정</button>
-    <!--<button type="button" class="btn btn-warning col-1 offset-3" onclick="">생산실적조회</button>-->
     <a href="/insert_plan" class="btn btn-warning col-1 offset-3"
        onclick="winPop(this.href, {name:'insert_excel',width:1500,height:800}); return false;">생산계획입력 </a>
-    <!--<button type="button" class="btn btn-warning col-1 " data-toggle="modal" data-target="#shipment_modal">출고</button>-->
     <button type="button" class="btn btn-warning col-1 " data-toggle="modal" data-target="#shipment_modal">상태 변경
     </button>
-    <!-- The Modal -->
-    <div class="modal fade" id="shipment_modal">
-        <div class="modal-dialog modal-lg">
-            <form class="form-inline" action="/shipment_data" method="POST" enctype=multipart/form-data>
-                <div class="modal-content">
-                    <!-- Modal Header -->
-                    <div class="modal-header text-white bg-secondary">
-                        <h1 class="page-header">상태 변경 화면</h1>
-                    </div>
-                    <!-- Modal Body -->
-                    <div class="modal-body">
-                        <div class="table-responsive">
-                            {% if shipment_modal_rows[0] %}
-                            <table class="table table-striped table-bordered">
-                                <thead class="thead-dark">
-                                <tr>
-                                    <th>모델명</th>
-                                    <th>시리얼넘버</th>
-                                    <th>위치</th>
-                                    <th>상태</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for row in shipment_modal_rows %}
-                                <tr>
-                                    <th>
-                                        <div class="checkbox">
-                                            <input type="checkbox" name="check_box"
-                                                   value="{{ row['_id'] }}"/> {{ row["model"] }}
-                                            <input type="hidden" name="id" value='{{ row["_id"] }}'/>
-                                        </div>
-                                    </th>
-                                    <th> {{ row["sn"] }}</th>
-                                    <th><input type="text" class="form-control" name="location"
-                                               value='{{ row["location"] }}'></th>
-                                    <th><select class="form-control" name="state" value='{{ row["state"] }}'>
-                                        <option selected hidden value='{{ row["state"] }}'>{{ row["state"] }}</option>
-                                        <option>재고</option>
-                                        <option>판매</option>
-                                        <option>기증</option>
-                                        <option>내수용</option>
-                                        <option>A/S 입고</option>
-                                        <option>불량</option>
-                                        <option>폐기</option>
-                                    </select></th>
-                                </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                            {% else %}
-                            <h3> No Notice in the CheckBox</h3>
-                            <input type="hidden" name="data_empty" value='{{ true }}'/>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <!-- Modal Footer -->
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-warning">확 인
-                        </button>
-                    </div>
-
-                </div>
-            </form>
-        </div>
-    </div>
     <button type="button" class="btn btn-warning col-1" data-toggle="modal" data-target="#insert_modal"> 등록</button>
-    <!-- The Modal -->
-    <div class="modal fade" id="insert_modal">
-        <div class="modal-dialog modal-lg">
-            <form class="form-inline" action="/insert_data" method="POST" enctype=multipart/form-data>
-                <div class="modal-content">
-                    <!-- Modal Header -->
-                    <div class="modal-header">
-                        <h1 class="page-header">등 록</h1>
-                    </div>
-                    <!-- Modal Body -->
-                    <div class="modal-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-bordered">
-                                <thead class="thead-dark">
-                                <tr>
-                                    <th>모델명</th>
-                                    <th>시리얼넘버</th>
-                                    <th>담당자</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <th>
-                                        <select class="from-control" id="insert_model" name="model">
-                                            <option>Indy3</option>
-                                            <option>Indy5</option>
-                                            <option>Indy7</option>
-                                            <option>Opti</option>
-                                            <option>Step-pc2</option>
-                                            <option>Core</option>
-                                            <option>Conty</option>
-                                        </select>
-                                    </th>
-                                    <th>
-                                        <input type="text" class="form-control" id="insert_sn" name="sn"></th>
-                                    <th>
-                                        <input type="text" class="form-control" id="insert_header" name="header"></th>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <!-- Modal Footer -->
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-warning" onclick="location.href='/insert_data'">확 인
-                        </button>
-                    </div>
-
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 <hr/>
 <div class="table-responsive">
@@ -218,24 +99,137 @@
         </thead>
         <tbody>
         {% for row in rows %}
+        {% for key, val in row.items() %}
         <tr>
-            <th> {{ row["model"] }}</th>
-            <th> {{ row["sn"] }}</th>
-            <th> {{ row["week"] }}</th>
-            <th> {{ row["location"] }}</th>
-            <th> {{ row["state"] }}</th>
+            <th> {{ key }}</th>
+            <th> {{ val }}</th>
             <th>
                 <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히
                 </button>
-
             </th>
         </tr>
+        {% endfor %}
         {% endfor %}
         </tbody>
     </table>
     {% else %}
     <h3> No Notice in the Database</h3>
     {% endif %}
+</div>
+<!-- The Modal -->
+<div class="modal fade" id="shipment_modal">
+    <div class="modal-dialog modal-lg">
+        <form class="form-inline" action="/shipment_data" method="POST" enctype=multipart/form-data>
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header text-white bg-secondary">
+                    <h1 class="page-header">상태 변경 화면</h1>
+                </div>
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        {% if shipment_modal_rows[0] %}
+                        <table class="table table-striped table-bordered">
+                            <thead class="thead-dark">
+                            <tr>
+                                <th>모델명</th>
+                                <th>시리얼넘버</th>
+                                <th>위치</th>
+                                <th>상태</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for row in shipment_modal_rows %}
+                            <tr>
+                                <th>
+                                    <div class="checkbox">
+                                        <input type="checkbox" name="check_box"
+                                               value="{{ row['_id'] }}"/> {{ row["model"] }}
+                                        <input type="hidden" name="id" value='{{ row["_id"] }}'/>
+                                    </div>
+                                </th>
+                                <th> {{ row["sn"] }}</th>
+                                <th><input type="text" class="form-control" name="location"
+                                           value='{{ row["location"] }}'></th>
+                                <th><select class="form-control" name="state" value='{{ row["state"] }}'>
+                                    <option selected hidden value='{{ row["state"] }}'>{{ row["state"] }}</option>
+                                    <option>재고</option>
+                                    <option>판매</option>
+                                    <option>기증</option>
+                                    <option>내수용</option>
+                                    <option>A/S 입고</option>
+                                    <option>불량</option>
+                                    <option>폐기</option>
+                                </select></th>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <h3> No Notice in the CheckBox</h3>
+                        <input type="hidden" name="data_empty" value='{{ true }}'/>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning">확 인
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- The Modal -->
+<div class="modal fade" id="insert_modal">
+    <div class="modal-dialog modal-lg">
+        <form class="form-inline" action="/insert_data" method="POST" enctype=multipart/form-data>
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h1 class="page-header">등 록</h1>
+                </div>
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <thead class="thead-dark">
+                            <tr>
+                                <th>모델명</th>
+                                <th>시리얼넘버</th>
+                                <th>담당자</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <th>
+                                    <select class="from-control" id="insert_model" name="model">
+                                        <option>Indy3</option>
+                                        <option>Indy5</option>
+                                        <option>Indy7</option>
+                                        <option>Opti</option>
+                                        <option>Step-pc2</option>
+                                        <option>Core</option>
+                                        <option>Conty</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    <input type="text" class="form-control" id="insert_sn" name="sn"></th>
+                                <th>
+                                    <input type="text" class="form-control" id="insert_header" name="header"></th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning" onclick="location.href='/insert_data'">확 인
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 <!-- The Modal -->
 <div class="modal fade" id="detail_modal">
@@ -253,7 +247,6 @@
                         <table class="table table-striped table-bordered">
                             <thead class="thead-dark">
                             <tr>
-
                                 <th>날 짜</th>
                                 <th>위 치</th>
                                 <th>상 태</th>
@@ -284,7 +277,6 @@
                             onclick="location.href='/detail_modal'">확 인
                     </button>
                 </div>
-
             </div>
         </form>
     </div>

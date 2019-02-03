@@ -16,7 +16,6 @@ rows_collection = db.get_collection('test1')
 print(type(rows_collection))
 '''
 
-
 class Mongodb_connection:
     _ip = '222.106.48.150'
     _port = 27019
@@ -94,6 +93,36 @@ def production_main():
         print("DB_error : production_main()", end=" >> ")
         print(e)
         return render_template('404.html'), 404
+
+    query = {u"_id": {u"$eq": ObjectId('5c569b1e0f055d57e83e0dda') } }
+
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'test3')
+        rows_list = list(rows_collection.find(query))  # cursor type -> list type
+    except Exception as e:
+        print("DB_error : all_collection_show()", end=" >> ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    print("query : ", end=" ")
+    print(rows_list)
+
+    query2 = {u"user_id": {u"$eq": '5c569b1e0f055d57e83e0dda' } }
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'test3')
+        rows_list = list(rows_collection.find(query2))  # cursor type -> list type
+    except Exception as e:
+        print("DB_error : all_collection_show()", end=" >> ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    print("query2 : ", end=" ")
+    print(rows_list)
+
     return render_template('production_main.html', rows=rows_list, now_sdate=date, now_edate=date, shipment_modal_rows=shipment_modal_rows(), crows=custom_list())
 
 
@@ -231,23 +260,41 @@ def data_search():
 @app.route('/all_collection')
 def all_collection_show():
     now = datetime.datetime.today().strftime('%Y-%m-%d')
-    #query = {u"show": {u"$eq": '1'}}
-    query = {u"detail.show": {u"$eq": "1"}}
+    query = {u"show": {u"$eq": "1"}}
     try:
         db_object = Mongodb_connection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
-        rows_list = list(rows_collection.find(query))  # cursor type -> list type
+        rows_collection = db_object.db_conn(db_object.db_client(), 'product')
+        rows_list = list(rows_collection.find())  # cursor type -> list type
+        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
+        new_list = list(rows_collection.find(query))  # cursor type -> list type
     except Exception as e:
         print("DB_error : all_collection_show()", end=" >> ")
         print(e)
     finally:
         db_object.db_close()
+
+    rows_list = rows_list + new_list
     print(rows_list)
-    new_list = []
+
+    for row in rows_list:
+        for key, val in row.items():
+            if key == '_id':
+                print("%s    %s " % (key, val))
+    '''
     for i in range(0, len(rows_list)):
         new_list.append({"model": rows_list[i]['model'], "sn": rows_list[i]['sn'], "week": rows_list[i]['date']['week'], "location": rows_list[i]['location'][-1], "state": rows_list[i]['detail']['state'][-1]})
     print(new_list)
-    return render_template('production_main.html', rows=new_list, now_sdate=now, now_edate=now, shipment_modal_rows=shipment_modal_rows(), crows=custom_list())
+    
+    {% for row in rows %}
+        {% for ele in row %}
+        <tr>
+            <th> {{ ele }}</th>
+        </tr>
+        {% endfor %}
+    {% endfor %}
+    
+    '''
+    return render_template('production_main.html', rows=rows_list, now_sdate=now, now_edate=now, shipment_modal_rows=shipment_modal_rows(), crows=new_list)
 
 
 @app.route('/insert_plan')
@@ -255,17 +302,25 @@ def insert_plan():
     return render_template('plan_list.html', rows={})
 
 
-def data_insert_query(collection, dataList):
-    date = datetime.datetime.today().strftime('%Y%m%d') # Str type
-    #query = {'model': dataList[0], 'sn': dataList[1], 'header': dataList[2], 'month': month, 'week': dataList[3], 'quality': dataList[4],
-    #         'location': dataList[5], 'state': dataList[6], 'show': dataList[7], 'shipment': dataList[8], 'key': dataList[9]}
+def insert_product(collection, data_list):
     #result = collection.insert_one(query)  # Insert_one objcet is not callable => List type X
-
-    query = {'model': dataList[0], 'sn': dataList[1], 'location': [dataList[5]],
-             'date': {'p_date': date, 'week': dataList[3], 's_date': [date]},
-             'detail': {'header': dataList[2], 'quality': dataList[4], 'show': dataList[7],
-                        'state': [dataList[6]]}}
+    query = {'model': data_list[0], 'sn': data_list[1], 'header': data_list[2]}
     result = collection.insert(query)
+    # return the object_id
+    return result
+
+
+def insert_product_info(collection, data_list):
+    '''
+    query = {'model': data_list[0], 'sn': data_list[1], 'location': [data_list[5]],
+             'date': {'p_date': date, 'week': data_list[3], 's_date': [date]},
+             'detail': {'header': data_list[2], 'quality': data_list[4], 'show': data_list[7],
+                        'state': [data_list[6]]}}
+    '''
+    query = {'product_id': data_list[0], 'week': data_list[1], 'quality': data_list[2], 'show': data_list[3], 'updated_date': [data_list[4]], 'location': [data_list[5]], 'state': [data_list[6]]}
+
+    result = collection.insert(query)
+    # return the object_id
     return result
 
 
@@ -281,29 +336,38 @@ def insert_data():
     _model = request.values.get("model")
     _sn = request.values.get("sn")
     _header = request.values.get("header")
-    print(_model, end=" ")
-    print(_sn, end=" ")
-    print(_header, end=" ")
-
-    # Auto value
-    _week = now
-    _quality = 'N'
-    _site = '대전'
-    _state = '재고'        # 재고, 판매, 기증, 내수용, A/S입고, 폐기
-    _show = '1'
-    print(_week, end=" ")
-    print(_quality, end=" ")
-    print(_site, end=" ")
-    print(_state, end=" ")
-    print(_show, end=" ")
-    # 0 ~ 7 : 8 value
-    data_list = [_model, _sn, _header, _week, _quality, _site, _state, _show]
+    input_list = [_model, _sn, _header]
+    print("input_list : ", end=" ")
+    print(input_list)
 
     try:
         db_object = Mongodb_connection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
-        data_insert_query(rows_collection, data_list)
+        rows_collection = db_object.db_conn(db_object.db_client(), 'product')
+        object_id = insert_product(rows_collection, input_list)
+        print("object id : ", end=" ")
+        print(object_id)
+    except Exception as e:
+        print("DB_error : insert_data()", end=" : ")
+        print(e)
+    finally:
+        db_object.db_close()
 
+    # Auto value
+    _product_id = object_id;
+    _week = now
+    _quality = 'N'
+    _show = '1'
+    updated_date = date
+    _location = '대전'
+    _state = '재고'        # 재고, 판매, 기증, 내수용, A/S입고, 폐기
+    auto_values = [_product_id, _week, _quality, _show, updated_date, _location, _state]
+    print("auto_values : ", end=" ")
+    print(auto_values)
+
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
+        insert_product_info(rows_collection, auto_values)
     except Exception as e:
         print("DB_error : insert_data()", end=" >> ")
         print(e)
@@ -413,11 +477,6 @@ def excel_table():
         print(" Excel_error : excel_table()", end=" >> ")
         print(e)
         render_template('404.html'), 404
-
-
-@app.route('/insert_product')
-def insert_product():
-    return render_template('xxx.html')
 
 
 @app.route('/ckprocess', methods=['POST'])
@@ -672,7 +731,7 @@ def detail_modal():
     try:
         db_object = Mongodb_connection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
-        data_insert_query(rows_collection, data_list)
+        #insert_product(rows_collection, data_list)
 
     except Exception as e:
         print("DB_error : insert_data()", end=" >> ")
