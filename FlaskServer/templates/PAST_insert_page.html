@@ -68,3 +68,16 @@
                                                 </th>
                                             </tr>
                                             {% endfor %}
+
+ {% for row in rows %}
+        {% for key, val in row.items() %}
+        <tr>
+            <th> {{ key }}</th>
+            <th> {{ val }}</th>
+            <th>
+                <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히
+                </button>
+            </th>
+        </tr>
+        {% endfor %}
+        {% endfor %}

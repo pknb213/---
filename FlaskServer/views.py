@@ -4,6 +4,7 @@ import random
 import datetime
 import pymongo
 import pandas
+import json
 from flask import render_template, request, current_app, make_response, url_for, redirect
 from bson.objectid import ObjectId # For ObjectId to work
 
@@ -42,6 +43,45 @@ class Mongodb_connection:
         print("Disconnect")
         return self.db_client().close()
 
+class Rows:
+    date = datetime.datetime.today().strftime('%Y-%m-%d')
+
+    def __init__(self):
+        print("init")
+
+    #def production_main_list(self):
+
+    def list1(self):
+        r1 = [{"m":'indy', 's':'1234', 'w':'1800'},{"m":'indy2', 's':'1234', 'w':'1800'},{"m":'indy3', 's':'1234', 'w':'1800'},{"m":'indy4', 's':'1234', 'w':'1800'}]
+        return r1
+
+    def production_main_checked_list(self):
+        #query2 = {u"product_id": {u"$eq": ObjectId('5c5707d7cbf63c5290057130') }}
+        try:
+            db_object = Mongodb_connection()
+            rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
+            rows_list = list(rows_collection.find())  # cursor type -> list type
+        except Exception as e:
+            print("DB_error : all_collection_show()", end=" >> ")
+            print(e)
+        finally:
+            db_object.db_close()
+        return rows_list
+
+    def production_main_all_list(self):
+        try:
+            db_object = Mongodb_connection()
+            rows_collection = db_object.db_conn(db_object.db_client(), 'product')
+            rows_list = list(rows_collection.find())  # cursor type -> list type
+        except Exception as e:
+            print("DB_error : all_collection_show()", end=" >> ")
+            print(e)
+        finally:
+            db_object.db_close()
+        return rows_list
+
+    def date(self):
+        return self.date
 
 def make_read_excel():
     import numpy as np
@@ -68,6 +108,16 @@ def make_read_excel():
 @app.route('/index')
 def index():
     return render_template('index.html')
+
+
+@app.route('/test')
+def test():
+    object= Rows()
+    a = object.production_main_all_list()
+    print(a)
+    print(type(a))
+    print(a[0]['_id'])
+    return render_template('test.html', aaa=a, object=object)
 
 
 @app.route('/upload')
@@ -122,9 +172,11 @@ def production_main():
 
     print("query2 : ", end=" ")
     print(rows_list)
+    row_object = Rows()
+    row_object.production_main_all_list()
 
-    return render_template('production_main.html', rows=rows_list, now_sdate=date, now_edate=date, shipment_modal_rows=shipment_modal_rows(), crows=custom_list())
-
+    #return render_template('production_main.html', rows=rows_list, now_sdate=date, now_edate=date, shipment_modal_rows=shipment_modal_rows(), crows=custom_list())
+    return render_template('production_main.html', rows=rows_list, object=row_object)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -294,7 +346,10 @@ def all_collection_show():
     {% endfor %}
     
     '''
-    return render_template('production_main.html', rows=rows_list, now_sdate=now, now_edate=now, shipment_modal_rows=shipment_modal_rows(), crows=new_list)
+    Rows_object = Rows()
+
+
+    return render_template('production_main.html', rows=rows_list, object=Rows_object, now_sdate=now, now_edate=now, shipment_modal_rows=shipment_modal_rows(), crows=new_list)
 
 
 @app.route('/insert_plan')
@@ -353,7 +408,7 @@ def insert_data():
         db_object.db_close()
 
     # Auto value
-    _product_id = object_id;
+    _product_id = str(object_id)
     _week = now
     _quality = 'N'
     _show = '1'
@@ -388,11 +443,11 @@ def shipment():
         return redirect('/')
     else:
         try:
-            _date = datetime.datetime.today().strftime('%Y%m%d')
+            _date = datetime.datetime.today().strftime('%Y-%m-%d')
             _checked_id = request.values.getlist("check_box")  # Checked the Object _id value
             _id = request.values.getlist("id")
             _location = request.values.getlist("location")
-            _state = request.values.getlist("state")
+            _state = request.values.getlist("states")
 
             print(_checked_id, end=" ")
             print(_id, end=" ")
@@ -415,17 +470,15 @@ def shipment():
                         print("Change !! ", end=" ")
                         print(_checked_id[i], end=" <-- ")
                         print(row_list[j])
-                        rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
+                        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
                         # return find() -> Cursor Type
                         # return insert() -> Object Type
                         # return update() -> Dict Type
                         rows_collection.update({
-
                             '_id': ObjectId(row_list[j]['id'])
                         }, {
-                            '$push': {'location': row_list[j]['location'], 'detail.state': row_list[j]['state']
-                                      , 'date.s_date': _date}
-
+                            '$push': {'location': row_list[j]['location'], 'state': row_list[j]['state']
+                                      , 'updated_date': _date}
                         })
 
         except Exception as e:

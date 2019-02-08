@@ -1,0 +1,380 @@
+{% extends 'main_base.html' %}
+{% block head %}
+{% endblock %}
+{% block title %} 재고관리 페이지 {% endblock %}
+{% block body_title %}Title{% endblock %}
+{% block main_title %}재고관리 화면{% endblock %}
+{% block body %}
+<button id='btn-add-row'>행 추가하기</button>
+<button id='btn-delete-row'>행 삭제하기</button>
+<hr>
+
+<table id="mytable" border="1" cellspacing="3">
+    <tr>
+        <th>제목</th>
+        <th>일시</th>
+    </tr>
+    <tbody></tbody>
+</table>
+
+<script>
+    $('#btn-add-row').click(function () {
+        var time = new Date().toLocaleTimeString();
+        $('#mytable > tbody:last').append('<tr><td>{{ a }}</td><td>' + time + '</td></tr>');
+    });
+    $('#btn-delete-row').click(function () {
+        $('#mytable > tbody:last > tr:last').remove();
+    });
+</script>
+<hr>
+<table border="1" id="list_table">
+    <thead>
+    <tr>
+        <th>No</th>
+        <th>Name</th>
+        <th>Birth</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>1</td>
+        <td>park</td>
+        <td>930917</td>
+        <td>
+            <a href="#" class="delete-link">Delete</a>
+        </td>
+    </tr>
+    <tr>
+        <td>2</td>
+        <td>kyung</td>
+        <td>950727</td>
+        <td>
+            <a href="#" class="delete-link">Delete</a>
+        </td>
+    </tr>
+    <tr>
+        <td>3</td>
+        <td>seok</td>
+        <td>901217</td>
+        <td>
+            <a href="#" class="delete-link">Delete</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h3>추가 입력 테이블</h3>
+
+<table border="1" id="append_table">
+    <colgroup>
+        <col style="width:70px">
+        <col style="width:200px">
+        <col style="width:300px">
+        <col style="width:200px">
+    </colgroup>
+
+    <thead>
+    <tr>
+        <th><label for="add_no">번호</label></th>
+        <th>이름</th>
+        <th>생년월일</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr>
+        <td><input type="text" id="add_no"></td>
+        <td><input type="text" id="add_name"></td>
+        <td><input type="text" id="add_birth"></td>
+        <td>
+            <button type="button" id="append_row">데이터 추가</button>
+        </td>
+    </tr>
+    </tbody>
+
+</table>
+
+<script>
+    $('#append_row').on("click", function () {
+        $('#list_table').append(
+            $('<tr>').append(
+                $('<td>').append($('#add_no').val()),
+                $('<td>').append($('#add_name').val()),
+                $('<td>').append($('#add_birth').val()),
+                $('<td>').append(
+                    // property와 attribute의 차이!!
+                    $('<a>').prop('href', '#').addClass('delete-link').append('Delete')
+                    // <a href="#" class="delete-link">Delete</a>
+                )
+            )
+        );
+    });
+
+    $('#list_table').on("click", ".delete-link", function () {
+        /*
+        <tr>
+          <td>3</td>
+          <td>seok</td>
+          <td>901217</td>
+          <td>
+            <a href="#" class="delete-link">Delete</a>
+          </td>
+        </tr>
+        */
+        // this == a의 부모의 부모는 tr태그
+        $(this).parent().parent().remove();
+    })
+</script>
+<hr>
+
+<div id="div_view">
+
+</div>
+<script>
+    var a = [
+        {'name': '이말숙', 'ko': 100, 'en': 90, 'ma': 70},
+        {'name': '김말숙', 'ko': 90, 'en': 80, 'ma': 40},
+        {'name': '정말숙', 'ko': 40, 'en': 70, 'ma': 50},
+        {'name': '황말숙', 'ko': 80, 'en': 60, 'ma': 100},
+        {'name': '홍말숙', 'ko': 70, 'en': 50, 'ma': 80}
+    ];
+
+    var Sc = {};
+    var output = '';
+
+    //화면에 table을 만든다.
+    Sc.makeTable = function () {
+        output += '<table id="mtable" type="table" border="1">';
+        output += '<tr>';
+        output += '<th>Name</th><th>ko</th><th>en</th><th>ma</th>';
+        output += '</tr>';
+        output += '</table>';
+        $('#div_view').append(output);
+    };
+
+    //테이블에 데이터를 출력한다.
+    Sc.setData = function () {
+        $(a).each(function (index, item) {
+            var tmp = '';
+            with (item) {
+                tmp += '<tr>';
+                tmp += '<td>' + name + '</td><td>' + ko + '</td><td>' + en + '</td><td>' + ma + '</td>';
+                tmp += '</tr>';
+            }
+
+            $('#div_view').append(tmp);
+        });
+    };
+
+    //table에 Style을 준다.
+    Sc.makeStyle = function () {
+        $('#mtable').css({
+            'width': 400,
+            'text-align': 'center'
+        });
+
+        $('tr:nth-child(2n+1)').css({
+            'background': 'orange'
+        });
+
+        $('tr:nth-child(2n)').css({
+            'background': 'yellow'
+        });
+
+        $('tr:first-child').css({
+            'background': 'black',
+            'color': 'white'
+        });
+
+        $('tr').hover(function () {
+            $(this).addClass('s');
+        }, function () {
+            $(this).removeClass('s');
+        });
+
+    };
+
+    $(document).ready(function () {
+        Sc.makeTable();
+        Sc.setData();
+        //Sc.makeStyle();
+
+    });
+
+    var list = $('#view_test').val();
+    var func = {};
+
+    func.makeTable = function () {
+        output += '<table id="mtable2" type="table" border="1">';
+        output += '<tr>';
+        output += '<th>Name</th><th>ko</th><th>en</th><th>ma</th>';
+        output += '</tr>';
+        output += '</table>';
+        $('#div_view2').append(output);
+    };
+
+    //테이블에 데이터를 출력한다.
+    func.setData = function () {
+        $(list).each(function (index, item) {
+            var tmp = '';
+            with (item) {
+                tmp += '<tr>';
+                tmp += '<td>' + name + '</td><td>' + ko + '</td><td>' + en + '</td><td>' + ma + '</td>';
+                tmp += '</tr>';
+            }
+
+            $('#div_view2').append(tmp);
+        });
+    };
+    $(document).ready(function () {
+        func.makeTable();
+        func.setData();
+        //Sc.makeStyle();
+    });
+</script>
+
+<hr>
+<div id="div_view2" value="{{ aaa }}">
+    <input hidden id="view_test" name="view_test" value="{{ aaa }}"/>
+    {{ aaa }}
+</div>
+
+<hr>
+<button type="button" id="selectBtn" class="btn btn-primary col-1 pull-right">필터 예정</button>
+<table border="1" id="test_table">
+    <thead>
+    <tr>
+        <th>_ID</th>
+        <th>Model</th>
+        <th>SN</th>
+        <th>Header</th>
+    </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>
+<script>
+    $("#selectBtn").click(function () {
+        var a = $('#view_test').val();
+        a = a.replace(/'/gi, '"');
+        console.log(a);
+        a = a.replace(/ObjectId\(/gi, '');
+        console.log(a);
+        a = a.replace(/\)/gi, '');
+        console.log(a);
+        a = JSON.parse(a);
+        alert(a);
+        for (var i = 0; i < a.length; i++) {
+            console.log(a[i]);
+            $('#test_table').append(
+                $('<tr>').append(
+                    $('<td>').append(a[i]['_id']),
+                    $('<td>').append(a[i]['model']),
+                    $('<td>').append(a[i]['sn']),
+                    $('<td>').append(a[i]['header'])
+                )
+            );
+        }
+
+    });
+</script>
+
+<hr>
+<table border="1" id="ttest">
+    <thead>
+    <tr>
+        <th>_ID</th>
+        <th>Model</th>
+        <th>SN</th>
+        <th>Header</th>
+    </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>
+<script>
+    $(document).ready(function () {
+        var a = $('#view_test').val();
+        a = a.replace(/'/gi, '"');
+        console.log(a);
+        a = a.replace(/ObjectId\(/gi, '');
+        console.log(a);
+        a = a.replace(/\)/gi, '');
+        console.log(a);
+        a = JSON.parse(a);
+        for (var i = 0; i < a.length; i++) {
+            console.log(a[i]);
+            $('#ttest').append(
+                $('<tr>').append(
+                    $('<td>').append(a[i]['_id']),
+                    $('<td>').append(a[i]['model']),
+                    $('<td>').append(a[i]['sn']),
+                    $('<td>').append(a[i]['header'])
+                )
+            );
+        }
+    });
+</script>
+<hr>
+<div>
+    <input hidden id="real_test" name="view_test" value="{{ object.production_main_checked_list() }}"/>
+    <input hidden id="real_value" name="view_test" value="{{ object.production_main_all_list() }}"/>
+    {{ object.production_main_checked_list() }}{{ object.production_main_all_list() }}
+</div>
+
+<hr>
+<table border="1" id="real_table">
+    <thead>
+    <tr>
+        <th>model</th>
+        <th>week</th>
+        <th>location</th>
+        <th>state</th>
+    </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>
+<script>
+    $(document).ready(function () {
+        var aa = $('#real_test').val();
+        var bb = $('#real_value').val();
+        alert(aa);
+        alert(bb);
+        aa = aa.replace(/'/gi, '"');
+        console.log(aa);
+        aa = aa.replace(/ObjectId\(/gi, '');
+        console.log(aa);
+        aa = aa.replace(/\)/gi, '');
+        console.log(aa);
+        aa = JSON.parse(aa);
+
+        console.log(bb);
+        bb = bb.replace(/'/gi, '"');
+        console.log(bb);
+        bb = bb.replace(/ObjectId\(/gi, '');
+        console.log(bb);
+        bb = bb.replace(/\)/gi, '');
+        console.log(bb);
+        bb = JSON.parse(bb);
+        for (var i = 0; i < aa.length; i++) {
+            console.log(aa[i]);
+            console.log(bb[i]);
+            $('#real_table').append(
+                $('<tr>').append(
+                    $('<td>').append(bb[i]['model']),
+                    $('<td>').append(aa[i]['week']),
+                    $('<td>').append(aa[i]['location'][aa[i]['location'].length-1]),
+                    $('<td>').append(aa[i]['state'][aa[i]['state'].length-1])
+                )
+            );
+        }
+
+    });
+</script>
+{% endblock %}
