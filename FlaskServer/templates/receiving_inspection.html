@@ -1,0 +1,82 @@
+{% extends 'main_base.html' %}
+{% block head %}
+<script>
+    function receiving_inspection_table() {
+        if (false) {
+            console.log("Specific date search");
+            specific_date_row = JSON_parse_convertor(specific_date_row);
+            for (var i = 0; i < specific_date_row[0].length; i++) {
+                $('#main_table').append(
+                    $('<tr>').append(
+                        //$('<td><input type="checkbox" name="main_checkbox"/>').append(specific_date_row[1][i]['model']),
+                        $('<td>').append(specific_date_row[1][i]['model']),
+                        $('<td>').append(specific_date_row[1][i]['sn']),
+                        $('<td>').append(specific_date_row[0][i]['week']),
+                        $('<td>').append(specific_date_row[0][i]['location'][specific_date_row[0][i]['location'].length - 1]),
+                        $('<td>').append(specific_date_row[0][i]['state'][specific_date_row[0][i]['state'].length - 1]),
+                        $('<td><button type="button" id="detail_btn" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>'))
+                );
+                document.getElementsByName("detail_btn")[i].value = specific_date_row[0][i]['product_id'];
+            }
+        } else if (false) {
+            alert("DB Length is wrong !");
+        } else {
+            $('#receiving_table').append(
+                $('<tr>').append(
+                    $('<th colspan="14">').append("출하검사 불량 현황")
+                ),
+                $('<tr>').append(
+                    $('<td>').append("구분"),
+                    $('<td>').append("M1"),
+                    $('<td>').append("M2"),
+                    $('<td>').append("W1"),
+                    $('<td>').append("W2"),
+                    $('<td>').append("W3"),
+                    $('<td>').append("W4"),
+                    $('<td>').append("W5"),
+                    $('<td>').append("W6"),
+                    $('<td>').append("W7"),
+                    $('<td>').append("W8"),
+                    $('<td>').append("W9"),
+                    $('<td>').append("W10")
+                )
+            );
+            for (var i = 0; i < product_row.length; i++) {
+                /*$('#business_table').append(
+                    $('<tr>').append(
+                        //$('<td><input type="checkbox" name="main_checkbox"/>').append(product_row[i]['model']),
+                        $('<td>').append(product_row[i]['model']),
+                        $('<td>').append(product_row[i]['sn']),
+                        $('<td>').append(product_info_row[i]['week']),
+                        $('<td>').append(product_info_row[i]['location'][product_info_row[i]['location'].length - 1]),
+                        $('<td>').append(product_info_row[i]['state'][product_info_row[i]['state'].length - 1]),
+                        $('<td>'> 자세히))
+                );
+                document.getElementsByName("detail_btn")[i].value = product_info_row[i]['product_id'];
+            */
+            }
+        }
+    }
+
+    // As Jquery same the [ window.onload = function(){} ]
+    $(document).ready(function () {
+        receiving_inspection_table();
+    });
+</script>
+{% endblock %}
+{% block title %} 수입검사 페이지 {% endblock %}
+{% block body_title %}Title{% endblock %}
+{% block main_title %} 수입검사 화면{% endblock %}
+{% block body %}
+<div class="row container-fluid">
+    <h1>Receiving inspection 화면</h1>
+    <table class="table table-bordered table-striped" id="receiving_table">
+        <thead>
+
+        </thead>
+        <tbody>
+            <!--  Call of the Java Script Function (table) -->
+        </tbody>
+    </table>
+</div>
+{% endblock %}

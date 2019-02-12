@@ -1,0 +1,109 @@
+{% extends 'main_base.html' %}
+{% block head %}
+<script>
+    function business_goal_table() {
+        /*
+        var product_row = $('#all_list').val();
+        var product_info_row = $('#info_list').val();
+        var specific_date_row = $('#specific_date_list').val();
+        console.log(product_row);
+        console.log(product_info_row);
+        console.log(specific_date_row);
+        //console.log(specific_date_row.length);
+        //console.log(typeof(specific_date_row));
+        product_row = JSON_parse_convertor(product_row);
+        product_info_row = JSON_parse_convertor(product_info_row);
+        */
+        if (false) {
+            console.log("Specific date search");
+            specific_date_row = JSON_parse_convertor(specific_date_row);
+            for (var i = 0; i < specific_date_row[0].length; i++) {
+                $('#main_table').append(
+                    $('<tr>').append(
+                        //$('<td><input type="checkbox" name="main_checkbox"/>').append(specific_date_row[1][i]['model']),
+                        $('<td>').append(specific_date_row[1][i]['model']),
+                        $('<td>').append(specific_date_row[1][i]['sn']),
+                        $('<td>').append(specific_date_row[0][i]['week']),
+                        $('<td>').append(specific_date_row[0][i]['location'][specific_date_row[0][i]['location'].length - 1]),
+                        $('<td>').append(specific_date_row[0][i]['state'][specific_date_row[0][i]['state'].length - 1]),
+                        $('<td><button type="button" id="detail_btn" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>'))
+                );
+                document.getElementsByName("detail_btn")[i].value = specific_date_row[0][i]['product_id'];
+            }
+        } else if (false) {
+            alert("DB Length is wrong !");
+        } else {
+
+            $('#business_table').append(
+                $('<tr>').append(
+                    $('<th colspan="15">').append("영업목표")
+                ),
+                $('<tr>').append(
+                    $('<td colspan="1">').append("구분"),
+                    $('<td colspan="8">').append("영업 본부"),
+                    $('<td colspan="6">').append("시스템 본부")
+                ),
+                $('<tr>').append(
+                    $('<td colspan="3">').append("기간"),
+                    $('<td colspan="3">').append("수량"),
+                    $('<td colspan="3">').append("금액"),
+                    $('<td colspan="3">').append("수량"),
+                    $('<td colspan="3">').append("금액")
+                ),
+                $('<tr>').append(
+                    $('<td>').append("년"),
+                    $('<td>').append("분기"),
+                    $('<td>').append("월"),
+                    $('<td>').append("목표"),
+                    $('<td>').append("수주"),
+                    $('<td>').append("누적"),
+                    $('<td>').append("목표"),
+                    $('<td>').append("수주"),
+                    $('<td>').append("누적"),
+                    $('<td>').append("목표"),
+                    $('<td>').append("수주"),
+                    $('<td>').append("누적"),
+                    $('<td>').append("목표"),
+                    $('<td>').append("수주"),
+                    $('<td>').append("누적")
+                )
+            );
+            for (var i = 0; i < product_row.length; i++) {
+                /*$('#business_table').append(
+                    $('<tr>').append(
+                        //$('<td><input type="checkbox" name="main_checkbox"/>').append(product_row[i]['model']),
+                        $('<td>').append(product_row[i]['model']),
+                        $('<td>').append(product_row[i]['sn']),
+                        $('<td>').append(product_info_row[i]['week']),
+                        $('<td>').append(product_info_row[i]['location'][product_info_row[i]['location'].length - 1]),
+                        $('<td>').append(product_info_row[i]['state'][product_info_row[i]['state'].length - 1]),
+                        $('<td>'> 자세히))
+                );
+                document.getElementsByName("detail_btn")[i].value = product_info_row[i]['product_id'];
+            */
+            }
+        }
+    }
+
+    // As Jquery same the [ window.onload = function(){} ]
+    $(document).ready(function () {
+        business_goal_table();
+    });
+</script>
+{% endblock %}
+{% block title %} 영업목표 페이지 {% endblock %}
+{% block body_title %}Title{% endblock %}
+{% block main_title %}영업목표 화면{% endblock %}
+{% block body %}
+<div class="row container-fluid">
+    <h1>Business goal 화면</h1>
+    <table class="table table-bordered table-striped" id="business_table">
+        <thead>
+
+        </thead>
+        <tbody>
+            <!--  Call of the Java Script Function (table) -->
+        </tbody>
+    </table>
+</div>
+{% endblock %}

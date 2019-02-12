@@ -23,102 +23,141 @@
     }
 
     function main_table() {
-        var product_row = $('#all_list').val();
-        var product_info_row = $('#checked_list').val();
+        var model_row = $('#model_list').val();
+        var history_row = $('#history_list').val();
+        var product_info_row = $('#info_list').val();
         var specific_date_row = $('#specific_date_list').val();
-        console.log(product_row);
+        console.log(model_row);
         console.log(product_info_row);
         console.log(specific_date_row);
-        console.log(specific_date_row.length);
-        console.log(typeof(specific_date_row));
-        product_row = JSON_parse_convertor(product_row);
-        product_info_row = JSON_parse_convertor(product_info_row);
+        if (model_row == undefined || product_info_row == undefined) {
+            console.log("Rows Empty");
+        } else {
+            model_row = JSON_parse_convertor(model_row);
+            history_row = JSON_parse_convertor(history_row);
+            product_info_row = JSON_parse_convertor(product_info_row);
 
-        if (specific_date_row.length != 0) {
-            console.log("Specific date search");
-            specific_date_row = JSON_parse_convertor(specific_date_row);
-            for (var i = 0; i < specific_date_row[0].length; i++) {
-                $('#main_table').append(
-                    $('<tr>').append(
-                        //$('<td><input type="checkbox" name="main_checkbox"/>').append(specific_date_row[1][i]['model']),
-                        $('<td>').append(specific_date_row[1][i]['model']),
-                        $('<td>').append(specific_date_row[1][i]['sn']),
-                        $('<td>').append(specific_date_row[0][i]['week']),
-                        $('<td>').append(specific_date_row[0][i]['location'][specific_date_row[0][i]['location'].length - 1]),
-                        $('<td>').append(specific_date_row[0][i]['state'][specific_date_row[0][i]['state'].length - 1]),
-                        $('<td><button type="button" id="detail_btn" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>'))
-                );
-                document.getElementsByName("detail_btn")[i].value = specific_date_row[0][i]['product_id'];
-            }
-        }
-
-        else if (product_row.length != product_info_row.length) {
-            alert("DB Length is wrong !");
-        }else{
-            for (var i = 0; i < product_row.length; i++) {
-                $('#main_table').append(
-                    $('<tr>').append(
-                        //$('<td><input type="checkbox" name="main_checkbox"/>').append(product_row[i]['model']),
-                        $('<td>').append(product_row[i]['model']),
-                        $('<td>').append(product_row[i]['sn']),
-                        $('<td>').append(product_info_row[i]['week']),
-                        $('<td>').append(product_info_row[i]['location'][product_info_row[i]['location'].length - 1]),
-                        $('<td>').append(product_info_row[i]['state'][product_info_row[i]['state'].length - 1]),
-                        $('<td><button type="button" id="detail_btn" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>'))
-                );
-                document.getElementsByName("detail_btn")[i].value = product_info_row[i]['product_id'];
+            if (specific_date_row.length != 0) {
+                console.log("Specific date search");
+                specific_date_row = JSON_parse_convertor(specific_date_row);
+                for (var i = 0; i < specific_date_row[0].length; i++) {
+                    $('#main_table').append(
+                        $('<tr>').append(
+                            //$('<td><input type="checkbox" name="main_checkbox"/>').append(specific_date_row[1][i]['model']),
+                            $('<td>').append(specific_date_row[1][i]['model']),
+                            $('<td>').append(specific_date_row[1][i]['sn']),
+                            $('<td>').append(specific_date_row[0][i]['week']),
+                            $('<td>').append(specific_date_row[2][i]['location_history'][specific_date_row[2][i]['location_history'].length - 1]['location']),
+                            $('<td>').append(specific_date_row[2][i]['state_history'][specific_date_row[2][i]['state_history'].length - 1]['state']),
+                            $('<td><button type="button" id="detail_btn" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>')
+                        )
+                    );
+                    document.getElementsByName("detail_btn")[i].value = specific_date_row[0][i]['model_id'];
+                }
+            } else if (model_row.length != product_info_row.length) {
+                alert("DB Length is wrong !");
+            } else {
+                for (var i = 0; i < model_row.length; i++) {
+                    $('#main_table').append(
+                        $('<tr>').append(
+                            //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
+                            $('<td>').append(model_row[i]['model']),
+                            $('<td>').append(product_info_row[i]['sn']),
+                            $('<td>').append(product_info_row[i]['week']),
+                            $('<td>').append(history_row[i]['location_history'][history_row[i]['location_history'].length - 1]['location']),
+                            $('<td>').append(history_row[i]['state_history'][history_row[i]['state_history'].length - 1]['state']),
+                            $('<td><button type="button" id="detail_btn" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>')
+                        )
+                    );
+                    document.getElementsByName("detail_btn")[i].value = product_info_row[i]['model_id'];
+                }
             }
         }
     }
 
     function state_change_table() {
-        var product_row = $('#all_list').val();
-        var product_info_row = $('#checked_list').val();
-        product_row = JSON_parse_convertor(product_row);
-        product_info_row = JSON_parse_convertor(product_info_row);
-        if (product_row.length != product_info_row.length) {
-            alert("DB Length is wrong !");
+        var model_list = $('#model_list').val();
+        var history_row = $('#history_list').val();
+        var product_info_row = $('#info_list').val();
+        if (model_list == undefined || product_info_row == undefined) {
+            console.log("Rows Empty");
+        } else {
+            model_list = JSON_parse_convertor(model_list);
+            history_row = JSON_parse_convertor(history_row);
+            product_info_row = JSON_parse_convertor(product_info_row);
+            if (model_list.length != product_info_row.length) {
+                alert("DB Length is wrong !");
+            }
+            for (var i = 0; i < model_list.length; i++) {
+                $('#state_table').append(
+                    $('<tr>').append(
+                        $('<td><input class="checkbox" type="checkbox" name="check_box" value=""/>').append(model_list[i]['model']),
+                        $('<input type="hidden" name="id" value="">'),
+                        $('<td>').append(product_info_row[i]['sn']),
+                        $('<td><input type="text" class="form-control" name="location" value="" >'),
+                        $('<td><select class="form-control" name="states" id="state" value="">' +
+                            '<option>재고</option>' +
+                            '<option>판매</option>' +
+                            '<option>기증</option>' +
+                            '<option>내수용</option>' +
+                            '<option>A/S 입고</option>' +
+                            '<option>불량</option>' +
+                            '<option>폐기</option>' +
+                            '</select>')
+                    )
+                );
+                //$("#state option:eq(i)").attr("selected", "selected");
+                document.getElementsByName("id")[i].value = product_info_row[i]['_id'];
+                document.getElementsByName("check_box")[i].value = product_info_row[i]['_id'];
+                document.getElementsByName("location")[i].value = history_row[i]['location_history'][history_row[i]['location_history'].length - 1]['location'];
+                document.getElementsByName("states")[i].value = history_row[i]['state_history'][history_row[i]['state_history'].length - 1]['state'];
+            }
         }
-        for (var i = 0; i < product_row.length; i++) {
-            $('#state_table').append(
-                $('<tr>').append(
-                    $('<td><input class="checkbox" type="checkbox" name="check_box" value=""/>').append(product_row[i]['model']),
-                    $('<input type="hidden" name="id" value="">'),
-                    $('<td>').append(product_row[i]['sn']),
-                    $('<td><input type="text" class="form-control" name="location" value="" >'),
-                    $('<td><select class="form-control" name="states" id="state" value="">' +
-                        '<option>재고</option>' +
-                        '<option>판매</option>' +
-                        '<option>기증</option>' +
-                        '<option>내수용</option>' +
-                        '<option>A/S 입고</option>' +
-                        '<option>불량</option>' +
-                        '<option>폐기</option>' +
-                        '</select>'))
-            );
-            //$("#state option:eq(i)").attr("selected", "selected");
-            document.getElementsByName("id")[i].value = product_info_row[i]['_id'];
-            document.getElementsByName("check_box")[i].value = product_info_row[i]['_id'];
-            document.getElementsByName("location")[i].value = product_info_row[i]['location'][product_info_row[i]['location'].length - 1];
-            document.getElementsByName("states")[i].value = product_info_row[i]['state'][product_info_row[i]['state'].length - 1];
-        }
+    }
+
+    // 나중에 행 추가, 삭제 기능
+    function insert_table() {
+        $('#insert_table').append(
+            $('<tr>').append(
+                $('<td><select class="from-control" id="insert_model" name="model">' +
+                    '<option>Indy3</option>\n' +
+                    '<option>Indy5</option>\n' +
+                    '<option>Indy7</option>\n' +
+                    '<option>Opti</option>\n' +
+                    '<option>Step-pc2</option>\n' +
+                    '<option>Core</option>\n' +
+                    '<option>Conty</option>\n' +
+                    '</select>'),
+                $('<td><input type="text" class="form-control" id="insert_sn" name="sn">'),
+                $('<td><input type="text" class="form-control" id="insert_header" name="header">')
+            )
+        );
     }
 
     function detail_tabler() {
         $(".detail_btn_class").click(function () {
             // Table initialization
             $('#detail_table > tbody:last').empty();
+            $('#detail_info > tbody:last').empty();
 
-            var product_info_row = $('#checked_list').val();
+            var product_row = $('#model_list').val();
+            var product_info_row = $('#info_list').val();
             var received_id = $(this).val();
-            var _date, _location, _state;
+            var _date, _location, _state, _week;
+            product_row = JSON_parse_convertor(product_row);
             product_info_row = JSON_parse_convertor(product_info_row);
-
+            var _model, _sn, _header;
             for (var j = 0; j < product_info_row.length; j++) {
                 if (received_id == product_info_row[j]['product_id']) {
                     _date = product_info_row[j]['updated_date'];
                     _location = product_info_row[j]['location'];
                     _state = product_info_row[j]['state'];
+                    _week = product_info_row[j]['week'];
+                }
+                if (received_id == product_row[j]['_id']) {
+                    _model = product_row[j]['model'];
+                    _sn = product_row[j]['sn'];
+                    _header = product_row[j]['header'];
                 }
             }
             //console.log(_date);
@@ -127,6 +166,14 @@
             if (product_info_row.length != product_info_row.length) {
                 alert("DB Length is wrong !");
             }
+            $('#detail_info').append(
+                $('<tr>').append(
+                    $('<th class="text-right">').append("Model:  " + _model),
+                    $('<th class="text-right">').append("SN:  " + _sn),
+                    $('<th class="text-right">').append("생산 Week:  " + _week),
+                    $('<th class="text-right">').append("Header:  " + _header)
+                )
+            );
             for (var i = 0; i < _date.length; i++) {
                 $('#detail_table').append(
                     $('<tr>').append(
@@ -179,6 +226,7 @@
         btn_click_event();
         state_change_table();
         detail_tabler();
+        insert_table();
     });
 </script>
 {% endblock %}
@@ -206,9 +254,10 @@
     <button type="button" class="btn btn-warning col-1" data-toggle="modal" data-target="#insert_modal"> 등록</button>
 </div>
 <hr/>
-{% if object.production_main_all_list()[0] %}
-<input hidden id="checked_list" value="{{ object.production_main_info_list() }}"/>
-<input hidden id="all_list" value="{{ object.production_main_all_list() }}"/>
+{% if object.production_main_model()[0] %}
+<input hidden id="info_list" value="{{ object.production_main_info_list() }}"/>
+<input hidden id="model_list" value="{{ object.production_main_model() }}"/>
+<input hidden id="history_list" value="{{ object.production_main_history() }}"/>
 <input hidden id="specific_date_list" value="{{ date_rows }}"/>
 <table class="table table-striped table-bordered" id="main_table">
     <thead class="thead-dark">
@@ -240,13 +289,13 @@
         <form class="form-inline" action="/insert_data" method="POST" enctype=multipart/form-data>
             <div class="modal-content">
                 <!-- Modal Header -->
-                <div class="modal-header">
+                <div class="modal-header text-white bg-secondary">
                     <h1 class="page-header">등 록</h1>
                 </div>
                 <!-- Modal Body -->
                 <div class="modal-body">
                     <div class="table-responsive">
-                        <table class="table table-striped table-bordered">
+                        <table class="table table-striped table-bordered" id="insert_table">
                             <thead class="thead-dark">
                             <tr>
                                 <th>모델명</th>
@@ -255,23 +304,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td>
-                                    <select class="from-control" id="insert_model" name="model">
-                                        <option>Indy3</option>
-                                        <option>Indy5</option>
-                                        <option>Indy7</option>
-                                        <option>Opti</option>
-                                        <option>Step-pc2</option>
-                                        <option>Core</option>
-                                        <option>Conty</option>
-                                    </select>
-                                </td>
-                                <th>
-                                    <input type="text" class="form-control" id="insert_sn" name="sn"></th>
-                                <th>
-                                    <input type="text" class="form-control" id="insert_header" name="header"></th>
-                            </tr>
+
                             </tbody>
                         </table>
                     </div>
@@ -297,7 +330,7 @@
                 <!-- Modal Body -->
                 <div class="modal-body">
                     <div class="table-responsive">
-                        {% if object.production_main_all_list()[0] %}
+                        {% if object.production_main_model()[0] %}
                         <table class="table table-striped table-bordered" id="state_table">
                             <thead class="thead-dark">
                             <tr>
@@ -329,42 +362,50 @@
 <!-- The Detail Console Modal -->
 <div class="modal fade" id="detail_modal">
     <div class="modal-dialog modal-lg">
-        <form class="form-inline" action="/detail_modal" method="POST" enctype=multipart/form-data>
-            <div class="modal-content">
-                <!-- Modal Header -->
-                <div class="modal-header">
-                    <h1 class="page-header">상세 화면</h1>
-                </div>
-                <!-- Modal Body -->
-                <div class="modal-body">
-                    {% if object.production_main_info_list()[0] %}
-                    <div class="table-responsive">
-                        <table class="table table-striped table-bordered" id="detail_table">
-                            <thead class="thead-dark">
-                            <tr>
-                                <th>날짜</th>
-                                <th>위치</th>
-                                <th>상태</th>
-                            </tr>
-                            </thead>
-                            <tbody>
+
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header text-white bg-secondary table-responsive">
+                <table class="table table-borderless" id="detail_info">
+                    <thead>
+                    <tr>
+                        <th><h1>상세 화면</h1></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                            <!--  Call of the Java Script Function (table) -->
+                        </tbody>
+                </table>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+                {% if object.production_main_info_list()[0] %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered" id="detail_table">
+                        <thead class="thead-dark">
+                        <tr>
+                            <th>날짜</th>
+                            <th>위치</th>
+                            <th>상태</th>
+                        </tr>
+                        </thead>
+                        <tbody>
                             <!--  Call of the Java Script Function (table) -->
                             </tbody>
-                        </table>
-                        {% else %}
-                        <h3> No Notice in the CheckBox</h3>
-                        <input type="hidden" name="data_empty" value='{{ true }}'/>
-                        {% endif %}
-                    </div>
-                </div>
-                <!-- Modal Footer -->
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-warning"
-                            onclick="location.href='/detail_modal'">확 인
-                    </button>
+                    </table>
+                    {% else %}
+                    <h3> No Notice in the CheckBox</h3>
+                    <input type="hidden" name="data_empty" value='{{ true }}'/>
+                    {% endif %}
                 </div>
             </div>
-        </form>
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" data-dismiss="modal">확 인
+                </button>
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}

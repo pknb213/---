@@ -1,0 +1,80 @@
+{% extends 'main_base.html' %}
+{% block head %}
+<script>
+    function partners_list_table() {
+        if (false) {
+            console.log("Specific date search");
+            specific_date_row = JSON_parse_convertor(specific_date_row);
+            for (var i = 0; i < specific_date_row[0].length; i++) {
+                $('#main_table').append(
+                    $('<tr>').append(
+                        //$('<td><input type="checkbox" name="main_checkbox"/>').append(specific_date_row[1][i]['model']),
+                        $('<td>').append(specific_date_row[1][i]['model']),
+                        $('<td>').append(specific_date_row[1][i]['sn']),
+                        $('<td>').append(specific_date_row[0][i]['week']),
+                        $('<td>').append(specific_date_row[0][i]['location'][specific_date_row[0][i]['location'].length - 1]),
+                        $('<td>').append(specific_date_row[0][i]['state'][specific_date_row[0][i]['state'].length - 1]),
+                        $('<td><button type="button" id="detail_btn" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>'))
+                );
+                document.getElementsByName("detail_btn")[i].value = specific_date_row[0][i]['product_id'];
+            }
+        } else if (false) {
+            alert("DB Length is wrong !");
+        } else {
+            $('#partners_table').append(
+                $('<tr>').append(
+                    $('<th colspan="10">').append("업체리스트")
+                ),
+                $('<tr>').append(
+                    $('<td>').append("No."),
+                    $('<td>').append("구분"),
+                    $('<td>').append("업체명"),
+                    $('<td>').append("품명"),
+                    $('<td>').append("주소"),
+                    $('<td>').append("담당자"),
+                    $('<td>').append("연락처"),
+                    $('<td>').append("e-mail"),
+                    $('<td>').append("비고"),
+                    $('<td>').append("관리구분")
+                )
+            )
+            ;
+            for (var i = 0; i < product_row.length; i++) {
+                /*$('#business_table').append(
+                    $('<tr>').append(
+                        //$('<td><input type="checkbox" name="main_checkbox"/>').append(product_row[i]['model']),
+                        $('<td>').append(product_row[i]['model']),
+                        $('<td>').append(product_row[i]['sn']),
+                        $('<td>').append(product_info_row[i]['week']),
+                        $('<td>').append(product_info_row[i]['location'][product_info_row[i]['location'].length - 1]),
+                        $('<td>').append(product_info_row[i]['state'][product_info_row[i]['state'].length - 1]),
+                        $('<td>'> 자세히))
+                );
+                document.getElementsByName("detail_btn")[i].value = product_info_row[i]['product_id'];
+            */
+            }
+        }
+    }
+
+    // As Jquery same the [ window.onload = function(){} ]
+    $(document).ready(function () {
+        partners_list_table();
+    });
+</script>
+{% endblock %}
+{% block title %} 업체리스트 페이지 {% endblock %}
+{% block body_title %}Title{% endblock %}
+{% block main_title %}업체리스트 화면{% endblock %}
+{% block body %}
+<div class="row container-fluid">
+    <h1>Partners list 화면</h1>
+    <table class="table table-bordered table-striped" id="partners_table">
+        <thead>
+
+        </thead>
+        <tbody>
+            <!--  Call of the Java Script Function (table) -->
+        </tbody>
+    </table>
+</div>
+{% endblock %}
