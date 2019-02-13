@@ -6,6 +6,7 @@ import pymongo
 import pandas
 from flask import render_template, request, current_app, make_response, url_for, redirect
 from bson.objectid import ObjectId  # For ObjectId to work
+from collections import OrderedDict
 
 '''
 ip = '211.106.106.183'
@@ -18,12 +19,12 @@ print(type(rows_collection))
 
 
 class Mongodb_connection:
-    _ip = '222.106.48.150'
-    _port = 27019
 
     def __init__(self):
         # print(" ~~ ", sep = '\n')
         print("MongoDB init")
+        self._ip = '222.106.48.150'
+        self._port = 27019
 
     def db_client(self):
         return pymongo.MongoClient(self._ip, self._port)
@@ -45,16 +46,78 @@ class Mongodb_connection:
 
 
 class Rows:
-    _DB_object = Mongodb_connection()
 
     def __init__(self):
         print("Rows Class init")
+        self._DB_object = Mongodb_connection()
 
     # def production_main_list(self):
 
+    def main_table_rows(self):
+        result_rows = []
+        query = {"show": {'$eq': '1'}}
+        try:
+            rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'history')
+            rows_list = list(rows_collection.find(query))  # cursor type -> list type
+        except Exception as e:
+            print("DB_error : Class Rows.model()", end=" >> ")
+            print(e)
+        finally:
+            self._DB_object.db_close()
+        id_list = []
+        loca_list = []
+        sta_list = []
+        date_list = []
+        for row in rows_list:
+            id_list.append(row['product_id'])
+            loca_list.append(row['location'])
+            sta_list.append(row['state'])
+            date_list.append(row['date'])
+        print(id_list)
+        print(loca_list)
+        print(sta_list)
+        print(date_list)
+
+        we_list = []
+        sn_list = []
+        mo_list = []
+        rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'product_info')
+        for id in id_list:
+            query = {"_id": {'$eq': ObjectId(id)}}
+            row = list(rows_collection.find(query))  # cursor type -> list type
+            print(row)
+            print(row[0])
+            print(row[0]['week'])
+            we_list.append(row[0]['week'])
+            sn_list.append(row[0]['sn'])
+            mid = row[0]['model_id']
+
+            rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'model')
+            query = {"_id": {'$eq': ObjectId(mid)}}
+            row = list(rows_collection.find(query))  # cursor type -> list type
+            mo_list.append(row[0]['model'])
+
+        print(we_list)
+        print(sn_list)
+        print(mo_list)
+        for i in range(0, len(loca_list)):
+            res = mo_list[i] + sn_list[i] + we_list[i] + loca_list[i] + sta_list[i]
+            result_rows.append(res)
+        self._DB_object.db_close()
+
+        print(result_rows)
+
+
+
+        rows_list = [{'model': 'indy', 'sn': 'D2313', 'week': '1908', 'location': '대전', 'state': '입고'},
+                     {'model': 'opty', 'sn': 'D1293', 'week': '1908', 'location': '대전', 'state': '입고'},
+                     {'model': 'step', 'sn': 'D6643', 'week': '1908', 'location': '대전', 'state': '입고'}]
+
+        return rows_list
+
     def production_main_model(self):
         try:
-            #db_object = Mongodb_connection()
+            # db_object = Mongodb_connection()
             rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'model')
             rows_list = list(rows_collection.find())  # cursor type -> list type
         except Exception as e:
@@ -67,7 +130,7 @@ class Rows:
 
     def production_main_history(self):
         try:
-            #db_object = Mongodb_connection()
+            # db_object = Mongodb_connection()
             rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'history')
             rows_list = list(rows_collection.find())  # cursor type -> list type
         except Exception as e:
@@ -80,7 +143,7 @@ class Rows:
 
     def production_main_info_list(self):
         try:
-            #db_object = Mongodb_connection()
+            # db_object = Mongodb_connection()
             rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'product_info')
             rows_list = list(rows_collection.find())  # cursor type -> list type
         except Exception as e:
@@ -167,6 +230,7 @@ def ckeditor4():
 @app.route('/')
 def production_main():
     row_object = Rows()
+    row_object.main_table_rows()
 
     return render_template('production_main.html', date_rows='', object=row_object)
 
@@ -360,23 +424,24 @@ def insert_plan():
 
 def insert_model(collection, model):
     # Add Meta Data Later.
-    # query = {'model': data_list[0], 'sn': data_list[1], 'header': data_list[2]}
     query = {'model': model}
     return collection.insert(query)  # Return value is ObjectId
 
 
 def insert_history(collection, args_list):
-    query = {'date_history': [{'date': args_list[0]}],
-             'location_history': [{'location': args_list[1]}],
-             'state_history': [{'state': args_list[2]}]}
+    query = {'product_id': args_list[0],
+             'index': '0',
+             'show': '1',
+             'date': args_list[1],
+             'location': args_list[2],
+             'state': args_list[3],
+             'reason': args_list[4]}
     return collection.insert(query)
 
 
 def insert_product_info(collection, args_list):
-    # query = {'product_id': data_list[0], 'week': data_list[1], 'quality': data_list[2], 'show': data_list[3],
-    #         'updated_date': [data_list[4]], 'location': [data_list[5]], 'state': [data_list[6]]}
-    query = {'model_id': args_list[0], 'sn': args_list[1], 'header': args_list[2], 'week': args_list[3],
-             'quality': args_list[4], 'show': args_list[5], 'history_id': args_list[6]}
+    query = {'model_id': args_list[0], 'sn': args_list[1], 'header': args_list[2],
+             'week': args_list[3], 'quality': args_list[4], 'show': args_list[5]}
 
     return collection.insert(query)  # Return value is ObjectId
 
@@ -397,41 +462,41 @@ def insert_data():
     try:
         db_object = Mongodb_connection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'model')
-        model_id = insert_model(rows_collection, _model)
+        _model_id = str(insert_model(rows_collection, _model))
     except Exception as e:
         db_object.db_close()
         print("DB_error : insert_model()", end=" : ")
         print(e)
 
-    _updated_date = date
-    _location = '대전'
-    _state = '재고'  # 재고, 판매, 기증, 내수용, A/S입고, 폐기
-    history_values = [_updated_date, _location, _state]
-
-    try:
-        rows_collection = db_object.db_conn(db_object.db_client(), 'history')
-        history_id = insert_history(rows_collection, history_values)
-    except Exception as e:
-        db_object.db_close()
-        print("DB_error : insert_history()", end=" : ")
-        print(e)
-
     # Auto value
-    _model_id = str(model_id)
     _week = now
     _quality = 'N'
     _show = '1'
-    _history_id = str(history_id)
-    auto_values = [_model_id, _sn, _header, _week, _quality, _show, _history_id]
+    auto_values = [_model_id, _sn, _header, _week, _quality, _show]
 
     try:
         rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-        insert_product_info(rows_collection, auto_values)
+        _product_id = str(insert_product_info(rows_collection, auto_values))
     except Exception as e:
         print("DB_error : insert_product_info()", end=" >> ")
         print(e)
     finally:
         db_object.db_close()
+
+    # History value
+    _date = date
+    _location = '대전'
+    _state = '입고'   # 입고, 출고, 이동
+    _reason = '재고'  # 재고, 판매, 기증, 내수용, A/S입고, 폐기
+    history_values = [_product_id, _date, _location, _state, _reason]
+
+    try:
+        rows_collection = db_object.db_conn(db_object.db_client(), 'history')
+        insert_history(rows_collection, history_values)
+    except Exception as e:
+        db_object.db_close()
+        print("DB_error : insert_history()", end=" : ")
+        print(e)
 
     return redirect('/')
 
@@ -475,6 +540,8 @@ def state_change():
                         print(_checked_id[i], end=" <-- ")
                         print(row_list[j])
                         rows_collection = db_object.db_conn(db_object.db_client(), 'history')
+                        print("Test :", end="  ")
+                        print(row_list[j].items())
                         # return find() -> Cursor Type
                         # return insert() -> Object Type
                         # return update() -> Dict Type
@@ -491,11 +558,10 @@ def state_change():
                         rows_collection.update({
                             '_id': ObjectId(row_list[j]['id'])
                         }, {
-                            '$push': {'location_history': [{**row_list[j]}],
-                                      'state_history': [{**row_list[j]}],
-                                      'date_history': [{**_date}]
-                        }})
-
+                            'location_history': {'$push': {'0': row_list[j]['location']}},
+                            'state_history': {'$push': {'0': row_list[j]['state']}},
+                            'date_history': {'$push': {'0': _date}}
+                        })
         except Exception as e:
             print("DB_error : state_change()", end=" >> ")
             print(e)

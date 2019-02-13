@@ -64,8 +64,8 @@
                             $('<td>').append(model_row[i]['model']),
                             $('<td>').append(product_info_row[i]['sn']),
                             $('<td>').append(product_info_row[i]['week']),
-                            $('<td>').append(history_row[i]['location_history'][history_row[i]['location_history'].length - 1]['location']),
-                            $('<td>').append(history_row[i]['state_history'][history_row[i]['state_history'].length - 1]['state']),
+                            $('<td>').append(history_row[i]['location']),
+                            $('<td>').append(history_row[i]['state']),
                             $('<td><button type="button" id="detail_btn" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>')
                         )
                     );
@@ -109,8 +109,8 @@
                 //$("#state option:eq(i)").attr("selected", "selected");
                 document.getElementsByName("id")[i].value = product_info_row[i]['_id'];
                 document.getElementsByName("check_box")[i].value = product_info_row[i]['_id'];
-                document.getElementsByName("location")[i].value = history_row[i]['location_history'][history_row[i]['location_history'].length - 1]['location'];
-                document.getElementsByName("states")[i].value = history_row[i]['state_history'][history_row[i]['state_history'].length - 1]['state'];
+                document.getElementsByName("location")[i].value = history_row[i]['location'];
+                document.getElementsByName("states")[i].value = history_row[i]['state'];
             }
         }
     }
