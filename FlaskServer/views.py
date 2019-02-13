@@ -55,65 +55,55 @@ class Rows:
 
     def main_table_rows(self):
         result_rows = []
+        # show key is the most recently value.
         query = {"show": {'$eq': '1'}}
         try:
             rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'history')
-            rows_list = list(rows_collection.find(query))  # cursor type -> list type
+            _history_list = list(rows_collection.find(query))  # cursor type -> list type
         except Exception as e:
             print("DB_error : Class Rows.model()", end=" >> ")
             print(e)
         finally:
             self._DB_object.db_close()
-        id_list = []
-        loca_list = []
-        sta_list = []
-        date_list = []
-        for row in rows_list:
-            id_list.append(row['product_id'])
-            loca_list.append(row['location'])
-            sta_list.append(row['state'])
-            date_list.append(row['date'])
-        print(id_list)
-        print(loca_list)
-        print(sta_list)
-        print(date_list)
 
-        we_list = []
-        sn_list = []
-        mo_list = []
-        rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'product_info')
-        for id in id_list:
-            query = {"_id": {'$eq': ObjectId(id)}}
-            row = list(rows_collection.find(query))  # cursor type -> list type
-            print(row)
-            print(row[0])
-            print(row[0]['week'])
-            we_list.append(row[0]['week'])
-            sn_list.append(row[0]['sn'])
-            mid = row[0]['model_id']
+        _product_id_list = []
+        _location_list = []
+        _state_list = []
+        _date_list = []
+        for row in _history_list:
+            _product_id_list.append(row['product_id'])
+            _location_list.append(row['location'])
+            _state_list.append(row['state'])
+            _date_list.append(row['date'])
 
-            rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'model')
-            query = {"_id": {'$eq': ObjectId(mid)}}
-            row = list(rows_collection.find(query))  # cursor type -> list type
-            mo_list.append(row[0]['model'])
+        _week_list = []
+        _sn_list = []
+        _model_list = []
+        product_info_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'product_info')
+        for product_id in _product_id_list:
+            query = {"_id": {'$eq': ObjectId(product_id)}}
+            product_info_cursor = product_info_collection.find(query)  # cursor type
+            for product_info_dic in product_info_cursor:
+                #print("info_dic : ", end="")
+                #print(product_info_dic)
+                _week_list.append(product_info_dic['week'])
+                _sn_list.append(product_info_dic['sn'])
+                model_id = product_info_dic['model_id']
 
-        print(we_list)
-        print(sn_list)
-        print(mo_list)
-        for i in range(0, len(loca_list)):
-            res = mo_list[i] + sn_list[i] + we_list[i] + loca_list[i] + sta_list[i]
+            model_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'model')
+            query = {"_id": {'$eq': ObjectId(model_id)}}
+            model_info_cursor = model_collection.find(query)  # cursor type
+            for model_info_dic in model_info_cursor:
+                _model_list.append(model_info_dic['model'])
+
+        for i in range(0, len(_product_id_list)):
+            res ={"model": _model_list[i], "sn": _sn_list[i], "week": _week_list[i], "location": _location_list[i], "state": _state_list[i]}
             result_rows.append(res)
         self._DB_object.db_close()
 
         print(result_rows)
 
-
-
-        rows_list = [{'model': 'indy', 'sn': 'D2313', 'week': '1908', 'location': '대전', 'state': '입고'},
-                     {'model': 'opty', 'sn': 'D1293', 'week': '1908', 'location': '대전', 'state': '입고'},
-                     {'model': 'step', 'sn': 'D6643', 'week': '1908', 'location': '대전', 'state': '입고'}]
-
-        return rows_list
+        return result_rows
 
     def production_main_model(self):
         try:
