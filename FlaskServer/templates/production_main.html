@@ -24,16 +24,19 @@
 
     function model_filter() {
         var table_rows = $('#main_table_list').val();
-        console.log(table_rows);
         if (table_rows == undefined) {
             console.log('Table length is empty');
         } else {
             table_rows = JSON_parse_convertor(table_rows);
+            //var model_list = ['Indy3', 'Indy5', 'Indy7', 'Opti', 'Step-pc2', 'Core', 'Conty'];
             var model_list = new Array();
             for (var i = 0; i < table_rows.length; i++) {
                 model_list[i] = table_rows[i]['model'];
             }
-            console.log(model_list);
+            var model_list_filtering = model_list.filter( function(item, idx, array) {
+                return array.indexOf( item ) === idx ;
+            });
+            console.log(model_list_filtering);
             /*
             var uniq = model_list.slice().sort(function (a, b) {   // 복사본 만듬
                 return a - b;
@@ -43,38 +46,67 @@
                     return a;
                 }, []); // a가 시작될 때를 위한 비어있는 배열
             */
-            $('#model_filter option').each(function () {
-                $('#model_filter').append(
-                    $('<option>').append(model_list)
-                )
-            });
-
+            for(var count = 0; count < model_list_filtering.length; count++){
+                //var option = $("<option>"+model_list[count]+"</option>");
+                var option = $("<option>").append(model_list_filtering[count]);
+                $('#model_filter').append(option);
+            }
         }
     }
 
-    function location_filter() {
-        $('#location_filter').append(
-            $('<option>').append(1),
-            $('<option>').append(2),
-            $('<option>').append(3)
-        );
+    function model_filter_application(){
+        // select value가 model option에 일치했을 경우, 테이블 변경 출력 함수
+    }
 
+    function location_filter() {
+        var table_rows = $('#main_table_list').val();
+        if (table_rows == undefined) {
+            console.log('Table length is empty');
+        } else {
+            table_rows = JSON_parse_convertor(table_rows);
+            var location_list = new Array();
+            for (var i = 0; i < table_rows.length; i++) {
+                location_list[i] = table_rows[i]['location'];
+            }
+            var location_list_filtering = location_list.filter( function(item, idx, array) {
+                return array.indexOf( item ) === idx ;
+            });
+            console.log(location_list_filtering);
+            for(var count = 0; count < location_list_filtering.length; count++){
+                //var option = $("<option>"+model_list[count]+"</option>");
+                var option = $("<option>").append(location_list_filtering[count]);
+                $('#location_filter').append(option);
+            }
+        }
     }
 
     function state_filter() {
-        $('#state_filter').append(
-            $('<option>').append(1),
-            $('<option>').append(2),
-            $('<option>').append(3)
-        );
-
+        var table_rows = $('#main_table_list').val();
+        if (table_rows == undefined) {
+            console.log('Table length is empty');
+        } else {
+            table_rows = JSON_parse_convertor(table_rows);
+            var state_list = new Array();
+            for (var i = 0; i < table_rows.length; i++) {
+                state_list[i] = table_rows[i]['state'];
+            }
+            var state_list_filtering = state_list.filter( function(item, idx, array) {
+                return array.indexOf( item ) === idx ;
+            });
+            console.log(state_list_filtering);
+            for(var count = 0; count < state_list_filtering.length; count++){
+                //var option = $("<option>"+model_list[count]+"</option>");
+                var option = $("<option>").append(state_list_filtering[count]);
+                $('#state_filter').append(option);
+            }
+        }
     }
 
     function main_table() {
         var specific_date_row = $('#specific_date_list').val();
-        console.log("Date serch? : " + specific_date_row);
+        console.log("Date serch? : \m" + specific_date_row);
         var table_rows = $('#main_table_list').val();
-        console.log(table_rows);
+        console.log("Table rows : \n" + table_rows);
         if (specific_date_row != undefined && specific_date_row != 'None') {
             console.log("Specific date search");
             specific_date_row = JSON_parse_convertor(specific_date_row);
@@ -94,7 +126,7 @@
                 document.getElementsByName("detail_btn")[i].value = specific_date_row[2][i]['product_info_id'];
             }
         } else if (table_rows == undefined) {
-            console.log('Table length is empty');
+            console.log('Main Table length is empty');
         } else {
             table_rows = JSON_parse_convertor(table_rows);
             for (var i = 0; i < table_rows.length; i++) {
@@ -116,7 +148,7 @@
 
     function state_change_table() {
         var table_rows = $('#main_table_list').val();
-        console.log(table_rows);
+        console.log("State change Table rows : \n" + table_rows);
         if (table_rows == undefined) {
             console.log("main_table_list is Empty");
         } else {
@@ -234,8 +266,9 @@
         });
     }
 
+    // Not use
     function btn_click_event() {
-        $("#state_filter").click(function () {
+        $("#Button_example").click(function () {
             alert('hi');
             var rowData = new Array();
             var tdArr = new Array();
@@ -315,22 +348,18 @@
     </div>
 </form>
 <hr/>
-<form class="form-inline" action="/" method="POST">
+<form class="form-inline" action="/filtering" method="POST">
     <div class="row container-fluid">
         <!--<button type="button" class="btn btn-primary col-1" onclick="location.href='/all_collection'">전체</button>-->
         <button type="button" class="btn btn-primary col-1" onclick="location.href='/'">전체</button>
-        <select id="model_filter" class="btn btn-primary col-1" value="">
+        <select id="model_filter" name="model_filter" class="btn btn-primary col-1" value="">
             <option hidden>모델 필터</option>
         </select>
-        <select id="location_filter" class="btn btn-primary col-1" value="">
+        <select id="location_filter" name="location_filter" class="btn btn-primary col-1" value="">
             <option hidden>위치 필터</option>
-            <option></option>
-            <option></option>
         </select>
-        <select id="state_filter" class="btn btn-primary col-1" value="">
+        <select id="state_filter" name="state_filter" class="btn btn-primary col-1" value="">
             <option hidden>상태 필터</option>
-            <option></option>
-            <option></option>
         </select>
         <button type="submit" id="submit_filter" class="btn btn-warning col-1">필터 적용</button>
         <a href="/insert_plan" class="btn btn-warning col-1 offset-2"

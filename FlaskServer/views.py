@@ -231,6 +231,47 @@ def production_main():
     return render_template('production_main.html', date_rows=None, object=row_object)
 
 
+@app.route('/filtering', methods=['POST'])
+def filtering():
+    _model_filter = request.values.get("model_filter")
+    _location_filter = request.values.get("location_filter")
+    _state_filter = request.values.get("state_filter")
+
+    filter_dic = {}
+    if _model_filter is not None:
+        #filter_dic['model'] = _model_filter
+        filter_dic['reason'] = '불량'
+    if _location_filter is not None:
+        filter_dic['location'] = _location_filter
+    if _state_filter is not None:
+        filter_dic['state'] = _state_filter
+    print(filter_dic)
+
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'history')
+        list_of_history = []
+        query_list = []
+        for key, value in filter_dic.items():
+            query_list.append({key: {u"$eq": value}})
+            print(query_list)
+
+        query = { '$and': query_list}
+        print('query : ', end="")
+        print(query)
+        list_of_history.extend(list(rows_collection.find(query)))  # cursor type -> list type
+        print("Result List : ", end="")
+        print(list_of_history)
+    except Exception as e:
+        print("DB_error : search_query()", end=" >> ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    row_object = Rows()
+    return render_template('production_main.html', date_rows=None, object=row_object)
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
