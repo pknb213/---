@@ -70,11 +70,13 @@ class Rows:
         _location_list = []
         _state_list = []
         _date_list = []
+        _reason_list = []
         for row in _history_list:
             _product_id_list.append(row['product_id'])
             _location_list.append(row['location'])
             _state_list.append(row['state'])
             _date_list.append(row['date'])
+            _reason_list.append(row['reason'])
 
         _week_list = []
         _sn_list = []
@@ -97,12 +99,17 @@ class Rows:
                 _model_list.append(model_info_dic['model'])
 
         for i in range(0, len(_product_id_list)):
-            res ={"model": _model_list[i], "sn": _sn_list[i], "week": _week_list[i], "location": _location_list[i], "state": _state_list[i]}
+            res ={"product_info_id": _product_id_list[i], "model": _model_list[i], "sn": _sn_list[i],
+                  "week": _week_list[i], "location": _location_list[i], "state": _state_list[i], "reason": _reason_list[i]}
             result_rows.append(res)
         self._DB_object.db_close()
-
+        print("Main Table : ", end="")
         print(result_rows)
 
+        if not result_rows:
+            print('empty')
+        elif result_rows:
+            print('exist')
         return result_rows
 
     def production_main_model(self):
@@ -220,9 +227,8 @@ def ckeditor4():
 @app.route('/')
 def production_main():
     row_object = Rows()
-    row_object.main_table_rows()
 
-    return render_template('production_main.html', date_rows='', object=row_object)
+    return render_template('production_main.html', date_rows=None, object=row_object)
 
 
 @app.errorhandler(404)
@@ -287,9 +293,11 @@ def search_query(sdate, edate, page):
         list_of_history_id = []
         for row in rows_list:
             list_of_model_id.append(row['model_id'])
-            list_of_history_id.append(row['history_id'])
-        # print("list_of_model_id : ", end="")
-        # print(list_of_model_id)
+            list_of_history_id.append(str(row['_id']))
+        #print("list_of_model_id : ", end="")
+        #print(list_of_model_id)
+        #print("list_of_history_id : ", end="")
+        #print(list_of_history_id)
 
         rows_collection = db_object.db_conn(db_object.db_client(), collection_of_model)
         list_of_model = []
@@ -300,11 +308,12 @@ def search_query(sdate, edate, page):
         rows_collection = db_object.db_conn(db_object.db_client(), collection_of_history)
         list_of_history = []
         for history_id in list_of_history_id:
-            history_query = {u"_id": {u"$eq": ObjectId(history_id)}}
+            history_query = {"$and": [{u"product_id": {u"$eq": history_id}}, {u"show": {u"$eq": '1'}}]}
             list_of_history.extend(list(rows_collection.find(history_query)))  # cursor type -> list type
-        # print(map_list)
+
         result_list = [rows_list, list_of_model, list_of_history]
-        # print(result_list)
+        print("Result List : ", end="")
+        print(result_list)
     except Exception as e:
         print("DB_error : search_query()", end=" >> ")
         print(e)
@@ -420,7 +429,6 @@ def insert_model(collection, model):
 
 def insert_history(collection, args_list):
     query = {'product_id': args_list[0],
-             'index': '0',
              'show': '1',
              'date': args_list[1],
              'location': args_list[2],
@@ -476,8 +484,8 @@ def insert_data():
     # History value
     _date = date
     _location = '대전'
-    _state = '입고'   # 입고, 출고, 이동
-    _reason = '재고'  # 재고, 판매, 기증, 내수용, A/S입고, 폐기
+    _state = '재고'   # 재고, 출고, 폐기
+    _reason = '신규생산'  # 신규생산, 판매, 기증, 내수용, A/S, 불량, 반납, 이동
     history_values = [_product_id, _date, _location, _state, _reason]
 
     try:
@@ -493,6 +501,19 @@ def insert_data():
 
 @app.route('/state_change', methods=["POST"])
 def state_change():
+    def getStateFromReason(reason):
+        state_map = {
+            '신규생산': '재고',
+            '반납': '재고',
+            '이동': '재고',
+            '판매': '출고',
+            '기증': '출고',
+            '내수용': '출고',
+            'A/S':  '출고',
+            '불량': '폐기'
+        }
+        return state_map[reason]
+
     if request.values.get("data_empty"):
         print("state_change POST data is empty")
         print(request.values.get("data_empty"))
@@ -507,10 +528,13 @@ def state_change():
             _checked_id = request.values.getlist("check_box")  # Checked the Object _id value
             _id = request.values.getlist("id")
             _location = request.values.getlist("location")
-            _state = request.values.getlist("states")
+            _reason = request.values.getlist("reason")
             row_list = []
+            print(_id)
+            print(_reason)
             for i in range(0, len(_id)):
-                row_list.append({'id': _id[i], 'location': _location[i], 'state': _state[i]})
+                _state = getStateFromReason(_reason[i])
+                row_list.append({'id': _id[i], 'location': _location[i], 'state': _state, 'reason': _reason[i]})
         except Exception as e:
             print("POST_error : state_change()", end=" >> ")
             print(e)
@@ -518,7 +542,6 @@ def state_change():
             print(_checked_id, end=" ")
             print(_id, end=" ")
             print(_location, end=" ")
-            print(_state)
             print("POST row_list : ", end=" ")
             print(row_list)
         try:
@@ -530,28 +553,16 @@ def state_change():
                         print(_checked_id[i], end=" <-- ")
                         print(row_list[j])
                         rows_collection = db_object.db_conn(db_object.db_client(), 'history')
-                        print("Test :", end="  ")
-                        print(row_list[j].items())
                         # return find() -> Cursor Type
                         # return insert() -> Object Type
                         # return update() -> Dict Type
-                        '''
-                        rows_collection.update({
-                            '_id': ObjectId(row_list[j]['id'])
-                        }, {
-                            '$push': {'location': row_list[j]['location'], 'state': row_list[j]['state'],
-                                      'updated_date': _date}
-                        })
-                        '''
-                        print("** : ", end=" ")
-                        print({row_list[j]})
-                        rows_collection.update({
-                            '_id': ObjectId(row_list[j]['id'])
-                        }, {
-                            'location_history': {'$push': {'0': row_list[j]['location']}},
-                            'state_history': {'$push': {'0': row_list[j]['state']}},
-                            'date_history': {'$push': {'0': _date}}
-                        })
+
+                        p_id = row_list[j]['id']
+                        update_history(rows_collection, p_id)
+                        data = [row_list[j]['id'], date, row_list[j]['location'],
+                                row_list[j]['state'], row_list[j]['reason']]
+                        insert_history(rows_collection, data)
+
         except Exception as e:
             print("DB_error : state_change()", end=" >> ")
             print(e)
@@ -560,6 +571,11 @@ def state_change():
 
         return redirect('/')
 
+
+def update_history(collection, product_id):
+    match_query = {'product_id': product_id}
+    value_query = {'$set': {'show': '0'}}
+    return collection.update(match_query, value_query, multi=True)
 
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'xlsx'])
 
