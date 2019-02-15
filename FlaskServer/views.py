@@ -4,7 +4,7 @@ import random
 import datetime
 import pymongo
 import pandas
-from flask import render_template, request, current_app, make_response, url_for, redirect
+from flask import render_template, request, current_app, make_response, url_for, redirect, jsonify
 from bson.objectid import ObjectId  # For ObjectId to work
 from collections import OrderedDict
 
@@ -231,7 +231,7 @@ def production_main():
     return render_template('production_main.html', date_rows=None, object=row_object)
 
 
-@app.route('/filtering', methods=['POST'])
+@app.route('/filtering')
 def filtering():
     _model_filter = request.values.get("model_filter")
     _location_filter = request.values.get("location_filter")
@@ -256,7 +256,7 @@ def filtering():
             query_list.append({key: {u"$eq": value}})
             print(query_list)
 
-        query = { '$and': query_list}
+        query = {'$and': query_list}
         print('query : ', end="")
         print(query)
         list_of_history.extend(list(rows_collection.find(query)))  # cursor type -> list type
@@ -268,8 +268,24 @@ def filtering():
     finally:
         db_object.db_close()
 
-    row_object = Rows()
-    return render_template('production_main.html', date_rows=None, object=row_object)
+
+    return list_of_history
+
+
+@app.route('/ajax')
+def ajaxTest():
+    print("ajax test....")
+    _name = request.args.get("name")
+    print(_name)
+    print(type(_name))
+    testJson = { "key": _name }
+    print(testJson)
+    testJson = jsonify(testJson)
+    print(type(testJson))
+    print(testJson)
+    return testJson
+
+
 
 
 @app.errorhandler(404)
@@ -575,7 +591,8 @@ def state_change():
             print(_reason)
             for i in range(0, len(_id)):
                 _state = getStateFromReason(_reason[i])
-                row_list.append({'id': _id[i], 'location': _location[i], 'state': _state, 'reason': _reason[i]})
+                row_list.append({'id': _id[i], 'location': _location[i],
+                                 'state': _state, 'reason': _reason[i]})
         except Exception as e:
             print("POST_error : state_change()", end=" >> ")
             print(e)

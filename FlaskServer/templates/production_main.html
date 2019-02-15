@@ -33,8 +33,9 @@
             for (var i = 0; i < table_rows.length; i++) {
                 model_list[i] = table_rows[i]['model'];
             }
-            var model_list_filtering = model_list.filter( function(item, idx, array) {
-                return array.indexOf( item ) === idx ;
+            // 중복제거
+            var model_list_filtering = model_list.filter(function (item, idx, array) {
+                return array.indexOf(item) === idx;
             });
             console.log(model_list_filtering);
             /*
@@ -46,7 +47,7 @@
                     return a;
                 }, []); // a가 시작될 때를 위한 비어있는 배열
             */
-            for(var count = 0; count < model_list_filtering.length; count++){
+            for (var count = 0; count < model_list_filtering.length; count++) {
                 //var option = $("<option>"+model_list[count]+"</option>");
                 var option = $("<option>").append(model_list_filtering[count]);
                 $('#model_filter').append(option);
@@ -54,7 +55,7 @@
         }
     }
 
-    function model_filter_application(){
+    function model_filter_application() {
         // select value가 model option에 일치했을 경우, 테이블 변경 출력 함수
     }
 
@@ -68,11 +69,11 @@
             for (var i = 0; i < table_rows.length; i++) {
                 location_list[i] = table_rows[i]['location'];
             }
-            var location_list_filtering = location_list.filter( function(item, idx, array) {
-                return array.indexOf( item ) === idx ;
+            var location_list_filtering = location_list.filter(function (item, idx, array) {
+                return array.indexOf(item) === idx;
             });
             console.log(location_list_filtering);
-            for(var count = 0; count < location_list_filtering.length; count++){
+            for (var count = 0; count < location_list_filtering.length; count++) {
                 //var option = $("<option>"+model_list[count]+"</option>");
                 var option = $("<option>").append(location_list_filtering[count]);
                 $('#location_filter').append(option);
@@ -90,11 +91,11 @@
             for (var i = 0; i < table_rows.length; i++) {
                 state_list[i] = table_rows[i]['state'];
             }
-            var state_list_filtering = state_list.filter( function(item, idx, array) {
-                return array.indexOf( item ) === idx ;
+            var state_list_filtering = state_list.filter(function (item, idx, array) {
+                return array.indexOf(item) === idx;
             });
             console.log(state_list_filtering);
-            for(var count = 0; count < state_list_filtering.length; count++){
+            for (var count = 0; count < state_list_filtering.length; count++) {
                 //var option = $("<option>"+model_list[count]+"</option>");
                 var option = $("<option>").append(state_list_filtering[count]);
                 $('#state_filter').append(option);
@@ -115,7 +116,7 @@
                     $('<tr>').append(
                         //$('<td><input type="checkbox" name="main_checkbox"/>').append(specific_date_row[1][i]['model']),
                         //$('<td>').append(specific_date_row[2][i]['location_history'][specific_date_row[2][i]['location_history'].length - 1]['location']),
-                        $('<td>').append(specific_date_row[1][i]['model']),
+                        $('<td><input type="checkbox" name="main_checkbox"/').append(specific_date_row[1][i]['model']),
                         $('<td>').append(specific_date_row[0][i]['sn']),
                         $('<td>').append(specific_date_row[0][i]['week']),
                         $('<td>').append(specific_date_row[2][i]['location']),
@@ -133,7 +134,7 @@
                 $('#main_table').append(
                     $('<tr>').append(
                         //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
-                        $('<td>').append(table_rows[i]['model']),
+                        $('<td><input type="checkbox" name="main_checkbox"/>').append(table_rows[i]['model']),
                         $('<td>').append(table_rows[i]['sn']),
                         $('<td>').append(table_rows[i]['week']),
                         $('<td>').append(table_rows[i]['location']),
@@ -266,6 +267,34 @@
         });
     }
 
+    function main_table_info() {
+        var tableList = new Array();
+        var table = $('#main_table > tbody > tr');
+        console.log(table);
+        table.each(function () {
+            var rowData = new Array();
+            $(this).find("td").each(function (index) {
+                console.log("text val(" + index + ") \n" + $(this).text());
+                rowData.push($(this).text());
+            })
+            rowData.pop(); // '자세히' 마지막 text 삭제
+            var dic = {};
+            dic["model"] = rowData[0];
+            dic["sn"] = rowData[1];
+            dic["week"] = rowData[2];
+            dic["location"] = rowData[3];
+            dic["state"] = rowData[4];
+            console.log(dic);
+            tableList.push(dic)
+            console.log("rowData: ");
+            console.log(rowData);
+        });
+        console.log("tableList: ");
+        console.log(tableList);
+
+        return tableList
+    }
+
     // Not use
     function btn_click_event() {
         $("#Button_example").click(function () {
@@ -312,6 +341,7 @@
         model_filter();
         location_filter();
         state_filter();
+        main_table_info();
         $('#state_submit_btn').click(function () {
             if ($('#state').val().length == 0) {
                 alert("빈 칸을 입력하세요");
@@ -331,6 +361,36 @@
                 return false;
             }
         });
+
+        $.ajax({
+            url: "/ajax",
+            data: {name: 'Ajaxxxxx'},
+            type: "GET",
+            dataType: "JSON"
+        })
+            .done(function (json) {
+                console.log("DONE");
+                console.log(json);
+                console.log(json['key']);
+                console.log(json.key);
+                for(key in json){
+                    console.log(key + ' ' + json.key);
+                }
+                $.each(json, function(key, value){
+                    console.log(key + ' ' + value);
+                });
+                $("<h1>").text(json.title).appendTo("body");
+                $("<div class=\"content\">").html(json).appendTo("body");
+            })
+            .fail(function (xhr, status, errorThrown) {
+                $("#test").html("오류발생<br>")
+                    .append("오류명 : " + errorThrown + "<br>")
+                    .append("상태 : " + status);
+            })
+            .always(function (xhr, status) {
+                $("#text").html("요청 완료");
+            });
+
     });
 
 </script>
