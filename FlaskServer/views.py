@@ -233,6 +233,34 @@ def production_main():
 
 @app.route('/filtering')
 def filtering():
+    print("ajax test....")
+
+    data = request.args['table_list']
+    print(data)
+    print(type(data))
+
+    filter = request.args.get('filter')
+    print(filter)
+    print(type(filter))
+
+    data_list = eval(data)
+    print(data_list)
+    print(type(data_list))
+
+    new_list = []
+
+    for row in data_list:
+        print(row)
+        if row['state'] == filter:
+            new_list.append(row)
+
+    print("New : ", end="")
+    print(new_list)
+    new_list = jsonify(new_list)
+    print(new_list)
+    return new_list
+'''
+def filtering():
     _model_filter = request.values.get("model_filter")
     _location_filter = request.values.get("location_filter")
     _state_filter = request.values.get("state_filter")
@@ -270,7 +298,7 @@ def filtering():
 
 
     return list_of_history
-
+'''
 
 @app.route('/ajax')
 def ajaxTest():

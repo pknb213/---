@@ -22,87 +22,6 @@
         return string;
     }
 
-    function model_filter() {
-        var table_rows = $('#main_table_list').val();
-        if (table_rows == undefined) {
-            console.log('Table length is empty');
-        } else {
-            table_rows = JSON_parse_convertor(table_rows);
-            //var model_list = ['Indy3', 'Indy5', 'Indy7', 'Opti', 'Step-pc2', 'Core', 'Conty'];
-            var model_list = new Array();
-            for (var i = 0; i < table_rows.length; i++) {
-                model_list[i] = table_rows[i]['model'];
-            }
-            // 중복제거
-            var model_list_filtering = model_list.filter(function (item, idx, array) {
-                return array.indexOf(item) === idx;
-            });
-            console.log(model_list_filtering);
-            /*
-            var uniq = model_list.slice().sort(function (a, b) {   // 복사본 만듬
-                return a - b;
-            })
-                .reduce(function (a, b) {
-                    if (a.slice(-1)[0] != b) a.push(b);  // slice(-1)[0]을 통해 마지막 아이템 가져온다
-                    return a;
-                }, []); // a가 시작될 때를 위한 비어있는 배열
-            */
-            for (var count = 0; count < model_list_filtering.length; count++) {
-                //var option = $("<option>"+model_list[count]+"</option>");
-                var option = $("<option>").append(model_list_filtering[count]);
-                $('#model_filter').append(option);
-            }
-        }
-    }
-
-    function model_filter_application() {
-        // select value가 model option에 일치했을 경우, 테이블 변경 출력 함수
-    }
-
-    function location_filter() {
-        var table_rows = $('#main_table_list').val();
-        if (table_rows == undefined) {
-            console.log('Table length is empty');
-        } else {
-            table_rows = JSON_parse_convertor(table_rows);
-            var location_list = new Array();
-            for (var i = 0; i < table_rows.length; i++) {
-                location_list[i] = table_rows[i]['location'];
-            }
-            var location_list_filtering = location_list.filter(function (item, idx, array) {
-                return array.indexOf(item) === idx;
-            });
-            console.log(location_list_filtering);
-            for (var count = 0; count < location_list_filtering.length; count++) {
-                //var option = $("<option>"+model_list[count]+"</option>");
-                var option = $("<option>").append(location_list_filtering[count]);
-                $('#location_filter').append(option);
-            }
-        }
-    }
-
-    function state_filter() {
-        var table_rows = $('#main_table_list').val();
-        if (table_rows == undefined) {
-            console.log('Table length is empty');
-        } else {
-            table_rows = JSON_parse_convertor(table_rows);
-            var state_list = new Array();
-            for (var i = 0; i < table_rows.length; i++) {
-                state_list[i] = table_rows[i]['state'];
-            }
-            var state_list_filtering = state_list.filter(function (item, idx, array) {
-                return array.indexOf(item) === idx;
-            });
-            console.log(state_list_filtering);
-            for (var count = 0; count < state_list_filtering.length; count++) {
-                //var option = $("<option>"+model_list[count]+"</option>");
-                var option = $("<option>").append(state_list_filtering[count]);
-                $('#state_filter').append(option);
-            }
-        }
-    }
-
     function main_table() {
         var specific_date_row = $('#specific_date_list').val();
         console.log("Date serch? : \m" + specific_date_row);
@@ -331,6 +250,159 @@
         });
     }
 
+    function model_filter() {
+        var table_rows = $('#main_table_list').val();
+        if (table_rows == undefined) {
+            console.log('Table length is empty');
+        } else {
+            table_rows = JSON_parse_convertor(table_rows);
+            //var model_list = ['Indy3', 'Indy5', 'Indy7', 'Opti', 'Step-pc2', 'Core', 'Conty'];
+            var model_list = new Array();
+            for (var i = 0; i < table_rows.length; i++) {
+                model_list[i] = table_rows[i]['model'];
+            }
+            // 중복제거
+            var model_list_filtering = model_list.filter(function (item, idx, array) {
+                return array.indexOf(item) === idx;
+            });
+            console.log(model_list_filtering);
+            /*
+            var uniq = model_list.slice().sort(function (a, b) {   // 복사본 만듬
+                return a - b;
+            })
+                .reduce(function (a, b) {
+                    if (a.slice(-1)[0] != b) a.push(b);  // slice(-1)[0]을 통해 마지막 아이템 가져온다
+                    return a;
+                }, []); // a가 시작될 때를 위한 비어있는 배열
+            */
+            for (var count = 0; count < model_list_filtering.length; count++) {
+                //var option = $("<option>"+model_list[count]+"</option>");
+                var option = $("<option>").append(model_list_filtering[count]);
+                $('#model_filter').append(option);
+            }
+        }
+    }
+
+    function model_filter_application() {
+        // select value가 model option에 일치했을 경우, 테이블 변경 출력 함수
+    }
+
+    function location_filter() {
+        var table_rows = $('#main_table_list').val();
+        if (table_rows == undefined) {
+            console.log('Table length is empty');
+        } else {
+            table_rows = JSON_parse_convertor(table_rows);
+            var location_list = new Array();
+            for (var i = 0; i < table_rows.length; i++) {
+                location_list[i] = table_rows[i]['location'];
+            }
+            var location_list_filtering = location_list.filter(function (item, idx, array) {
+                return array.indexOf(item) === idx;
+            });
+            console.log(location_list_filtering);
+            for (var count = 0; count < location_list_filtering.length; count++) {
+                //var option = $("<option>"+model_list[count]+"</option>");
+                var option = $("<option>").append(location_list_filtering[count]);
+                $('#location_filter').append(option);
+            }
+        }
+    }
+
+    function state_filter() {
+        var table_rows = $('#main_table_list').val();
+        if (table_rows == undefined) {
+            console.log('Table length is empty');
+        } else {
+            table_rows = JSON_parse_convertor(table_rows);
+            var state_list = new Array();
+            for (var i = 0; i < table_rows.length; i++) {
+                state_list[i] = table_rows[i]['state'];
+            }
+            var state_list_filtering = state_list.filter(function (item, idx, array) {
+                return array.indexOf(item) === idx;
+            });
+            console.log(state_list_filtering);
+            for (var count = 0; count < state_list_filtering.length; count++) {
+                //var option = $("<option>"+model_list[count]+"</option>");
+                var option = $("<option>").append(state_list_filtering[count]);
+                $('#state_filter').append(option);
+            }
+        }
+    }
+
+    function detect_model_filter() {
+        $('#model_filter').change(function () {
+            var filer_value = $('#model_filter').val();
+            console.log("FIlter Value : " + filer_value);
+        });
+    }
+
+    function detect_location_filter() {
+        $('#location_filter').change(function () {
+            var filer_value = $('#location_filter').val();
+            console.log("FIlter Value : " + filer_value);
+        });
+    }
+
+    function detect_state_filter() {
+        $('#state_filter').change(function () {
+            var filter_value = $('#state_filter').val();
+            console.log("FIlter Value : " + filter_value);
+            var main_table = main_table_info();
+            console.log("MT : ");
+            console.log(main_table);
+            $.ajax({
+                url: "/filtering",
+                data: {
+                    'table_list': JSON.stringify(main_table),
+                    'filter': filter_value
+                },
+                type: "GET",
+                dataType: "json"
+            })
+                .done(function (json) {
+                    console.log("DONE");
+                    console.log(json);
+                    console.log(json['filter_name']);
+                    console.log(json.key);
+                    for (key in json) {
+                        console.log(key + ' ' + json.key);
+                    }
+                    $.each(json, function (key, value) {
+                        console.log(key + ' ' + value);
+                    });
+
+                    $('#main_table > tbody:last').empty();
+                    for (var i = 0; i < json.length; i++) {
+                        $('#main_table').append(
+                            $('<tr>').append(
+                                //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
+                                $('<td><input type="checkbox" name="main_checkbox"/>').append(json[i]['model']),
+                                $('<td>').append(json[i]['sn']),
+                                $('<td>').append(json[i]['week']),
+                                $('<td>').append(json[i]['location']),
+                                $('<td>').append(json[i]['state']),
+                                $('<td><button type="button" id="detail_btn" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>')
+                            )
+                        );
+                        document.getElementsByName("detail_btn")[i].value = json[i]['product_info_id'];
+                    }
+
+                    // 바꿔야할점 -> main table 함수에 row_list 인자를 받아 해당리스트로 출력으로 변환
+                    // 그리고 필터가 중첩되는거 바꿔야할듯, 필터자체 파이썬 코드로 변환해야할듯
+                })
+                .fail(function (xhr, status, errorThrown) {
+                    $("#test").html("오류발생<br>")
+                        .append("오류명 : " + errorThrown + "<br>")
+                        .append("상태 : " + status);
+                })
+                .always(function (xhr, status) {
+                    $("#text").html("요청 완료");
+                });
+        });
+    }
+
     // As Jquery same the [ window.onload = function(){} ]
     $(document).ready(function () {
         main_table();
@@ -342,6 +414,9 @@
         location_filter();
         state_filter();
         main_table_info();
+        detect_model_filter();
+        detect_location_filter();
+        detect_state_filter();
         $('#state_submit_btn').click(function () {
             if ($('#state').val().length == 0) {
                 alert("빈 칸을 입력하세요");
@@ -361,36 +436,6 @@
                 return false;
             }
         });
-
-        $.ajax({
-            url: "/ajax",
-            data: {name: 'Ajaxxxxx'},
-            type: "GET",
-            dataType: "JSON"
-        })
-            .done(function (json) {
-                console.log("DONE");
-                console.log(json);
-                console.log(json['key']);
-                console.log(json.key);
-                for(key in json){
-                    console.log(key + ' ' + json.key);
-                }
-                $.each(json, function(key, value){
-                    console.log(key + ' ' + value);
-                });
-                $("<h1>").text(json.title).appendTo("body");
-                $("<div class=\"content\">").html(json).appendTo("body");
-            })
-            .fail(function (xhr, status, errorThrown) {
-                $("#test").html("오류발생<br>")
-                    .append("오류명 : " + errorThrown + "<br>")
-                    .append("상태 : " + status);
-            })
-            .always(function (xhr, status) {
-                $("#text").html("요청 완료");
-            });
-
     });
 
 </script>
@@ -550,8 +595,8 @@
                     </tr>
                     </thead>
                     <tbody>
-                            <!--  Call of the Java Script Function (table) -->
-                        </tbody>
+                    <!--  Call of the Java Script Function (table) -->
+                    </tbody>
                 </table>
             </div>
             <!-- Modal Body -->
@@ -568,8 +613,8 @@
                         </tr>
                         </thead>
                         <tbody>
-                            <!--  Call of the Java Script Function (table) -->
-                            </tbody>
+                        <!--  Call of the Java Script Function (table) -->
+                        </tbody>
                     </table>
                     {% else %}
                     <h3> No Notice in the CheckBox</h3>
