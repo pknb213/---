@@ -10,6 +10,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <!-- 모든 컴파일된 플러그인을 포함합니다 (아래), 원하지 않는다면 필요한 각각의 파일을 포함하세요 -->
     <script src="../static/lib/bootstrap4.2.1/js/bootstrap.min.js"></script>
+    <script src="../static/lib/js_function/js_function.js" type="text/javascript"></script>
 
     {% block head %}
     {% endblock %}
@@ -26,6 +27,8 @@
 
         .btn {
             margin-right: 10px;
+            margin-top: 5px;
+            margin-bottom: 5px;
         }
 
         .sidebar {
@@ -90,6 +93,12 @@
                 <li class="nav-item active">
                     <a class="nav-link" href="/">
                         "재고관리 화면"
+                        <span class="sr-only">(current)</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="/manufacture_main">
+                        "생산관리 화면"
                         <span class="sr-only">(current)</span>
                     </a>
                 </li>

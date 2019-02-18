@@ -1,0 +1,136 @@
+{% extends 'main_base.html' %}
+{% block head %}
+<script>
+
+    function make_main_manufacture_table(list) {
+        console.log("Get List : \n" + list);
+        console.log("len : " + list.length);
+        if (list == undefined) {
+            console.log('Main Table length is empty');
+        } else if (list == 0) {
+            alert("필터를 적용할 대상이 없습니다.");
+            return false;
+        } else {
+            if (typeof (list) == "string")
+                list = JSON_parse_convertor(list);
+            $('#main_table > tbody:last').empty();
+            for (var i = 0; i < list.length; i++) {
+                $('#main_table').append(
+                    $('<tr>').append(
+                        //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
+                        $('<td><input type="checkbox" name="main_checkbox"/>').append(list[i]['model']),
+                        $('<td>').append(list[i]['number']),
+                        $('<td>').append(list[i]['aging']),
+                        $('<td>').append(list[i]['completion_product']),
+                        $('<td><button type="button" id="detail_btn" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>')
+                    )
+                );
+                document.getElementsByName("detail_btn")[i].value = list[i]['product_info_id'];
+            }
+        }
+    }
+
+    function main_manufacture_table() {
+        var rows = $('#main_rows').val();
+        console.log(typeof(rows));
+        for (var row in rows){
+            console.log("row : " + row);
+        }
+        if (rows == undefined) {
+            console.log('Main Table length is empty');
+        } else {
+            make_main_manufacture_table(rows)
+        }
+    }
+
+    function insert_manufacture_table() {
+        $('#insert_table').append(
+            $('<tr>').append(
+                $('<td><select class="form-control" id="insert_model" name="model">' +
+                    '<option>Indy3</option>\n' +
+                    '<option>Indy5</option>\n' +
+                    '<option>Indy7</option>\n' +
+                    '<option>Opti</option>\n' +
+                    '<option>Step-pc2</option>\n' +
+                    '<option>Core</option>\n' +
+                    '<option>Conty</option>\n' +
+                    '</select>'),
+                $('<td><input type="text" class="form-control" id="insert_number" name="number">')
+            )
+        );
+    }
+
+    $(document).ready(function () {
+        insert_manufacture_table();
+        main_manufacture_table();
+    });
+</script>
+{% endblock %}
+{% block title %} 생산 페이지 {% endblock %}
+{% block body_title %}Title{% endblock %}
+{% block main_title %}생산 화면{% endblock %}
+{% block body %}
+<input hidden id="main_rows" value="{{ object.manufacture_list() }}"/>
+<form class="form-inline" action="/" method="POST">
+    <div class="row container-fluid">
+        <button type="button" class="btn btn-warning col-1 offset-9" data-toggle="modal" data-target="#insert_modal">
+            등록
+        </button>
+    </div>
+</form>
+<hr/>
+<div class="row container-fluid">
+    <table class="table table-bordered table-striped" id="main_table">
+        <thead class="thead-light">
+        <tr>
+            <th>모델</th>
+            <th>생산수량</th>
+            <th>Aging</th>
+            <th>완료</th>
+            <th>버튼</th>
+        </tr>
+        </thead>
+        <tbody>
+            <!--  Call of the Java Script Function (table) -->
+        </tbody>
+    </table>
+</div>
+<!-- The Product Insert Modal -->
+<div class="modal fade" id="insert_modal">
+    <div class="modal-dialog modal-lg">
+        <form class="form-inline" action="/manufacture_insert" method="POST" enctype=multipart/form-data>
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header text-white bg-secondary">
+                    <h1 class="page-header">등 록</h1>
+                </div>
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered" id="insert_table">
+                            <thead class="thead-dark">
+                            <tr>
+                                <th>주차</th>
+                                <th><input type="text" class="form-control" id="insert_week" name="week"></th>
+                            </tr>
+                            <tr>
+                                <th>모델명</th>
+                                <th>신규 생산</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="submit" id="insert_submit_btn" class="btn btn-warning">확 인
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

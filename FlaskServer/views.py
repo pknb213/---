@@ -86,8 +86,8 @@ class Rows:
             query = {"_id": {'$eq': ObjectId(product_id)}}
             product_info_cursor = product_info_collection.find(query)  # cursor type
             for product_info_dic in product_info_cursor:
-                #print("info_dic : ", end="")
-                #print(product_info_dic)
+                # print("info_dic : ", end="")
+                # print(product_info_dic)
                 _week_list.append(product_info_dic['week'])
                 _sn_list.append(product_info_dic['sn'])
                 model_id = product_info_dic['model_id']
@@ -99,8 +99,9 @@ class Rows:
                 _model_list.append(model_info_dic['model'])
 
         for i in range(0, len(_product_id_list)):
-            res ={"product_info_id": _product_id_list[i], "model": _model_list[i], "sn": _sn_list[i],
-                  "week": _week_list[i], "location": _location_list[i], "state": _state_list[i], "reason": _reason_list[i]}
+            res = {"product_info_id": _product_id_list[i], "model": _model_list[i], "sn": _sn_list[i],
+                   "week": _week_list[i], "location": _location_list[i], "state": _state_list[i],
+                   "reason": _reason_list[i]}
             result_rows.append(res)
         self._DB_object.db_close()
         print("Main Table : ", end="")
@@ -173,6 +174,18 @@ class Rows:
         date = datetime.datetime.today().strftime('%Y-%m-%d')
         return date
 
+    def manufacture_list(self):
+        try:
+            rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'manufacture')
+            rows_list = list(rows_collection.find())  # cursor type -> list type
+        except Exception as e:
+            print("DB_error : Class Rows.manufacture()", end=" >> ")
+            print(e)
+        finally:
+            self._DB_object.db_close()
+        # print("all info list")
+        #rows_list = [{"model": "씨발", "new_product": "444"}]
+        return rows_list
 
 def make_read_excel():
     import numpy as np
@@ -233,25 +246,19 @@ def production_main():
 
 @app.route('/filtering')
 def filtering():
-    print("ajax test....")
-
-    data = request.args['table_list']
-    print(data)
-    print(type(data))
-
-    filter = request.args.get('filter')
-    print(filter)
-    print(type(filter))
-
-    data_list = eval(data)
+    print("Ajax execution")
+    data_list = eval(request.args['table_list'])
     print(data_list)
     print(type(data_list))
+
+    filter_key = request.args.get('filter_key')
+    filter_value = request.args.get('filter')
+    print("filter key : " + filter_key + ' filter value : ' + filter_value)
 
     new_list = []
 
     for row in data_list:
-        print(row)
-        if row['state'] == filter:
+        if row[filter_key] == filter_value:
             new_list.append(row)
 
     print("New : ", end="")
@@ -259,6 +266,8 @@ def filtering():
     new_list = jsonify(new_list)
     print(new_list)
     return new_list
+
+
 '''
 def filtering():
     _model_filter = request.values.get("model_filter")
@@ -300,20 +309,19 @@ def filtering():
     return list_of_history
 '''
 
+
 @app.route('/ajax')
 def ajaxTest():
     print("ajax test....")
     _name = request.args.get("name")
     print(_name)
     print(type(_name))
-    testJson = { "key": _name }
+    testJson = {"key": _name}
     print(testJson)
     testJson = jsonify(testJson)
     print(type(testJson))
     print(testJson)
     return testJson
-
-
 
 
 @app.errorhandler(404)
@@ -379,10 +387,10 @@ def search_query(sdate, edate, page):
         for row in rows_list:
             list_of_model_id.append(row['model_id'])
             list_of_history_id.append(str(row['_id']))
-        #print("list_of_model_id : ", end="")
-        #print(list_of_model_id)
-        #print("list_of_history_id : ", end="")
-        #print(list_of_history_id)
+        # print("list_of_model_id : ", end="")
+        # print(list_of_model_id)
+        # print("list_of_history_id : ", end="")
+        # print(list_of_history_id)
 
         rows_collection = db_object.db_conn(db_object.db_client(), collection_of_model)
         list_of_model = []
@@ -396,16 +404,26 @@ def search_query(sdate, edate, page):
             history_query = {"$and": [{u"product_id": {u"$eq": history_id}}, {u"show": {u"$eq": '1'}}]}
             list_of_history.extend(list(rows_collection.find(history_query)))  # cursor type -> list type
 
-        result_list = [rows_list, list_of_model, list_of_history]
-        print("Result List : ", end="")
-        print(result_list)
     except Exception as e:
         print("DB_error : search_query()", end=" >> ")
         print(e)
     finally:
         db_object.db_close()
 
-    return result_list
+    new_list = []
+    for i in range(0, len(rows_list)):
+        new_dic = {'model': list_of_model[i]['model'],
+                   'sn': rows_list[i]['sn'],
+                   'week': rows_list[i]['week'],
+                   'state': list_of_history[i]['state'],
+                   'location': list_of_history[i]['location'],
+                   '_id': rows_list[i]['_id']}
+        new_list.append(new_dic)
+    print("Result List : ")
+    for row in new_list:
+        print(row)
+
+    return new_list
 
 
 def week_num(year, mon, day):
@@ -459,6 +477,7 @@ def data_search():
     row_object = Rows()
 
     if _page == 'p_page':
+        print("Date search : ", end="")
         print(rows_list)
         return render_template('production_main.html', date_rows=rows_list, object=row_object)
     # Not use
@@ -569,7 +588,7 @@ def insert_data():
     # History value
     _date = date
     _location = '대전'
-    _state = '재고'   # 재고, 출고, 폐기
+    _state = '재고'  # 재고, 출고, 폐기
     _reason = '신규생산'  # 신규생산, 판매, 기증, 내수용, A/S, 불량, 반납, 이동
     history_values = [_product_id, _date, _location, _state, _reason]
 
@@ -594,7 +613,7 @@ def state_change():
             '판매': '출고',
             '기증': '출고',
             '내수용': '출고',
-            'A/S':  '출고',
+            'A/S': '출고',
             '불량': '폐기'
         }
         return state_map[reason]
@@ -662,6 +681,7 @@ def update_history(collection, product_id):
     match_query = {'product_id': product_id}
     value_query = {'$set': {'show': '0'}}
     return collection.update(match_query, value_query, multi=True)
+
 
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'xlsx'])
 
@@ -745,6 +765,53 @@ def ckupload():
     response = make_response(res)
     response.headers["Content-Type"] = "text/html"
     return response
+
+
+@app.route('/manufacture_main')
+def manufacture_main():
+    object_rows = Rows()
+    return render_template('manufacture.html', object=object_rows)
+
+
+def insert_manufacture_info(collection, data_list):
+    # Add Meta Data Later.
+    query = {'week': data_list[0], 'model': data_list[1], 'number': data_list[2], 'date': data_list[3]}
+    return collection.insert(query)  # Return value is ObjectId
+
+def search_week(coll, data_list):
+    query = {  }
+    return coll.find(query)
+
+@app.route('/manufacture_insert', methods=["POST"])
+def manufacture_insert():
+    date = datetime.datetime.today().strftime('%Y-%m-%d')
+
+    # Input name value
+    _week = request.values.get("week")
+    _model = request.values.get("model")
+    _number = request.values.get("number")
+    _data_list = [_week, _model, _number, date]
+    print("Data List : ")
+    print(_data_list)
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'manufacture')
+        _insert_id = insert_manufacture_info(rows_collection, _data_list)
+    except Exception as e:
+        db_object.db_close()
+        print("DB_error : insert_manufacture()", end=" : ")
+        print(e)
+
+    try:
+        db_object = Mongodb_connection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
+        _insert_id = insert_manufacture_info(rows_collection, _data_list)
+    except Exception as e:
+        db_object.db_close()
+        print("DB_error : insert_manufacture()", end=" : ")
+        print(e)
+
+    return redirect('/manufacture_main')
 
 
 '''
