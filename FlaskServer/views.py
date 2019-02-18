@@ -184,8 +184,9 @@ class Rows:
         finally:
             self._DB_object.db_close()
         # print("all info list")
-        #rows_list = [{"model": "씨발", "new_product": "444"}]
+        # rows_list = [{"model": "씨발", "new_product": "444"}]
         return rows_list
+
 
 def make_read_excel():
     import numpy as np
@@ -268,46 +269,58 @@ def filtering():
     return new_list
 
 
-'''
-def filtering():
-    _model_filter = request.values.get("model_filter")
-    _location_filter = request.values.get("location_filter")
-    _state_filter = request.values.get("state_filter")
+@app.route('/filtering2', methods=["POST"])
+def filtering2():
+    _model_filter = request.values.get('model_filter')
+    _location_filter = request.values.get('location_filter')
+    _state_filter = request.values.get('state_filter')
+    _sDate = request.values.get('sDate')
+    _eDate = request.values.get('eDate')
 
-    filter_dic = {}
-    if _model_filter is not None:
-        #filter_dic['model'] = _model_filter
-        filter_dic['reason'] = '불량'
-    if _location_filter is not None:
-        filter_dic['location'] = _location_filter
-    if _state_filter is not None:
-        filter_dic['state'] = _state_filter
-    print(filter_dic)
+    _sDate = _sDate.split('-')
+    _eDate = _eDate.split('-')
+    for i in range(0, 3):
+        _sDate[i] = int(_sDate[i])
+        _eDate[i] = int(_eDate[i])
+    s_week = week_num(_sDate[0], _sDate[1], _sDate[2])
+    e_week = week_num(_eDate[0], _eDate[1], _eDate[2])
+
+    print("Get value : ")
+    print(_model_filter + ' ' + _location_filter + ' ' + _state_filter + ' ' + s_week + ' ' + e_week)
+
+    query = {
+        "$and": [
+            {
+                u"week": {
+                    u"$gte": s_week
+                }
+            },
+            {
+                u"week": {
+                    u"$lte": e_week
+                }
+            },
+            {
+                u"show": {
+                    u"$eq": '1'
+                }
+            }
+        ]
+    }
 
     try:
-        db_object = Mongodb_connection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'history')
-        list_of_history = []
-        query_list = []
-        for key, value in filter_dic.items():
-            query_list.append({key: {u"$eq": value}})
-            print(query_list)
-
-        query = {'$and': query_list}
-        print('query : ', end="")
-        print(query)
-        list_of_history.extend(list(rows_collection.find(query)))  # cursor type -> list type
-        print("Result List : ", end="")
-        print(list_of_history)
+        _DB_object = Mongodb_connection()
+        rows_collection = _DB_object.db_conn(_DB_object.db_client(), 'product_info')
+        rows_list = list(rows_collection.find(query))  # cursor type -> list type
     except Exception as e:
-        print("DB_error : search_query()", end=" >> ")
+        print("DB_error : Class Rows.manufacture()", end=" >> ")
         print(e)
     finally:
-        db_object.db_close()
+        _DB_object.db_close()
 
+    print(rows_list)
 
-    return list_of_history
-'''
+    return rows_list
 
 
 @app.route('/ajax')
@@ -778,9 +791,11 @@ def insert_manufacture_info(collection, data_list):
     query = {'week': data_list[0], 'model': data_list[1], 'number': data_list[2], 'date': data_list[3]}
     return collection.insert(query)  # Return value is ObjectId
 
+
 def search_week(coll, data_list):
-    query = {  }
+    query = {}
     return coll.find(query)
+
 
 @app.route('/manufacture_insert', methods=["POST"])
 def manufacture_insert():

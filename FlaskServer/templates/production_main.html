@@ -34,6 +34,22 @@
                 return false;
             }
         });
+        $('#startDate').change(function () {
+            console.log("Start Date Click");
+            var a = $('#startDate').val();
+            console.log(a);
+            document.getElementById("sDate").value = $('#startDate').val();
+            var b = $('#sDate').val();
+            console.log(b);
+        });
+        $('#endDate').change(function () {
+            console.log("End Date Click");
+            var a = $('#endDate').val();
+            console.log(a);
+            document.getElementById("eDate").value = $('#endDate').val();
+            var b = $('#eDate').val();
+            console.log(b);
+        });
     });
 
 </script>
@@ -44,37 +60,40 @@
 {% block body %}
 <form class="form-inline" action="/search" method="POST">
     <div class="row container-fluid">
-        <input type="date" name="startDate" value={{object.date()}} class="col-auto1 btn-primary">
-        <input type="date" name="endDate" value={{object.date()}} class="col-auto1 btn-primary date_box">
+        <input type="date" id="startDate" name="startDate" value={{object.date()}} class="col-auto1 btn-primary">
+        <input type="date" id="endDate" name="endDate" value={{object.date()}} class="col-auto1 btn-primary date_box">
         <input type="hidden" name="page" value="p_page"/>
         <button type="submit" class="btn col-1 btn-warning">검색</button>
     </div>
 </form>
 <hr/>
-<form class="form-inline" action="/filtering" method="POST">
+<form class="form-inline" action="/filtering2" method="POST">
+    <input hidden id="sDate" name="sDate" value="">
+    <input hidden id="eDate" name="eDate" value="">
     <div class="container-fluid">
         <div>
             <!--<button type="button" class="btn btn-primary col-1" onclick="location.href='/all_collection'">전체</button>-->
-            <button type="button" class="btn btn-primary col-1" onclick="location.href='/'">전체</button>
+            <button type="button" class="btn btn-secondary col-1" onclick="location.href='/'">전체</button>
         </div>
         <div>
-            <select id="model_filter" name="model_filter" class="btn btn-primary col-1" value="">
-                <option hidden>모델 필터</option>
+            <select id="model_filter" name="model_filter" class="btn btn-secondary col-1" value="">
+                <option hidden>모델</option>
             </select>
         </div>
         <div>
-            <select id="location_filter" name="location_filter" class="btn btn-primary col-1" value="">
-                <option hidden>위치 필터</option>
+            <select id="location_filter" name="location_filter" class="btn btn-secondary col-1" value="">
+                <option hidden>위치</option>
             </select>
         </div>
         <div>
-            <select id="state_filter" name="state_filter" class="btn btn-primary col-1" value="">
-                <option hidden>상태 필터</option>
+            <select id="state_filter" name="state_filter" class="btn btn-secondary col-1" value="">
+                <option hidden>상태</option>
             </select>
         </div>
         <div>
             <!--<a href="/insert_plan" class="btn btn-warning col-1 offset-6"
                onclick="winPop(this.href, {name:'insert_excel',width:1500,height:800}); return false;">생산계획입력 </a>-->
+            <button type="submit" class="btn btn-secondary col-1">필터 적용</button>
             <button type="button" class="btn btn-warning col-1 offset-6" data-toggle="modal" data-target="#shipment_modal">상태 변경
             </button>
             <button type="button" class="btn btn-warning col-1" data-toggle="modal" data-target="#insert_modal"> 등록
