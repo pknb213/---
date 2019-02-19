@@ -12,9 +12,9 @@
         location_filter();
         state_filter();
         main_table_info();
-        detect_model_filter();
-        detect_location_filter();
-        detect_state_filter();
+        //detect_model_filter();
+        //detect_location_filter();
+        //detect_state_filter();
         $('#state_submit_btn').click(function () {
             if ($('#state').val().length == 0) {
                 alert("빈 칸을 입력하세요");
@@ -58,18 +58,21 @@
 {% block body_title %}Title{% endblock %}
 {% block main_title %}재고관리 화면{% endblock %}
 {% block body %}
-<form class="form-inline" action="/search" method="POST">
-    <div class="row container-fluid">
-        <input type="date" id="startDate" name="startDate" value={{object.date()}} class="col-auto1 btn-primary">
-        <input type="date" id="endDate" name="endDate" value={{object.date()}} class="col-auto1 btn-primary date_box">
-        <input type="hidden" name="page" value="p_page"/>
-        <button type="submit" class="btn col-1 btn-warning">검색</button>
-    </div>
-</form>
-<hr/>
+<!--<form class="form-inline" action="/search" method="POST">-->
 <form class="form-inline" action="/filtering2" method="POST">
-    <input hidden id="sDate" name="sDate" value="">
-    <input hidden id="eDate" name="eDate" value="">
+    <div class="row container-fluid">
+        <input type="date" id="startDate" name="startDate" value={{object.date()}} class="btn col-auto1 btn-primary">
+        <input type="date" id="endDate" name="endDate" value={{object.date()}}
+               class="btn col-auto1 btn-primary date_box">
+        <input type="hidden" name="page" value="p_page"/>
+        <!--<button type="submit" class="btn col-1 btn-warning">검색</button>-->
+        <button type="submit" class="btn btn-secondary col-1">필터 적용</button>
+    </div>
+    <!--</form>-->
+    <hr/>
+    <!--<form class="form-inline" action="/filtering2" method="POST">-->
+    <input hidden id="sDate" name="sDate" value={{object.date()}}>
+    <input hidden id="eDate" name="eDate" value={{object.date()}}>
     <div class="container-fluid">
         <div>
             <!--<button type="button" class="btn btn-primary col-1" onclick="location.href='/all_collection'">전체</button>-->
@@ -93,8 +96,9 @@
         <div>
             <!--<a href="/insert_plan" class="btn btn-warning col-1 offset-6"
                onclick="winPop(this.href, {name:'insert_excel',width:1500,height:800}); return false;">생산계획입력 </a>-->
-            <button type="submit" class="btn btn-secondary col-1">필터 적용</button>
-            <button type="button" class="btn btn-warning col-1 offset-6" data-toggle="modal" data-target="#shipment_modal">상태 변경
+            <!--<button type="submit" class="btn btn-secondary col-1">필터 적용</button>-->
+            <button type="button" class="btn btn-warning col-1 offset-6" data-toggle="modal"
+                    data-target="#shipment_modal">상태 변경
             </button>
             <button type="button" class="btn btn-warning col-1" data-toggle="modal" data-target="#insert_modal"> 등록
             </button>

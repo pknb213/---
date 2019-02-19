@@ -50,16 +50,16 @@ function make_main_stock_table(list) {
 
 function main_table() {
     var specific_date_row = $('#specific_date_list').val();
-    console.log("Date serch? : \m" + specific_date_row);
+    console.log("Date serch? : " + specific_date_row);
     var table_rows = $('#main_table_list').val();
     console.log("Table rows : \n" + table_rows);
     if (specific_date_row != undefined && specific_date_row != 'None') {
         console.log("Specific date search");
-        make_main_stock_table(specific_date_row)
+        make_main_stock_table(specific_date_row);
     } else if (table_rows == undefined) {
         console.log('Main Table length is empty');
     } else {
-        make_main_stock_table(table_rows)
+        make_main_stock_table(table_rows);
     }
 }
 

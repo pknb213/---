@@ -1,9 +1,72 @@
 {% extends 'main_base.html' %}
 {% block head %}
 <script>
+    function make_main_specific_table(list) {
+        console.log("Get Specific List : \n" + list);
+        console.log("len : " + list.length);
+
+        $.ajax({
+            url: "/getProductData",
+            data: {
+                'table_list': JSON.stringify(main_table),
+                'filter_key': filter_key,
+                'filter': filter_value
+            },
+            type: "GET",
+            dataType: "json"
+        })
+            .done(function (json) {
+                console.log("DONE");
+                console.log(json);
+                console.log(json['filter_name']);
+                console.log(json.key);
+                for (key in json) {
+                    console.log(key + ' ' + json.key);
+                }
+                $.each(json, function (key, value) {
+                    console.log(key + ' ' + value);
+                });
+
+                make_main_stock_table(json);
+
+                // 바꿔야할점 -> main table 함수에 row_list 인자를 받아 해당리스트로 출력으로 변환
+                // 그리고 필터가 중첩되는거 바꿔야할듯, 필터자체 파이썬 코드로 변환해야할듯
+            })
+            .fail(function (xhr, status, errorThrown) {
+                $("#test").html("오류발생<br>")
+                    .append("오류명 : " + errorThrown + "<br>")
+                    .append("상태 : " + status);
+            })
+            .always(function (xhr, status) {
+                $("#text").html("요청 완료");
+            });
+
+        if (list == undefined) {
+            console.log('Main Table length is empty');
+        } else if (list == 0) {
+            alert("필터를 적용할 대상이 없습니다.");
+            return false;
+        } else {
+            if (typeof (list) == "string")
+                list = JSON_parse_convertor(list);
+            $('#test_table > tbody:last').empty();
+            for (var i = 0; i < list.length; i++) {
+                $('#test_table').append(
+                    $('<tr>').append(
+                        //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
+                        $('<td><input type="checkbox" name="main_checkbox" placeholder="끼욧"/>').append(list[i]['_id']),
+                        $('<td>').append(list[i]['week']),
+                        $('<td>').append(list[i]['model']),
+                        $('<td>').append(list[i]['number']),
+                        $('<td>').append(list[i]['date'])
+                    )
+                );
+            }
+        }
+    }
 
     function make_main_manufacture_table(list) {
-        console.log("Get List : \n" + list);
+        console.log("Get Main List : \n" + list);
         console.log("len : " + list.length);
         if (list == undefined) {
             console.log('Main Table length is empty');
@@ -18,7 +81,7 @@
                 $('#main_table').append(
                     $('<tr>').append(
                         //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
-                        $('<td><input type="checkbox" name="main_checkbox"/>').append(list[i]['model']),
+                        $('<td><input type="checkbox" name="main_checkbox" placeholder="끼욧"/>').append(list[i]['model']),
                         $('<td>').append(list[i]['number']),
                         $('<td>').append(list[i]['aging']),
                         $('<td>').append(list[i]['completion_product']),
@@ -32,14 +95,16 @@
 
     function main_manufacture_table() {
         var rows = $('#main_rows').val();
-        console.log(typeof(rows));
-        for (var row in rows){
-            console.log("row : " + row);
-        }
-        if (rows == undefined) {
+        var specific_row = $('#specific_list').val();
+        console.log(typeof (rows));
+        if (specific_row != undefined && specific_row != 'None') {
+            console.log(" 바꿔야행 ");
+            make_main_manufacture_table(rows);
+            make_main_specific_table(rows);
+        } else if (rows == undefined) {
             console.log('Main Table length is empty');
         } else {
-            make_main_manufacture_table(rows)
+            make_main_manufacture_table(rows);
         }
     }
 
@@ -71,6 +136,7 @@
 {% block main_title %}생산 화면{% endblock %}
 {% block body %}
 <input hidden id="main_rows" value="{{ object.manufacture_list() }}"/>
+<input hidden id="specific_list" value="{{ specific_list }}"/>
 <form class="form-inline" action="/" method="POST">
     <div class="row container-fluid">
         <button type="button" class="btn btn-warning col-1 offset-9" data-toggle="modal" data-target="#insert_modal">
@@ -88,6 +154,24 @@
             <th>Aging</th>
             <th>완료</th>
             <th>버튼</th>
+        </tr>
+        </thead>
+        <tbody>
+            <!--  Call of the Java Script Function (table) -->
+        </tbody>
+    </table>
+</div>
+<!-- Test Table -->
+<hr/>
+<div class="row container-fluid">
+    <table class="table table-bordered table-striped" id="test_table">
+        <thead class="thead-light">
+        <tr>
+            <th>Id</th>
+            <th>Week</th>
+            <th>Model</th>
+            <th>Number</th>
+            <th>Date</th>
         </tr>
         </thead>
         <tbody>

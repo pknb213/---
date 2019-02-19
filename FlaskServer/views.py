@@ -1,3 +1,5 @@
+from builtins import enumerate
+
 from FlaskServer import app
 import os
 import random
@@ -277,6 +279,9 @@ def filtering2():
     _sDate = request.values.get('sDate')
     _eDate = request.values.get('eDate')
 
+    print("Get value : ")
+    print(_model_filter + ' ' + _location_filter + ' ' + _state_filter + ' ' + _sDate + ' ' + _eDate)
+
     _sDate = _sDate.split('-')
     _eDate = _eDate.split('-')
     for i in range(0, 3):
@@ -284,9 +289,6 @@ def filtering2():
         _eDate[i] = int(_eDate[i])
     s_week = week_num(_sDate[0], _sDate[1], _sDate[2])
     e_week = week_num(_eDate[0], _eDate[1], _eDate[2])
-
-    print("Get value : ")
-    print(_model_filter + ' ' + _location_filter + ' ' + _state_filter + ' ' + s_week + ' ' + e_week)
 
     query = {
         "$and": [
@@ -318,9 +320,109 @@ def filtering2():
     finally:
         _DB_object.db_close()
 
-    print(rows_list)
+    model_rows = []
+    model_coll = _DB_object.db_conn(_DB_object.db_client(), 'model')
+    for row in rows_list:
+        query = {"_id": {'$eq': ObjectId(row['model_id'])}}
+        model_rows.extend(list(model_coll.find(query)))  # cursor type -> list type
 
-    return rows_list
+    history_rows = []
+    history_coll = _DB_object.db_conn(_DB_object.db_client(), 'history')
+    for row in rows_list:
+        query = {"$and": [{"product_id": {'$eq': str(row['_id'])}}, {'show': {'$eq': '1'}}]}
+        history_rows.extend(list(history_coll.find(query)))  # cursor type -> list type
+
+    print("Date match rows :")
+    for row in rows_list:
+        print(row)
+    print("Reference model rows :")
+    for row in model_rows:
+        print(row)
+
+    print("Reference history rows :")
+    for row in history_rows:
+        print(row)
+
+    merge_list = []
+    for i in range(0, len(rows_list)):
+        new_dic = {}
+        new_dic.update(rows_list[i])
+        new_dic.update(model_rows[i])
+        new_dic.update(history_rows[i])
+        merge_list.append(new_dic)
+
+    print("Merge List")
+    for lis in merge_list:
+        print(lis)
+
+    if _model_filter == '모델':
+        m_value = None
+    else:
+        m_value = _model_filter
+
+    if _location_filter == '위치':
+        l_value = None
+    else:
+        l_value = _location_filter
+
+    if _state_filter == '상태':
+        s_value = None
+    else:
+        s_value = _state_filter
+
+    _filter = {'model': m_value, 'location': l_value, 'state': s_value}
+
+    print(_filter)
+
+    first_filtering_list = []
+    second_filtering_list = []
+    third_filtering_list = []
+    print("> Model Filtering")
+    if _filter['model'] is not None:
+        for idx, merge_row in enumerate(merge_list):
+            if merge_row.get('model') == _filter['model']:
+                print(idx, merge_row)
+                first_filtering_list.append(merge_row)
+            else:
+                print("Delete : ", end='')
+                print(idx, merge_row)
+    else:
+        first_filtering_list = merge_list
+
+    print(">> Location Filtering")
+    if _filter['location'] is not None:
+        for idx, merge_row in enumerate(first_filtering_list):
+            if merge_row.get('location') == _filter['location']:
+                print(idx, merge_row)
+                second_filtering_list.append(merge_row)
+            else:
+                print("Delete : ", end='')
+                print(idx, merge_row)
+    else:
+        second_filtering_list = first_filtering_list
+
+    print(">>> State Filtering")
+    if _filter['state'] is not None:
+        for idx, merge_row in enumerate(second_filtering_list):
+            if merge_row.get('state') == _filter['state']:
+                print(idx, merge_row)
+                third_filtering_list.append(merge_row)
+            else:
+                print("Delete : ", end='')
+                print(idx, merge_row)
+    else:
+        third_filtering_list = second_filtering_list
+
+    print("After Filtering")
+    if not third_filtering_list:
+        print("After filtering . . . List is Empty")
+    else:
+        for lis in third_filtering_list:
+            print(lis)
+    print(third_filtering_list)
+    row_object = Rows()
+
+    return render_template('production_main.html', date_rows=third_filtering_list, object=row_object)
 
 
 @app.route('/ajax')
@@ -783,7 +885,7 @@ def ckupload():
 @app.route('/manufacture_main')
 def manufacture_main():
     object_rows = Rows()
-    return render_template('manufacture.html', object=object_rows)
+    return render_template('manufacture.html', specific_list=False, object=object_rows)
 
 
 def insert_manufacture_info(collection, data_list):
@@ -827,6 +929,16 @@ def manufacture_insert():
         print(e)
 
     return redirect('/manufacture_main')
+
+
+@app.route("/getProductData")
+def getProductData():
+    # 모델명을 받아서 model 콜렉션에서 해당 일치하는 모델의 수를 넘겨준다.
+    # 그 수량이 완료 필드에 들어가야한다. Aging은 넘겨줘서 계산하도록 한다.
+    # 완료 수량 = 재고 DB에 있는 모델의 수
+
+
+    return 1
 
 
 '''
