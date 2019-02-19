@@ -6,8 +6,9 @@ import random
 import datetime
 import pymongo
 import pandas
-from flask import render_template, request, current_app, make_response, url_for, redirect, jsonify
+from flask import render_template, request, current_app, make_response, url_for, redirect, jsonify, abort
 from bson.objectid import ObjectId  # For ObjectId to work
+from math import ceil
 from collections import OrderedDict
 
 '''
@@ -20,7 +21,7 @@ print(type(rows_collection))
 '''
 
 
-class Mongodb_connection:
+class MongodbConnection:
 
     def __init__(self):
         # print(" ~~ ", sep = '\n')
@@ -51,7 +52,7 @@ class Rows:
 
     def __init__(self):
         print("Rows Class init")
-        self._DB_object = Mongodb_connection()
+        self._DB_object = MongodbConnection()
 
     # def production_main_list(self):
 
@@ -225,14 +226,10 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/test')
-def test():
-    object = Rows()
-    a = object.production_main_all_list()
-    print(a)
-    print(type(a))
-    print(a[0]['_id'])
-    return render_template('test.html', aaa=a, object=object)
+# @app.route('/test')
+# def test():
+#     object = Rows()
+#     return render_template('test.html', object=object)
 
 
 @app.route('/upload')
@@ -311,7 +308,7 @@ def filtering2():
     }
 
     try:
-        _DB_object = Mongodb_connection()
+        _DB_object = MongodbConnection()
         rows_collection = _DB_object.db_conn(_DB_object.db_client(), 'product_info')
         rows_list = list(rows_collection.find(query))  # cursor type -> list type
     except Exception as e:
@@ -494,7 +491,7 @@ def search_query(sdate, edate, page):
         print("page parameter is wrong")
 
     try:
-        db_object = Mongodb_connection()
+        db_object = MongodbConnection()
         rows_collection = db_object.db_conn(db_object.db_client(), collection_of_product_info)
         rows_list = list(rows_collection.find(product_info_query))  # cursor type -> list type
         list_of_model_id = []
@@ -677,7 +674,7 @@ def insert_data():
     _header = request.values.get("header")
 
     try:
-        db_object = Mongodb_connection()
+        db_object = MongodbConnection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'model')
         _model_id = str(insert_model(rows_collection, _model))
     except Exception as e:
@@ -765,7 +762,7 @@ def state_change():
             print("POST row_list : ", end=" ")
             print(row_list)
         try:
-            db_object = Mongodb_connection()
+            db_object = MongodbConnection()
             for i in range(0, len(_checked_id)):
                 for j in range(0, len(row_list)):
                     if _checked_id[i] == row_list[j]['id']:
@@ -911,7 +908,7 @@ def manufacture_insert():
     print("Data List : ")
     print(_data_list)
     try:
-        db_object = Mongodb_connection()
+        db_object = MongodbConnection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'manufacture')
         _insert_id = insert_manufacture_info(rows_collection, _data_list)
     except Exception as e:
@@ -920,7 +917,7 @@ def manufacture_insert():
         print(e)
 
     try:
-        db_object = Mongodb_connection()
+        db_object = MongodbConnection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
         _insert_id = insert_manufacture_info(rows_collection, _data_list)
     except Exception as e:
@@ -936,7 +933,6 @@ def getProductData():
     # 모델명을 받아서 model 콜렉션에서 해당 일치하는 모델의 수를 넘겨준다.
     # 그 수량이 완료 필드에 들어가야한다. Aging은 넘겨줘서 계산하도록 한다.
     # 완료 수량 = 재고 DB에 있는 모델의 수
-
 
     return 1
 
@@ -985,7 +981,7 @@ def custom_list():
     query = {"$and": [{u"detail.quality": {u"$eq": 'N'}}, {u"detail.show": {u"$eq": '1'}}]}
     print("c_list()")
     try:
-        db_object = Mongodb_connection()
+        db_object = MongodbConnection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
         rows_list = list(rows_collection.find(query))  # cursor type -> list type
     except Exception as e:
@@ -1015,7 +1011,7 @@ def shipment_modal_rows():
     # Must be a change quality value.
     query = {"$and": [{u"detail.quality": {u"$eq": 'N'}}, {u"detail.show": {u"$eq": '1'}}]}
     try:
-        db_object = Mongodb_connection()
+        db_object = MongodbConnection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
         rows_list = list(rows_collection.find(query))  # cursor type -> list type
     except Exception as e:
@@ -1085,7 +1081,7 @@ def insert_information():
         try:
             find_result = []
             rows = []
-            db_object = Mongodb_connection()
+            db_object = MongodbConnection()
             for i in range(0, len(_checkbox)):
                 # return find() -> Cursor Type
                 # return insert() -> Object Type
@@ -1155,7 +1151,7 @@ def detail_modal():
     data_list = [_model, _sn, _header, _week, _quality, _site, _state, _show]
 
     try:
-        db_object = Mongodb_connection()
+        db_object = MongodbConnection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
         # insert_model(rows_collection, data_list)
 

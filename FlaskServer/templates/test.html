@@ -5,6 +5,28 @@
 {% block body_title %}Title{% endblock %}
 {% block main_title %}재고관리 화면{% endblock %}
 {% block body %}
+
+{% macro render_pagination(pagination) %}
+  <div class=pagination>
+  {%- for page in pagination.iter_pages() %}
+    {% if page %}
+      {% if page != pagination.page %}
+        <a href="{{ url_for_other_page(page) }}">{{ page }}</a>
+      {% else %}
+        <strong>{{ page }}</strong>
+      {% endif %}
+    {% else %}
+      <span class=ellipsis>…</span>
+    {% endif %}
+  {%- endfor %}
+  {% if pagination.has_next %}
+    <a href="{{ url_for_other_page(pagination.page + 1)
+      }}">Next &raquo;</a>
+  {% endif %}
+  </div>
+{% endmacro %}
+
+{{ render_pagination(pagination) }}
 <button id='btn-add-row'>행 추가하기</button>
 <button id='btn-delete-row'>행 삭제하기</button>
 <hr>
@@ -322,8 +344,8 @@
 <hr>
 <div>
     <input hidden id="real_test" name="view_test" value="{{ object.production_main_info_list() }}"/>
-    <input hidden id="real_value" name="view_test" value="{{ object.production_main_all_list() }}"/>
-    {{ object.production_main_info_list() }}{{ object.production_main_all_list() }}
+    <input hidden id="real_value" name="view_test" value="{{ object.main_table_rows() }}"/>
+    {{ object.production_main_info_list() }}{{ object.main_table_rows() }}
 </div>
 
 <hr>
@@ -476,4 +498,5 @@
         });
     }
 </script>
+
 {% endblock %}
