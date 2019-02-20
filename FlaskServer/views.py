@@ -950,6 +950,9 @@ def getProductData():
     _table_list = eval(request.args.get('table_list'))
     print(_model_list)
     print(type(_model_list))
+    print("Model list : ")
+    for _model in _model_list:
+        print(_model)
     print("Table row : ")
     for table_row in _table_list:
         print(table_row)
@@ -967,20 +970,18 @@ def getProductData():
         db_object.db_close()
 
     #if table_row['model'] == count_dic.keys():
-
+    print("Count DIc : ")
     print(count_dic)
 
-
-
-
+    print("Table rows : ")
     for row in _table_list:
         result = list(row.values() & count_dic.keys())
         row[result[0]] = count_dic[result[0]]
+        print(row)
 
     # for row in _table_list:
     #     #     print("row : ")
     #     #     print(row)
-
 
     return jsonify(_table_list)
 

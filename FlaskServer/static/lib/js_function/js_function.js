@@ -467,3 +467,180 @@ function detect_state_filter() {
             });
     });
 }
+
+function add_and_delete_row_btn() {
+    $('#btn-add-row').click(function () {
+        var time = new Date().toLocaleTimeString();
+        //$('#insert_table > tbody:last').append('<tr><td>{{ a }}</td><td>' + time + '</td></tr>');
+        insert_manufacture_table();
+    });
+    $('#btn-delete-row').click(function () {
+        var trCount = $('#insert_table > tbody > tr').size();     // 행삭제 body row count
+        if (trCount == 1) {
+            alert('더이상 삭제할 수 없습니다.');
+            return;
+        } else
+            $('#insert_table > tbody:last > tr:last').remove();
+    });
+}
+
+function make_main_specific_table(list) {
+    console.log("Get Specific List : \n" + list);
+    console.log("len : " + list.length);
+    console.log("Type : " + typeof (list));
+
+    if (list == undefined) {
+        console.log('Main Table length is empty');
+    } else if (list == 0) {
+        alert("필터를 적용할 대상이 없습니다.");
+        return false;
+    } else {
+        if (typeof (list) == "string")
+            list = JSON_parse_convertor(list);
+        $('#test_table > tbody:last').empty();
+        for (var i = 0; i < list.length; i++) {
+            $('#test_table').append(
+                $('<tr>').append(
+                    //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
+                    $('<td><input type="checkbox" name="main_checkbox" placeholder="끼욧"/>').append(list[i]['_id']),
+                    $('<td>').append(list[i]['week']),
+                    $('<td>').append(list[i]['model']),
+                    $('<td>').append(list[i]['number']),
+                    $('<td>').append(list[i]['date'])
+                )
+            );
+        }
+    }
+}
+
+function make_main_manufacture_table(json_table_rows, startRow, endRow) {
+    console.log("Get Main List : \n" + json_table_rows);
+    console.log("len : " + json_table_rows.length);
+    var model_list = Array();
+    for (var i = 0; i < json_table_rows.length; i++) {
+        model_list.push(json_table_rows[i]['model']);
+    }
+    console.log("Model list : " + model_list);
+    console.log("Type : " + typeof (model_list));
+
+    $.ajax({
+        url: "/getProductData",
+        data: {
+            'model_list': JSON.stringify(model_list),
+            'table_list': JSON.stringify(json_table_rows)
+        },
+        type: "GET",
+        dataType: "json"
+    })
+        .done(function (json) {
+            console.log("DONE");
+            console.log(json);
+            // Just only Dic Type
+            /*
+            for (key in json) {
+                console.log(key + ' ' + json.value);
+            }
+            $.each(json, function (key, value) {
+                console.log(key + ' ' + value);
+                //return_dic[key] = value;
+            });*/
+
+            if (json == undefined) {
+                console.log('Main Table length is empty');
+            } else if (json == 0) {
+                alert("필터를 적용할 대상이 없습니다.");
+                return false;
+            } else {
+                if (typeof (json) == "string")
+                    json = JSON_parse_convertor(json);
+                $('#main_table > tbody:last').empty();
+                for (var i = startRow; i < endRow; i++) { // 출력 row
+                    $('#main_table').append(
+                        $('<tr>').append(
+                            //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
+                            $('<td><input type="checkbox" name="main_checkbox" placeholder="Test"/>').append(i),
+                            $('<td>').append(json[i]['model']),
+                            $('<td>').append(json[i]['number']),
+                            $('<td>').append(json[i]['number'] - json[i][json[i]['model']]),
+                            $('<td>').append(json[i][json[i]['model']]),
+                            $('<td><button type="button" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>')
+                        )
+                    );
+                    //document.getElementsByName("detail_btn")[i].value = json[i]['_id'];
+                }
+            }
+        })
+        .fail(function (xhr, status, errorThrown) {
+            $("#test").html("오류발생<br>")
+                .append("오류명 : " + errorThrown + "<br>")
+        })
+        .always(function (xhr, status) {
+            $("#text").html("요청 완료");
+        });
+}
+
+function main_manufacture_table(rows, specific_row, startRow, endRow) {
+    if (specific_row != undefined && specific_row != 'None') {
+        console.log(" 바꿔야행 ");
+        make_main_specific_table(rows);
+    } else if (rows == undefined) {
+        console.log('Main Table length is empty');
+    } else {
+        make_main_manufacture_table(rows, startRow, endRow);
+        make_main_specific_table(rows); // Test
+    }
+}
+
+function insert_manufacture_table() {
+    $('#insert_table').append(
+        $('<tr>').append(
+            $('<td><select class="form-control" id="insert_model" name="model">' +
+                '<option>Indy3</option>\n' +
+                '<option>Indy5</option>\n' +
+                '<option>Indy7</option>\n' +
+                '<option>Opti</option>\n' +
+                '<option>Step-pc2</option>\n' +
+                '<option>Core</option>\n' +
+                '<option>Conty</option>\n' +
+                '</select>'),
+            $('<td><input type="text" class="form-control" id="insert_number" name="number">')
+        )
+    );
+}
+
+function pagination_test() {
+    var specific_row = $('#specific_list').val();
+    var rows = $('#main_rows').val();
+    rows = JSON_parse_convertor(rows);
+    var rows_length = rows.length;
+    console.log("size : " + rows_length);
+    var number_of_visual_row = 5;
+    var totalPages = rows_length / number_of_visual_row;
+    if (rows_length % number_of_visual_row > 0) {
+        totalPages++;
+    }
+    $('#pagination').twbsPagination({
+        totalPages: totalPages, // 전체 page블럭 수
+        visiblePages: number_of_visual_row,  // 출력될 page 블럭수 상수로 지정해 줘도 되고, 변수로 지정해줘도 된다.
+        prev: "이전",
+        next: "다음",
+        first: '<span aria-hidden="true">«</span>',
+        last: '<span aria-hidden="true">»</span>',
+        onPageClick: function (event, page) {
+            $('#page_content').text('페이지 ' + page);
+            paging(page, rows, specific_row, rows_length, number_of_visual_row);
+        }
+    });
+    // Class를 이용한 여러개 콘텐츠에 동기화하기
+    // $('.sync-pagination')
+}
+
+function paging(page, rows, specific_row, number_of_total_row, number_of_visual_row) {
+    $('#main_table > tbody').empty();
+    var startRow = (page - 1) * number_of_visual_row;  // 1 page = 0 * 5 = 0,  2 page = 1 * 5 = 5, 3 page = 2 * 5 = 10 -> start row
+    var endRow = page * number_of_visual_row;  // 1 page = 5, 2 page = 10, 3 page = 15 -> end row
+    if (endRow > number_of_total_row) {  // 5, 10, 15 > total (ex 12) -> 마지막 row 맞추기
+        endRow = number_of_total_row;
+    }
+    main_manufacture_table(rows, specific_row, startRow, endRow);
+}
