@@ -882,13 +882,22 @@ def ckupload():
 @app.route('/manufacture_main')
 def manufacture_main():
     object_rows = Rows()
-    return render_template('manufacture.html', specific_list=False, object=object_rows)
+    return render_template('manufacture.html', specific_list=None, object=object_rows)
 
 
 def insert_manufacture_info(collection, data_list):
     # Add Meta Data Later.
     query = {'week': data_list[0], 'model': data_list[1], 'number': data_list[2], 'date': data_list[3]}
     return collection.insert(query)  # Return value is ObjectId
+
+
+def find_number_of_model(coll, arg):
+    query = {
+        u"model": {
+            u"$eq": arg
+        }
+    }
+    return coll.find(query).count()
 
 
 def search_week(coll, data_list):
@@ -902,28 +911,31 @@ def manufacture_insert():
 
     # Input name value
     _week = request.values.get("week")
-    _model = request.values.get("model")
-    _number = request.values.get("number")
-    _data_list = [_week, _model, _number, date]
-    print("Data List : ")
-    print(_data_list)
-    try:
-        db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'manufacture')
-        _insert_id = insert_manufacture_info(rows_collection, _data_list)
-    except Exception as e:
-        db_object.db_close()
-        print("DB_error : insert_manufacture()", end=" : ")
-        print(e)
+    _model = request.values.getlist("model")
+    _number = request.values.getlist("number")
 
+    print(_week)
+    print(_model)
+    print(_number)
+    print(type(_number))
+    print(len(_model))
+    _data_list = []
+    for i in range(0, len(_model)):
+        _list = [_week, _model[i], _number[i], date]
+        _data_list.append(_list)
+    print("Data List : ")
+    for data in _data_list:
+        print(data)
     try:
         db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-        _insert_id = insert_manufacture_info(rows_collection, _data_list)
+        for i in range(0, len(_data_list)):
+            rows_collection = db_object.db_conn(db_object.db_client(), 'manufacture')
+            _insert_id = insert_manufacture_info(rows_collection, _data_list[i])
     except Exception as e:
-        db_object.db_close()
         print("DB_error : insert_manufacture()", end=" : ")
         print(e)
+    finally:
+        db_object.db_close()
 
     return redirect('/manufacture_main')
 
@@ -934,7 +946,43 @@ def getProductData():
     # 그 수량이 완료 필드에 들어가야한다. Aging은 넘겨줘서 계산하도록 한다.
     # 완료 수량 = 재고 DB에 있는 모델의 수
 
-    return 1
+    _model_list = eval(request.args.get('model_list'))
+    _table_list = eval(request.args.get('table_list'))
+    print(_model_list)
+    print(type(_model_list))
+    print("Table row : ")
+    for table_row in _table_list:
+        print(table_row)
+
+    count_dic = {}
+    try:
+        db_object = MongodbConnection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'model')
+        for model in _model_list:
+            count_dic[model] = find_number_of_model(rows_collection, model)
+    except Exception as e:
+        print("DB_error : insert_manufacture()", end=" : ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    #if table_row['model'] == count_dic.keys():
+
+    print(count_dic)
+
+
+
+
+    for row in _table_list:
+        result = list(row.values() & count_dic.keys())
+        row[result[0]] = count_dic[result[0]]
+
+    # for row in _table_list:
+    #     #     print("row : ")
+    #     #     print(row)
+
+
+    return jsonify(_table_list)
 
 
 '''

@@ -3,45 +3,27 @@
 <script src="../static/js/lib/jquery.twbsPagination.js"></script>
 <script src="../static/js/lib/jquery.twbsPagination.min.js"></script>
 <script>
+    function add_and_delete_row_btn() {
+        $('#btn-add-row').click(function () {
+            var time = new Date().toLocaleTimeString();
+            //$('#insert_table > tbody:last').append('<tr><td>{{ a }}</td><td>' + time + '</td></tr>');
+            insert_manufacture_table();
+        });
+        $('#btn-delete-row').click(function () {
+            var trCount = $('#insert_table > tbody > tr').size();     // 행삭제 body row count
+            if(trCount == 1){
+                  alert('더이상 삭제할 수 없습니다.');
+                  return;
+            }
+            else
+                $('#insert_table > tbody:last > tr:last').remove();
+        });
+    }
+
     function make_main_specific_table(list) {
         console.log("Get Specific List : \n" + list);
         console.log("len : " + list.length);
-
-        $.ajax({
-            url: "/getProductData",
-            data: {
-                'table_list': JSON.stringify(main_table),
-                'filter_key': filter_key,
-                'filter': filter_value
-            },
-            type: "GET",
-            dataType: "json"
-        })
-            .done(function (json) {
-                console.log("DONE");
-                console.log(json);
-                console.log(json['filter_name']);
-                console.log(json.key);
-                for (key in json) {
-                    console.log(key + ' ' + json.key);
-                }
-                $.each(json, function (key, value) {
-                    console.log(key + ' ' + value);
-                });
-
-                make_main_stock_table(json);
-
-                // 바꿔야할점 -> main table 함수에 row_list 인자를 받아 해당리스트로 출력으로 변환
-                // 그리고 필터가 중첩되는거 바꿔야할듯, 필터자체 파이썬 코드로 변환해야할듯
-            })
-            .fail(function (xhr, status, errorThrown) {
-                $("#test").html("오류발생<br>")
-                    .append("오류명 : " + errorThrown + "<br>")
-                    .append("상태 : " + status);
-            })
-            .always(function (xhr, status) {
-                $("#text").html("요청 완료");
-            });
+        console.log("Type : " + typeof (list));
 
         if (list == undefined) {
             console.log('Main Table length is empty');
@@ -70,43 +52,86 @@
     function make_main_manufacture_table(list) {
         console.log("Get Main List : \n" + list);
         console.log("len : " + list.length);
-        if (list == undefined) {
-            console.log('Main Table length is empty');
-        } else if (list == 0) {
-            alert("필터를 적용할 대상이 없습니다.");
-            return false;
-        } else {
-            if (typeof (list) == "string")
-                list = JSON_parse_convertor(list);
-            $('#main_table > tbody:last').empty();
-            for (var i = 0; i < list.length; i++) {
-                $('#main_table').append(
-                    $('<tr>').append(
-                        //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
-                        $('<td><input type="checkbox" name="main_checkbox" placeholder="끼욧"/>').append(list[i]['model']),
-                        $('<td>').append(list[i]['number']),
-                        $('<td>').append(list[i]['aging']),
-                        $('<td>').append(list[i]['completion_product']),
-                        $('<td><button type="button" id="detail_btn" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>')
-                    )
-                );
-                document.getElementsByName("detail_btn")[i].value = list[i]['product_info_id'];
-            }
+
+        var json_table = JSON_parse_convertor(list);
+        var model_list = Array();
+        console.log(json_table);
+        for (var i = 0; i < json_table.length; i++) {
+            model_list.push(json_table[i]['model']);
         }
+        console.log("Model list : " + model_list);
+        console.log("Type : " + typeof (model_list));
+
+        var return_list = [];
+        $.ajax({
+            url: "/getProductData",
+            data: {
+                'model_list': JSON.stringify(model_list),
+                'table_list': JSON.stringify(json_table)
+            },
+            type: "GET",
+            dataType: "json"
+        })
+            .done(function (json) {
+                console.log("DONE");
+                console.log(json);
+                // Just only Dic Type
+                /*
+                for (key in json) {
+                    console.log(key + ' ' + json.value);
+                }
+                $.each(json, function (key, value) {
+                    console.log(key + ' ' + value);
+                    //return_dic[key] = value;
+                });*/
+
+                if (json == undefined) {
+                    console.log('Main Table length is empty');
+                } else if (json == 0) {
+                    alert("필터를 적용할 대상이 없습니다.");
+                    return false;
+                } else {
+                    if (typeof (json) == "string")
+                        json = JSON_parse_convertor(json);
+                    $('#main_table > tbody:last').empty();
+                    for (var i = 0; i < json.length; i++) {
+                        $('#main_table').append(
+                            $('<tr>').append(
+                                //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
+                                $('<td><input type="checkbox" name="main_checkbox" placeholder="끼욧"/>').append(json[i]['model']),
+                                $('<td>').append(json[i]['number']),
+                                $('<td>').append(json[i]['number'] - json[i][json[i]['model']]),
+                                $('<td>').append(json[i][json[i]['model']]),
+                                $('<td><button type="button" id="detail_btn" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>')
+                            )
+                        );
+                        document.getElementsByName("detail_btn")[i].value = list[i]['product_info_id'];
+                    }
+                }
+            })
+            .fail(function (xhr, status, errorThrown) {
+                $("#test").html("오류발생<br>")
+                    .append("오류명 : " + errorThrown + "<br>")
+                    .append("상태 : " + status);
+            })
+            .always(function (xhr, status) {
+                $("#text").html("요청 완료");
+            });
+
+
     }
 
     function main_manufacture_table() {
         var rows = $('#main_rows').val();
         var specific_row = $('#specific_list').val();
-        console.log(typeof (rows));
         if (specific_row != undefined && specific_row != 'None') {
             console.log(" 바꿔야행 ");
-            make_main_manufacture_table(rows);
-            //make_main_specific_table(rows);
+            make_main_specific_table(rows);
         } else if (rows == undefined) {
             console.log('Main Table length is empty');
         } else {
             make_main_manufacture_table(rows);
+            make_main_specific_table(rows);
         }
     }
 
@@ -128,6 +153,11 @@
     }
 
     function pagination_test() {
+        var rows = $('#main_rows').val();
+        rows = JSON_parse_convertor(rows);
+        rows = rows.length;
+        //var rows = $('#main_rows').find('tr').index();
+        console.log("size : " +  rows);
         $('#pagination').twbsPagination({
             /*
             totalPages: totalPages,  // 전체 page블럭 수
@@ -155,7 +185,7 @@
     }
 
     function paging(page) {
-        $('#list-body').empty();
+        $('#page_test').empty();
         var startRow = (page - 1) * pageSize; // + 1 list는 0부터 시작하니깐;
         var endRow = page * pageSize;
         if (endRow > totalCount) {
@@ -176,6 +206,7 @@
         insert_manufacture_table();
         main_manufacture_table();
         pagination_test();
+        add_and_delete_row_btn();
     });
 </script>
 {% endblock %}
@@ -183,6 +214,22 @@
 {% block body_title %}Title{% endblock %}
 {% block main_title %}생산 화면{% endblock %}
 {% block body %}
+<div class="row container-fluid">
+    <table class="table table-bordered table-striped" id="page_test">
+        <thead class="thead-light">
+        <tr>
+            <th>모델</th>
+            <th>생산수량</th>
+            <th>Aging</th>
+            <th>완료</th>
+            <th>버튼</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!--  Call of the Java Script Function (table) -->
+        </tbody>
+    </table>
+</div>
 <div class="text-center center-block">
     <div id="content">page 1</div>
     <ul class="sync-pagination pagination-sm" style="justify-content: center;"></ul>
@@ -251,14 +298,15 @@
                 <div class="modal-body">
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered" id="insert_table">
-                            <thead class="thead-dark">
+                            <thead class="thead-light">
                             <tr>
                                 <th>주차</th>
                                 <th><input type="text" class="form-control" id="insert_week" name="week"></th>
                             </tr>
                             <tr>
                                 <th>모델명</th>
-                                <th>신규 생산</th>
+                                <th>신규 생산 수량
+                                </th>
                             </tr>
                             </thead>
                             <tbody>
@@ -269,6 +317,8 @@
                 </div>
                 <!-- Modal Footer -->
                 <div class="modal-footer">
+                    <button type="button" id='btn-add-row' class="btn offset-4 btn-secondary">행 추가하기</button>
+                    <button type="button" id='btn-delete-row' class="btn btn-secondary">행 삭제하기</button>
                     <button type="submit" id="insert_submit_btn" class="btn btn-warning">확 인
                     </button>
                 </div>
