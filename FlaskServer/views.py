@@ -654,8 +654,8 @@ def insert_history(collection, args_list):
 
 
 def insert_product_info(collection, args_list):
-    query = {'model_id': args_list[0], 'sn': args_list[1], 'header': args_list[2],
-             'week': args_list[3], 'quality': args_list[4], 'show': args_list[5]}
+    query = {'model_id': args_list[0], 'model': args_list[1], 'sn': args_list[2], 'header': args_list[3],
+             'week': args_list[4], 'quality': args_list[5], 'show': args_list[6]}
 
     return collection.insert(query)  # Return value is ObjectId
 
@@ -686,7 +686,7 @@ def insert_data():
     _week = now
     _quality = 'N'
     _show = '1'
-    auto_values = [_model_id, _sn, _header, _week, _quality, _show]
+    auto_values = [_model_id, _model, _sn, _header, _week, _quality, _show]
 
     try:
         rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
@@ -947,12 +947,16 @@ def getProductData():
     # 완료 수량 = 재고 DB에 있는 모델의 수
 
     _model_list = eval(request.args.get('model_list'))
+    _week_list = eval(request.args.get('week_list'))
     _table_list = eval(request.args.get('table_list'))
     print(_model_list)
     print(type(_model_list))
     print("Model list : ")
     for _model in _model_list:
         print(_model)
+    print("Week list : ")
+    for _week in _week_list:
+        print(_week)
     print("Table row : ")
     for table_row in _table_list:
         print(table_row)
@@ -963,6 +967,10 @@ def getProductData():
         rows_collection = db_object.db_conn(db_object.db_client(), 'model')
         for model in _model_list:
             count_dic[model] = find_number_of_model(rows_collection, model)
+        # product_info에 model명 추가해서 model = 일치 and week = 일치 하는 count 리턴값 함수로 변경해야함
+        # rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
+        # for week in _week_list:
+        #     count_dic[week] = find_number_of_model(rows_collection, model)
     except Exception as e:
         print("DB_error : insert_manufacture()", end=" : ")
         print(e)
@@ -989,6 +997,12 @@ def sales_main():
 
     return render_template('sales_main.html', specific_rows=None, object=row_object)
 
+
+@app.route('/statistics_main')
+def statistics_main():
+    row_object = Rows()
+
+    return render_template('statistics_main.html', specific_rows=None, object=row_object)
 
 
 

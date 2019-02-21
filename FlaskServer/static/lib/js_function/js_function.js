@@ -485,7 +485,6 @@ function add_and_delete_row_btn() {
 }
 
 function make_main_specific_table(list) {
-    console.log("Get Specific List : \n" + list);
     console.log("Specific Row Size : " + list.length);
     console.log("Specific Row Type : " + typeof (list));
 
@@ -514,19 +513,21 @@ function make_main_specific_table(list) {
 }
 
 function make_main_manufacture_table(json_table_rows, startRow, endRow) {
-    console.log("Get Main Row : \n" + json_table_rows);
-    console.log("Main Row Size : " + json_table_rows.length);
     var model_list = Array();
+    var week_list = Array();
     for (var i = 0; i < json_table_rows.length; i++) {
         model_list.push(json_table_rows[i]['model']);
+        week_list.push(json_table_rows[i]['week']);
     }
     console.log("Model List : " + model_list);
     console.log("Model List Type : " + typeof (model_list));
+    console.log("Week List : " + week_list);
 
     $.ajax({
         url: "/getProductData",
         data: {
             'model_list': JSON.stringify(model_list),
+            'week_list': JSON.stringify(week_list),
             'table_list': JSON.stringify(json_table_rows)
         },
         type: "GET",
@@ -557,8 +558,9 @@ function make_main_manufacture_table(json_table_rows, startRow, endRow) {
                 for (var i = startRow; i < endRow; i++) { // 출력 row
                     $('#main_table').append(
                         $('<tr>').append(
-                            //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
-                            $('<td><input type="checkbox" name="main_checkbox" placeholder="Test"/>').append(i),
+                            //$('<td><input type="checkbox" name="main_checkbox" placeholder="Test"/>').append(i),
+                            $('<td>').append(i),
+                            $('<td>').append(json[i]['week']),
                             $('<td>').append(json[i]['model']),
                             $('<td>').append(json[i]['number']),
                             $('<td>').append(json[i]['number'] - json[i][json[i]['model']]),
@@ -611,9 +613,11 @@ function insert_manufacture_table() {
 function pagination_test() {
     var specific_row = $('#specific_list').val();
     var rows = $('#main_rows').val();
+    if (typeof(rows) == 'string')
     rows = JSON_parse_convertor(rows);
     var rows_length = rows.length;
-    console.log("Total Row Size : " + rows_length);
+    console.log("Main Rows List : " + rows);
+    console.log("Total Rows Size : " + rows_length);
     var number_of_visual_row = 5;
     var totalPages = rows_length / number_of_visual_row;
     if (rows_length % number_of_visual_row > 0) {
