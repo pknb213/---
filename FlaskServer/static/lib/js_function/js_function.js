@@ -20,8 +20,8 @@ function JSON_parse_convertor(string) {
 }
 
 function make_main_stock_table(list) {
-    console.log("Get List : \n" + list);
-    console.log("len : " + list.length);
+    console.log("Get Stock List : \n" + list);
+    console.log("Stock Row Size : " + list.length);
     if (list == undefined) {
         console.log('Main Table length is empty');
     } else if (list == 0) {
@@ -348,7 +348,7 @@ function detect_model_filter() {
             dataType: "json"
         })
             .done(function (json) {
-                console.log("DONE");
+                console.log("Filtering Ajax is DONE");
                 console.log(json);
                 console.log(json['filter_name']);
                 console.log(json.key);
@@ -395,7 +395,7 @@ function detect_location_filter() {
             dataType: "json"
         })
             .done(function (json) {
-                console.log("DONE");
+                console.log("Filtering Ajax is DONE");
                 console.log(json);
                 console.log(json['filter_name']);
                 console.log(json.key);
@@ -441,7 +441,7 @@ function detect_state_filter() {
             dataType: "json"
         })
             .done(function (json) {
-                console.log("DONE");
+                console.log("Filtering Ajax is DONE");
                 console.log(json);
                 console.log(json['filter_name']);
                 console.log(json.key);
@@ -486,8 +486,8 @@ function add_and_delete_row_btn() {
 
 function make_main_specific_table(list) {
     console.log("Get Specific List : \n" + list);
-    console.log("len : " + list.length);
-    console.log("Type : " + typeof (list));
+    console.log("Specific Row Size : " + list.length);
+    console.log("Specific Row Type : " + typeof (list));
 
     if (list == undefined) {
         console.log('Main Table length is empty');
@@ -514,14 +514,14 @@ function make_main_specific_table(list) {
 }
 
 function make_main_manufacture_table(json_table_rows, startRow, endRow) {
-    console.log("Get Main List : \n" + json_table_rows);
-    console.log("len : " + json_table_rows.length);
+    console.log("Get Main Row : \n" + json_table_rows);
+    console.log("Main Row Size : " + json_table_rows.length);
     var model_list = Array();
     for (var i = 0; i < json_table_rows.length; i++) {
         model_list.push(json_table_rows[i]['model']);
     }
-    console.log("Model list : " + model_list);
-    console.log("Type : " + typeof (model_list));
+    console.log("Model List : " + model_list);
+    console.log("Model List Type : " + typeof (model_list));
 
     $.ajax({
         url: "/getProductData",
@@ -533,7 +533,7 @@ function make_main_manufacture_table(json_table_rows, startRow, endRow) {
         dataType: "json"
     })
         .done(function (json) {
-            console.log("DONE");
+            console.log("getProductData Ajax is DONE");
             console.log(json);
             // Just only Dic Type
             /*
@@ -613,7 +613,7 @@ function pagination_test() {
     var rows = $('#main_rows').val();
     rows = JSON_parse_convertor(rows);
     var rows_length = rows.length;
-    console.log("size : " + rows_length);
+    console.log("Total Row Size : " + rows_length);
     var number_of_visual_row = 5;
     var totalPages = rows_length / number_of_visual_row;
     if (rows_length % number_of_visual_row > 0) {
@@ -627,7 +627,7 @@ function pagination_test() {
         first: '<span aria-hidden="true">«</span>',
         last: '<span aria-hidden="true">»</span>',
         onPageClick: function (event, page) {
-            $('#page_content').text('페이지 ' + page);
+            //$('#page_content').text('페이지 ' + page);
             paging(page, rows, specific_row, rows_length, number_of_visual_row);
         }
     });

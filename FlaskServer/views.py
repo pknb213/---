@@ -969,21 +969,27 @@ def getProductData():
     finally:
         db_object.db_close()
 
-    #if table_row['model'] == count_dic.keys():
-    print("Count DIc : ")
+    print("Number of Model Dic : ")
     print(count_dic)
 
-    print("Table rows : ")
+    print("Result rows : ")
     for row in _table_list:
         result = list(row.values() & count_dic.keys())
         row[result[0]] = count_dic[result[0]]
         print(row)
 
-    # for row in _table_list:
-    #     #     print("row : ")
-    #     #     print(row)
-
     return jsonify(_table_list)
+
+
+@app.route('/sales_main')
+def sales_main():
+    row_object = Rows()
+
+
+
+    return render_template('sales_main.html', specific_rows=None, object=row_object)
+
+
 
 
 '''
