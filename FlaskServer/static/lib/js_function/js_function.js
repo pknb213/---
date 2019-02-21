@@ -644,3 +644,4 @@ function paging(page, rows, specific_row, number_of_total_row, number_of_visual_
     }
     main_manufacture_table(rows, specific_row, startRow, endRow);
 }
+
