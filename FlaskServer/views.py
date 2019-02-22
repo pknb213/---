@@ -190,6 +190,22 @@ class Rows:
         # rows_list = [{"model": "씨발", "new_product": "444"}]
         return rows_list
 
+    def sales_list(self):
+        try:
+            rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'project_num')
+            rows_list = list(rows_collection.find())  # cursor type -> list type
+        except Exception as e:
+            print("DB_error : Class Rows.manufacture()", end=" >> ")
+            print(e)
+        finally:
+            self._DB_object.db_close()
+        if not rows_list:
+            print('Database is Empty')
+            rows_list = None
+        print("Sales Row List : ", end='')
+        print(rows_list)
+        return rows_list
+
 
 def make_read_excel():
     import numpy as np
@@ -1004,6 +1020,27 @@ def statistics_main():
 
     return render_template('statistics_main.html', specific_rows=None, object=row_object)
 
+
+@app.route('/registerPN')
+def project_number_register():
+    _number_of_pn = request.values.get('pn_field')
+    _project_name = request.values.get('project_name_field')
+    print("GET PN : ", end='')
+    print(_number_of_pn, end='   ')
+    print(" Name : ", end='')
+    print(_number_of_pn)
+
+    # try:
+    #     db_object = MongodbConnection()
+    #     rows_collection = db_object.db_conn(db_object.db_client(), 'project_num')
+    #     count_dic[model] = find_number_of_model(rows_collection, model
+    # except Exception as e:
+    #     print("DB_error : insert_manufacture()", end=" : ")
+    #     print(e)
+    # finally:
+    #     db_object.db_close()
+
+    return redirect('/sales_main')
 
 
 '''

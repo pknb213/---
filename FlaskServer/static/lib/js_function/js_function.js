@@ -581,8 +581,8 @@ function make_main_manufacture_table(json_table_rows, startRow, endRow) {
         });
 }
 
-function main_manufacture_table(rows, specific_row, startRow, endRow) {
-    if (specific_row != undefined && specific_row != 'None') {
+function main_manufacture_table(rows, specific_rows, startRow, endRow) {
+    if (specific_rows != undefined && specific_rows != 'None') {
         console.log(" 바꿔야행 ");
         make_main_specific_table(rows);
     } else if (rows == undefined) {
