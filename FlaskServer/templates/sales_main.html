@@ -19,7 +19,7 @@
                 $('<th>주소</th>')
             ),
             $('<tr>').append(
-                $('<td><input type="text" class="form-control" name="a_field">'),
+                $('<td><input type="text" class="form-control" name="classification">'),
                 $('<td><input type="text" class="form-control" name="partner_name_field">'),
                 $('<td><input type="text" class="form-control" name="b_field">'),
                 $('<td><input type="text" class="form-control" name="address_field">')
@@ -50,8 +50,8 @@
     }
 
     function main_sales_table(rows, specific_rows, startRow, endRow) {
-        if (specific_rows != undefined && specific_rows != 'None') {
-            console.log(" 바꿔야행 ");
+        if (specific_rows != undefined && specific_rows != 'None' && specific_rows != 0) {
+            console.log("Specific Rows : " + specific_rows + "  바꿔야행 ");
             //make_main_specific_table(rows);
         } else if (rows == undefined) {
             console.log('Main Table length is empty');
@@ -70,14 +70,14 @@
         } else {
             if (typeof (rows) == "string")
                 rows = JSON_parse_convertor(rows);
-            $('#sales_table > tbody:last').empty();
+            $('#main_table > tbody:last').empty();
             for (var i = startRow; i < endRow; i++) {
-                $('#sales_table').append(
+                $('#main_table').append(
                     $('<tr>').append(
                         //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
-                        $('<td>').append(rows[i]['pn_number']),
-                        $('<td>').append(rows[i]['pn_name']),
-                        $('<td>')
+                        $('<td class="align-middle">').append(rows[i]['pn']),
+                        $('<td class="align-middle">').append(rows[i]['project_name']),
+                        $('<td class="align-middle"><button type="button" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>')
                         //$('<td>').append(rows[i]['model'])
                     )
                 );
@@ -85,67 +85,17 @@
         }
     }
 
-    function getNoneTable(tableId){
-        tableId = "'#" + tableId + "'";
+    function getNoneTable(tableId, colspan){
         console.log("None Table Id : " + tableId);
-        $(tableId.toString()).append(
+        $('#' + tableId).append(
             $('<tr>').append(
-                $('<td colspan="3"><h1>Table Is Empty</h1></td>')
+                $('<td colspan=' + colspan + '><h1>Table Is Empty</h1></td>')
             )
         );
     }
 
-    function pagination_test() {
-        var specific_row = $('#specific_list').val();
-        var rows = $('#main_rows').val();
-        console.log("Main Rows List : " + rows);
-        console.log("Total Rows Size : " + rows_length);
-        if (rows == undefined || rows == 'None') {
-            console.log('Main Table length is empty');
-            getNoneTable('main_rows');
-            return false;
-        } else if (rows == 0) {
-            alert("필터를 적용할 대상이 없습니다.");
-            return false;
-        }
-        if (typeof (rows) == 'string')
-            rows = JSON_parse_convertor(rows);
-        var rows_length = rows.length;
-        console.log("Main Rows List : " + rows);
-        console.log("Total Rows Size : " + rows_length);
-        var number_of_visual_row = 5;
-        var totalPages = rows_length / number_of_visual_row;
-        if (rows_length % number_of_visual_row > 0) {
-            totalPages++;
-        }
-        $('#pagination').twbsPagination({
-            totalPages: totalPages, // 전체 page블럭 수
-            visiblePages: number_of_visual_row,  // 출력될 page 블럭수 상수로 지정해 줘도 되고, 변수로 지정해줘도 된다.
-            prev: "이전",
-            next: "다음",
-            first: '<span aria-hidden="true">«</span>',
-            last: '<span aria-hidden="true">»</span>',
-            onPageClick: function (event, page) {
-                //$('#page_content').text('페이지 ' + page);
-                paging(page, rows, specific_row, rows_length, number_of_visual_row);
-            }
-        });
-        // Class를 이용한 여러개 콘텐츠에 동기화하기
-        // $('.sync-pagination')
-    }
-
-    function paging(page, rows, specific_row, number_of_total_row, number_of_visual_row) {
-        $('#main_table > tbody').empty();
-        var startRow = (page - 1) * number_of_visual_row;  // 1 page = 0 * 5 = 0,  2 page = 1 * 5 = 5, 3 page = 2 * 5 = 10 -> start row
-        var endRow = page * number_of_visual_row;  // 1 page = 5, 2 page = 10, 3 page = 15 -> end row
-        if (endRow > number_of_total_row) {  // 5, 10, 15 > total (ex 12) -> 마지막 row 맞추기
-            endRow = number_of_total_row;
-        }
-        main_sales_table(rows, specific_row, startRow, endRow);
-    }
-
     $(document).ready(function () {
-        pagination_test();
+        pagination_test('sales_main', 5);
         register_of_partner();
         register_of_order();
         register_of_pn();
@@ -176,8 +126,8 @@
 </form>
 <hr/>
 <div class="row container-fluid">
-    <table class="table table-bordered table-striped" id="main_table">
-        <thead class="thead-light">
+    <table class="table table-bordered table-striped text-center" id="main_table">
+        <thead class="thead-dark">
         <tr>
             <th>Project Number</th>
             <th>업체명</th>
@@ -232,7 +182,7 @@
 <!-- The Partner List Modal -->
 <div class="modal fade" id="insert_partner">
     <div class="modal-dialog modal-xl">
-        <form class="form-inline" action="/manufacture_insert" method="POST" enctype=multipart/form-data>
+        <form class="form-inline" action="/registerPartner" method="POST" enctype=multipart/form-data>
             <div class="modal-content">
                 <!-- Modal Header -->
                 <div class="modal-header text-white bg-secondary">

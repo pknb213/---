@@ -3,8 +3,8 @@
 <script>
     $(document).ready(function () {
         insert_manufacture_table();
-        pagination_test();
-        add_and_delete_row_btn();
+        pagination_test('manufacture', 10);
+        add_and_delete_row_btn('manufacture');
     });
 </script>
 {% endblock %}
@@ -23,8 +23,8 @@
 </form>
 <hr/>
 <div class="row container-fluid">
-    <table class="table table-bordered table-striped" id="main_table">
-        <thead class="thead-light">
+    <table class="table table-bordered table-striped table-sm text-center" id="main_table">
+        <thead class="thead-dark">
         <tr>
             <th>번호</th>
             <th>주차</th>
@@ -40,6 +40,7 @@
         </tbody>
     </table>
 </div>
+<!-- Pageination -->
 <div class="text-center center-block">
     <div id="page_content"></div>
     <nav aria-label="Page navigation">
@@ -80,7 +81,7 @@
                             <thead class="thead-light">
                             <tr>
                                 <th>주차</th>
-                                <th><input type="text" class="form-control" id="insert_week" name="week"></th>
+                                <th><input type="text" class="form-control" id="insert_week" name="week" value={{object.week()}}></th>
                             </tr>
                             <tr>
                                 <th>모델명</th>
