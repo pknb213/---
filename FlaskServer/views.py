@@ -352,7 +352,9 @@ def filtering():
         print(lis)
 
     if _filter == '전체':
-        return redirect('/')
+        m_value = None
+        l_value = None
+        s_value = None
     elif _filter == '모델':
         m_value = _sub_filter
         l_value = None
@@ -947,6 +949,9 @@ def getStateChangeTable():
     _product_info_id = eval(request.args.get('product_info_id'))
     print("Checkbox Agix : ", end='')
     print(_product_info_id)
+    if not len(_product_info_id):
+        print("Not have a Checked box")
+        return jsonify(_product_info_id)
 
     result_list = []
     for _id in _product_info_id:
@@ -1007,7 +1012,9 @@ def state_change():
         _location = request.values.getlist("location")
         _reason = request.values.getlist("reason")
         row_list = []
+        print("GET State Change List")
         print(_id)
+        print(_location)
         print(_reason)
         for i in range(0, len(_id)):
             _state = getStateFromReason(_reason[i])
@@ -1018,19 +1025,18 @@ def state_change():
         print(e)
     else:
         #print(_checked_id, end=" ")
-        print(_id, end=" ")
-        print(_location, end=" ")
-        print("POST row_list : ", end=" ")
-        print(row_list)
+        print("POST row_list : ")
+        for row in row_list:
+            print(row)
     try:
         db_object = MongodbConnection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'history')
         #for i in range(0, len(_checked_id)):
         for j in range(0, len(row_list)):
             #if _checked_id[i] == row_list[j]['id']:
             print("Change !! ", end=" ")
             #print(_checked_id[i], end=" <-- ")
             print(row_list[j])
-            rows_collection = db_object.db_conn(db_object.db_client(), 'history')
             # return find() -> Cursor Type
             # return insert() -> Object Type
             # return update() -> Dict Type

@@ -38,6 +38,10 @@ function make_main_stock_table(list, startRow, endRow) {
     } else {
         if (typeof (list) == "string")
             list = JSON_parse_convertor(list);
+        list.sort(function(a, b){
+            //return a.week > b.week ? -1 : a.week < b.week ? 1 : 0;
+            return b.week - a.week;
+        });
         console.log("Stock Row Size : " + list.length);
         $('#main_table > tbody:last').empty();
         for (var i = startRow; i < endRow; i++) {
@@ -61,7 +65,6 @@ function main_table(table_rows, specific_row, startRow, endRow) {
     console.log("Filtering search : " + specific_row);
     var table_rows = $('#main_rows').val();
     console.log("Table rows : \n" + table_rows);
-    ;
     if (specific_row != undefined && specific_row != 'None' && specific_row != 0) {
         console.log("Specific date search");
         make_main_stock_table(specific_row, startRow, endRow);
@@ -319,7 +322,12 @@ function btn_click_event() {
             .done(function (json) {
                 console.log("State Change Table Ajax is DONE");
                 console.log(json);
-            state_change_table(json);
+                if(json.length == 0){
+                    getNoneTable('state_table', 4);
+                }
+                else if (json){
+                    state_change_table(json);
+                }
             })
             .fail(function (xhr, status, errorThrown) {
                 $("#test").html("오류발생<br>")
@@ -687,6 +695,9 @@ function make_main_manufacture_table(json_table_rows, startRow, endRow) {
                     json = JSON_parse_convertor(json);
                 $('#main_table > tbody:last').empty();
                 for (var i = startRow; i < endRow; i++) { // 출력 row
+                    var aging = json[i]['number'] - json[i][json[i]['model']];
+                    if(aging < 0)
+                        aging = 0;
                     $('#main_table').append(
                         $('<tr>').append(
                             //$('<td><input type="checkbox" name="main_checkbox" placeholder="Test"/>').append(i),
@@ -694,7 +705,7 @@ function make_main_manufacture_table(json_table_rows, startRow, endRow) {
                             $('<td class="align-middle">').append(json[i]['week']),
                             $('<td class="align-middle">').append(json[i]['model']),
                             $('<td class="align-middle">').append(json[i]['number']),
-                            $('<td class="align-middle">').append(json[i]['number'] - json[i][json[i]['model']]),
+                            $('<td class="align-middle">').append(aging),
                             $('<td class="align-middle">').append(json[i][json[i]['model']]),
                             $('<td class="align-middle"><button type="button" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>')
                         )
@@ -793,7 +804,6 @@ function paging(html, page, rows, specific_row, number_of_total_row, number_of_v
         endRow = number_of_total_row;
     }
     // 페이지 바뀔 때 마다 적용해야할 함수
-
     // html 변수에 맞는 테이블 만들기
     if (html == 'production_main') {
         main_table(rows, specific_row, startRow, endRow);
@@ -804,5 +814,6 @@ function paging(html, page, rows, specific_row, number_of_total_row, number_of_v
     }
     // 페이지 생성 후 적용해야 할 함수
     detail_table();
+    $('#main_table').tablesorter({ sortList: [[2,1], [0,0], [1,0]]}).trigger('update');
 }
 
