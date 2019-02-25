@@ -174,14 +174,13 @@ function detail_table() {
                 }
             })
             .fail(function (xhr, status, errorThrown) {
-                $("#test").html("오류발생<br>")
+                $("#detail_table").html("오류발생<br>")
                     .append("오류명 : " + errorThrown + "<br>")
                     .append("상태 : " + status);
             })
             .always(function (xhr, status) {
                 $("#text").html("요청 완료");
             });
-
 
         /*
         var product_row = $('#model_list').val();

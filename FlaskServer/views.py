@@ -876,7 +876,7 @@ def insert_data():
 
 def find_production_info_item(coll, product_id):
     query = {
-        u"_id":  ObjectId(product_id)
+        u"_id": ObjectId(product_id)
     }
     return coll.find(query)
 
@@ -892,8 +892,6 @@ def find_history_all_item(coll, product_id):
 
 @app.route('/getDetailTable')
 def getDetailTable():
-
-
     _id = request.args.get('product_info_id')
     print("Detail Agix : ", end='')
     print(_id)
@@ -930,16 +928,16 @@ def getDetailTable():
 def find_history_item(coll, product_id):
     query = {
         "$and":
-        [
-            {
-                u"product_id": {
-                    u"$eq": product_id
+            [
+                {
+                    u"product_id": {
+                        u"$eq": product_id
+                    }
+                },
+                {
+                    'show': {'$eq': '1'}
                 }
-            },
-            {
-                'show': {'$eq': '1'}
-            }
-        ]
+            ]
     }
     return coll.find(query)
 
@@ -1007,7 +1005,7 @@ def state_change():
     try:
         date = datetime.datetime.today().strftime('%Y-%m-%d')
         _date = {'date': date}
-        #_checked_id = request.values.getlist("check_box")  # Checked the Object _id value
+        # _checked_id = request.values.getlist("check_box")  # Checked the Object _id value
         _id = request.values.getlist("id")
         _location = request.values.getlist("location")
         _reason = request.values.getlist("reason")
@@ -1024,18 +1022,18 @@ def state_change():
         print("POST_error : state_change()", end=" >> ")
         print(e)
     else:
-        #print(_checked_id, end=" ")
+        # print(_checked_id, end=" ")
         print("POST row_list : ")
         for row in row_list:
             print(row)
     try:
         db_object = MongodbConnection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'history')
-        #for i in range(0, len(_checked_id)):
+        # for i in range(0, len(_checked_id)):
         for j in range(0, len(row_list)):
-            #if _checked_id[i] == row_list[j]['id']:
+            # if _checked_id[i] == row_list[j]['id']:
             print("Change !! ", end=" ")
-            #print(_checked_id[i], end=" <-- ")
+            # print(_checked_id[i], end=" <-- ")
             print(row_list[j])
             # return find() -> Cursor Type
             # return insert() -> Object Type
@@ -1187,8 +1185,8 @@ def manufacture_insert():
     print("Insert Get Data : ", end='')
     print(_week, end=' ')
     print(_model, end=' ')
-    print(_number,end=' ')
-    print(type(_number),end=' ')
+    print(_number, end=' ')
+    print(type(_number), end=' ')
     print(len(_model))
     _data_list = []
     for i in range(0, len(_model)):
@@ -1238,7 +1236,7 @@ def getProductData():
         rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
         for i in range(0, len(_model_list)):
             count_dic[_model_list[i]] = find_number_of_model(rows_collection, _model_list[i], _week_list[i])
-        #for model in _model_list:
+        # for model in _model_list:
         #    count_dic[model] = find_number_of_model(rows_collection, model)
     except Exception as e:
         print("DB_error : insert_manufacture()", end=" : ")
@@ -1261,8 +1259,6 @@ def getProductData():
 @app.route('/sales_main')
 def sales_main():
     row_object = Rows()
-
-
 
     return render_template('sales_main.html', specific_rows=None, object=row_object)
 
@@ -1305,8 +1301,10 @@ def project_number_register():
 
 def insert_partner_list(collection, data_list):
     date = datetime.datetime.today().strftime('%Y-%m-%d')
-    query = {'classification': data_list[0], 'partner_name_field': data_list[1], 'b_field': data_list[2], 'address_field': data_list[3],
-             'header_field': data_list[4], 'phone_field': data_list[5], 'email_field': data_list[6],'var_field': data_list[7],
+    query = {'classification': data_list[0], 'partner_name_field': data_list[1], 'b_field': data_list[2],
+             'address_field': data_list[3],
+             'header_field': data_list[4], 'phone_field': data_list[5], 'email_field': data_list[6],
+             'var_field': data_list[7],
              'date': date}
     return collection.insert(query)
 
@@ -1350,6 +1348,75 @@ def partner_register():
     finally:
         db_object.db_close()
     return redirect('/sales_main')
+
+
+@app.route('/getBarGraph')
+def getBarGraph():
+    def distinct_week_value_list(coll):
+        return coll.distinct('week')
+
+    def distinct_model_value_list(coll):
+        return coll.distinct('model')
+
+    def find_number_of_model(coll, _week, _model):
+        query = {
+            "$and":
+                [
+                    {
+                        u"week": {
+                            u"$eq": _week
+                        }
+                    },
+                    {
+                        u'model': {'$eq': _model}
+                    }
+                ]
+        }
+        return coll.find(query).count()
+
+    try:
+        db_object = MongodbConnection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
+        week_list = distinct_week_value_list(rows_collection)
+    except Exception as e:
+        print("DB_error : insert_manufacture()", end=" : ")
+        print(e)
+
+    print(week_list)
+
+    try:
+        model_list = distinct_model_value_list(rows_collection)
+    except Exception as e:
+        print("DB_error : insert_manufacture()", end=" : ")
+        print(e)
+
+    print(model_list)
+
+    number_of_model_list = []
+    number_of_model_dic = {}
+    temp_dic = {}
+    try:
+        for _week in week_list:
+            for _model in model_list:
+                number_of_model_dic[_model] = find_number_of_model(rows_collection, _week, _model)
+                temp_dic = number_of_model_dic.copy()
+            number_of_model_list.append(temp_dic)
+    except Exception as e:
+        print("DB_error : insert_manufacture()", end=" : ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    # for val in number_of_model_list:
+    #     print(val)
+
+    result = [model_list, number_of_model_list]
+
+    for val in result:
+        for item in val:
+            print(item)
+
+    return jsonify(result)
 
 
 '''
