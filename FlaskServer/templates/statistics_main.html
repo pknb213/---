@@ -4,8 +4,6 @@
 <script src="../static/js/lib/billboard.pkgd.js"></script>
 <script>
     function billboard_test() {
-        var data = new Array();
-
         $.ajax({
             url: "/getBarGraph",
             data: {
@@ -66,23 +64,78 @@
             .always(function (xhr, status) {
                 //$("#barChart").html("요청 완료");
             });
-
-
-        var data1 = ["data1", 30, 200, 100, 400, 150, 250];
-        var data2 = ["data2", 70, 120, 350, 200, 150, 350];
-        console.log(data1);
-        console.log(data2);
-        data.push(data1);
-        data.push(data2);
-        console.log(data);
-
-
+        //var data1 = ["data1", 30, 200, 100, 400, 150, 250];
+        //var data2 = ["data2", 70, 120, 350, 200, 150, 350];
         //chard.load();
+    }
 
+     function billboard_test2() {
+        //var data = new Array();
+        $.ajax({
+            url: "/getBarGraph2",
+            data: {
+                //'product_info_id': received_id
+            },
+            type: "GET",
+            dataType: "json"
+        })
+            .done(function (json) {
+                console.log("Detail Table Ajax is DONE");
+                console.log(json);
+
+                var model = new Array();
+                var model_number = new Array();
+                for (var i = 0; i < json[0].length; i++) {
+                    //eval("var data" + i + ';');
+                    model[i] = json[0][i];
+                }
+                for (var a = 0; a < json[1].length; a++) {
+                    model_number[a] = json[1][a];
+                }
+                console.log(model);
+                console.log(model_number);
+                var number_of_week_per_model = new Array();
+                var number_of_week_per_model_list = new Array();
+                for (var j = 0; j < model.length; j++) {
+                    for (var k = 0; k < model_number.length; k++) {
+                        number_of_week_per_model.push(model_number[k][model[j]]);
+                    }
+                    number_of_week_per_model_list.push(number_of_week_per_model);
+                    number_of_week_per_model = [];
+                }
+                console.log(number_of_week_per_model_list);
+                var merge_list = new Array();
+                var result = new Array();
+                for (var b = 0; b < model.length; b++) {
+                    var graph_data = merge_list.concat(model[b], number_of_week_per_model_list[b]);
+                    result.push(graph_data);
+                }
+                console.log(result);
+
+                var barChart = bb.generate({
+                    bindto: "#barChart2",
+                    data: {
+                        type: "bar",
+                        columns: result,
+                        axes: {
+                            data1: "y"
+                        }
+                    }
+                });
+            })
+            .fail(function (xhr, status, errorThrown) {
+                $("#barChart2").html("오류발생<br>")
+                    .append("오류명 : " + errorThrown + "<br>")
+                    .append("상태 : " + status);
+            })
+            .always(function (xhr, status) {
+                //$("#barChart").html("요청 완료");
+            });
     }
 
     $(document).ready(function () {
         billboard_test();
+        billboard_test2();
     });
 </script>
 {% endblock %}
@@ -91,4 +144,5 @@
 {% block main_title %}통계 화면{% endblock %}
 {% block body %}
 <div id="barChart"></div>
+<div id="barChart2"></div>
 {% endblock %}

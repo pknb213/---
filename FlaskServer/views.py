@@ -1358,7 +1358,7 @@ def getBarGraph():
     def distinct_model_value_list(coll):
         return coll.distinct('model')
 
-    def find_number_of_model(coll, _week, _model):
+    def find_number_of_model_from_week_and_model(coll, _week, _model):
         query = {
             "$and":
                 [
@@ -1398,7 +1398,7 @@ def getBarGraph():
     try:
         for _week in week_list:
             for _model in model_list:
-                number_of_model_dic[_model] = find_number_of_model(rows_collection, _week, _model)
+                number_of_model_dic[_model] = find_number_of_model_from_week_and_model(rows_collection, _week, _model)
                 temp_dic = number_of_model_dic.copy()
             number_of_model_list.append(temp_dic)
     except Exception as e:
@@ -1412,6 +1412,59 @@ def getBarGraph():
 
     result = [model_list, number_of_model_list]
 
+    for val in result:
+        for item in val:
+            print(item)
+
+    return jsonify(result)
+
+
+@app.route('/getBarGraph2')
+def getBarGraph2():
+    def distinct_month_value_list(coll):
+        return coll.distinct('date')
+
+    def distinct_week_value_list(coll):
+        return coll.distinct('week')
+
+    def find_week_item_from_manufacture(coll, week):
+        query = {
+            'week': week
+        }
+        return coll.find(query, {'_id': False, 'date': False, 'week': False})
+
+    try:
+        db_object = MongodbConnection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'manufacture')
+        week_list = distinct_week_value_list(rows_collection)
+    except Exception as e:
+        print("DB_error : insert_manufacture()", end=" : ")
+        print(e)
+
+    print(week_list)
+
+    find_list = []
+    find_dic = {}
+    temp_dic = {}
+    try:
+        for _week in week_list:
+            #find_list.append(list(find_week_item_from_manufacture(rows_collection, _week)))
+            _cursor = find_week_item_from_manufacture(rows_collection, _week)
+            for _dict in _cursor:
+                #print(_dict)
+                find_dic[_dict['model']] = _dict['number']
+                temp_dic = find_dic.copy()
+            find_list.append(temp_dic)
+            find_dic.clear()
+            #print('--------')
+
+    except Exception as e:
+        print("DB_error : insert_manufacture()", end=" : ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    result = [week_list, find_list]
     for val in result:
         for item in val:
             print(item)
