@@ -15,16 +15,22 @@
             .done(function (json) {
                 console.log("Detail Table Ajax is DONE");
                 console.log(json);
-
+                var week = new Array();
                 var model = new Array();
                 var model_number = new Array();
-                for (var i = 0; i < json[0].length; i++) {
+                for (var s = 0; s < json[0].length; s++) {
+                    week[s] = json[0][s];
+                }
+                for (var i = 0; i < json[1].length; i++) {
                     //eval("var data" + i + ';');
-                    model[i] = json[0][i];
+                    model[i] = json[1][i];
                 }
-                for (var a = 0; a < json[1].length; a++) {
-                    model_number[a] = json[1][a];
+                for (var a = 0; a < json[2].length; a++) {
+                    model_number[a] = json[2][a];
                 }
+                var x_axis = Array();
+                x_axis = x_axis.concat('x', week);
+                console.log(x_axis);
                 console.log(model);
                 console.log(model_number);
                 var number_of_week_per_model = new Array();
@@ -39,6 +45,7 @@
                 console.log(number_of_week_per_model_list);
                 var merge_list = new Array();
                 var result = new Array();
+                result.push(x_axis);
                 for (var b = 0; b < model.length; b++) {
                     var graph_data = merge_list.concat(model[b], number_of_week_per_model_list[b]);
                     result.push(graph_data);
@@ -50,9 +57,7 @@
                     data: {
                         type: "bar",
                         columns: result,
-                        axes: {
-                            data1: "y"
-                        }
+                        x: 'x'
                     }
                 });
             })
@@ -69,7 +74,7 @@
         //chard.load();
     }
 
-     function billboard_test2() {
+    function billboard_test2() {
         //var data = new Array();
         $.ajax({
             url: "/getBarGraph2",
@@ -82,18 +87,34 @@
             .done(function (json) {
                 console.log("Detail Table Ajax is DONE");
                 console.log(json);
-
+                var week = new Array();
                 var model = new Array();
                 var model_number = new Array();
-                for (var i = 0; i < json[0].length; i++) {
+                for (var s = 0; s < json[0].length; s++) {
+                    week[s] = json[0][s];
+                }
+                for (var i = 0; i < json[1].length; i++) {
                     //eval("var data" + i + ';');
-                    model[i] = json[0][i];
+                    model[i] = json[1][i];
                 }
-                for (var a = 0; a < json[1].length; a++) {
-                    model_number[a] = json[1][a];
+                for (var a = 0; a < json[2].length; a++) {
+                    model_number[a] = json[2][a];
                 }
-                console.log(model);
+                var x_axis = Array();
+                x_axis = x_axis.concat('x', week);
+                console.log(x_axis);
                 console.log(model_number);
+
+                // var dic = {};
+                // for (var q = 0; q < model_number.length; q++) {
+                //     console.log(model_number[q]);
+                //     console.log(Object.keys(model_number[q]).length);
+                //     for (var key in model_number[q]) {
+                //         console.log("key : " + key);
+                //         console.log("Val : " + model_number[q][key]);
+                //     }
+                // }
+
                 var number_of_week_per_model = new Array();
                 var number_of_week_per_model_list = new Array();
                 for (var j = 0; j < model.length; j++) {
@@ -106,6 +127,7 @@
                 console.log(number_of_week_per_model_list);
                 var merge_list = new Array();
                 var result = new Array();
+                result.push(x_axis);
                 for (var b = 0; b < model.length; b++) {
                     var graph_data = merge_list.concat(model[b], number_of_week_per_model_list[b]);
                     result.push(graph_data);
@@ -117,9 +139,14 @@
                     data: {
                         type: "bar",
                         columns: result,
-                        axes: {
-                            data1: "y"
-                        }
+                        // columns: [x_axis,
+                        //     ['a', 1, 2, 3, 4, 5, 6, 7, 8],
+                        //     ['y', 1, 2, 3, 4],
+                        //     ['z', 1, 5, 8, 12, 18]],
+                        x: 'x'
+                        // axes: {
+                        //     data1: "y"
+                        // }
                     }
                 });
             })
@@ -143,6 +170,8 @@
 {% block body_title %}Title{% endblock %}
 {% block main_title %}통계 화면{% endblock %}
 {% block body %}
+<h2 class="text-center">재고 DB Graph</h2>
 <div id="barChart"></div>
+<h2 class="text-center">생산 DB Graph</h2>
 <div id="barChart2"></div>
 {% endblock %}

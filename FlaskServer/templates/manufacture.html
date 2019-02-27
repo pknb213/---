@@ -5,6 +5,25 @@
         insert_manufacture_table();
         pagination_test('manufacture', 10);
         add_and_delete_row_btn('manufacture');
+
+
+        $('#insert_submit_btn').click(function () {
+            if ($('#insert_model').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#insert_model').focus();
+                return false;
+            }
+            if ($('#insert_number').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#insert_number').focus();
+                return false;
+            }
+            if ($('#insert_week').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#insert_week').focus();
+                return false;
+            }
+        });
     });
 </script>
 {% endblock %}

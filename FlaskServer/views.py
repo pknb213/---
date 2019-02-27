@@ -6,6 +6,7 @@ import random
 import datetime
 import pymongo
 import pandas
+import copy
 from flask import render_template, request, current_app, make_response, url_for, redirect, jsonify, abort
 from bson.objectid import ObjectId  # For ObjectId to work
 from math import ceil
@@ -1410,7 +1411,7 @@ def getBarGraph():
     # for val in number_of_model_list:
     #     print(val)
 
-    result = [model_list, number_of_model_list]
+    result = [week_list, model_list, number_of_model_list]
 
     for val in result:
         for item in val:
@@ -1419,6 +1420,80 @@ def getBarGraph():
     return jsonify(result)
 
 
+@app.route('/getBarGraph2')
+def getBarGraph2():
+    def distinct_week_value_list(coll):
+        return coll.distinct('week')
+
+    def distinct_model_value_list(coll):
+        return coll.distinct('model')
+
+    def find_number_of_model_from_week_and_model(coll, _week, _model):
+        query = {
+            "$and":
+                [
+                    {
+                        u"week": {
+                            u"$eq": _week
+                        }
+                    },
+                    {
+                        u'model': {'$eq': _model}
+                    }
+                ]
+        }
+        cs = coll.find(query)
+        _list = []
+        for cs_item in cs:
+            print(cs_item['number'])
+            _list.extend(copy.deepcopy(cs_item['number']))
+        print(_list)
+        return sum(map(int, _list))
+
+    try:
+        db_object = MongodbConnection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'manufacture')
+        week_list = distinct_week_value_list(rows_collection)
+    except Exception as e:
+        print("DB_error : distinct_manufacture", end=" : ")
+        print(e)
+
+    print(week_list)
+
+    try:
+        model_list = distinct_model_value_list(rows_collection)
+    except Exception as e:
+        print("DB_error : distinct_manufacture", end=" : ")
+        print(e)
+
+    print(model_list)
+
+    number_of_model_list = []
+    number_of_model_dic = {}
+    temp_dic = {}
+    try:
+        for _week in week_list:
+            for _model in model_list:
+                number_of_model_dic[_model] = find_number_of_model_from_week_and_model(rows_collection, _week, _model)
+                temp_dic = number_of_model_dic.copy()
+            number_of_model_list.append(temp_dic)
+    except Exception as e:
+        print("DB_error : find_number_of_model_from_week_and_model()", end=" : ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    # for val in number_of_model_list:
+    #     print(val)
+
+    result = [week_list, model_list, number_of_model_list]
+
+    for val in result:
+        for item in val:
+            print(item)
+
+    return jsonify(result)
+'''
 @app.route('/getBarGraph2')
 def getBarGraph2():
     def distinct_month_value_list(coll):
@@ -1452,7 +1527,7 @@ def getBarGraph2():
             _cursor = find_week_item_from_manufacture(rows_collection, _week)
             for _dict in _cursor:
                 #print(_dict)
-                find_dic[_dict['model']] = _dict['number']
+                find_dic[_dict['model']] = int(_dict['number'])
                 temp_dic = find_dic.copy()
             find_list.append(temp_dic)
             find_dic.clear()
@@ -1470,7 +1545,7 @@ def getBarGraph2():
             print(item)
 
     return jsonify(result)
-
+'''
 
 '''
 
