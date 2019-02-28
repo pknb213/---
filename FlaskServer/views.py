@@ -12,6 +12,7 @@ from bson.objectid import ObjectId  # For ObjectId to work
 from math import ceil
 from collections import OrderedDict
 
+
 '''
 ip = '211.106.106.183'
 port = 27019
@@ -23,7 +24,6 @@ print(type(rows_collection))
 
 
 class MongodbConnection:
-
     def __init__(self):
         # print(" ~~ ", sep = '\n')
         print("MongoDB init")
@@ -50,7 +50,6 @@ class MongodbConnection:
 
 
 class Rows:
-
     def __init__(self):
         print("Rows Class init")
         self._DB_object = MongodbConnection()
@@ -58,6 +57,7 @@ class Rows:
     # def production_main_list(self):
 
     def main_table_rows(self):
+        print('Load - Class main_table_rows()')
         result_rows = []
         # show key is the most recently value.
         query = {"show": {'$eq': '1'}}
@@ -67,8 +67,6 @@ class Rows:
         except Exception as e:
             print("DB_error : Class Rows.model()", end=" >> ")
             print(e)
-        finally:
-            self._DB_object.db_close()
 
         _product_id_list = []
         _location_list = []
@@ -85,27 +83,31 @@ class Rows:
         _week_list = []
         _sn_list = []
         _model_list = []
-        product_info_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'product_info')
+        _model_id_list = []
+        try:
+            product_info_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'product_info')
+        except Exception as e:
+            print("DB_error : Class Rows.model()", end=" >> ")
+            print(e)
         for product_id in _product_id_list:
             query = {"_id": {'$eq': ObjectId(product_id)}}
-            product_info_cursor = product_info_collection.find(query)  # cursor type
+            try:
+                product_info_cursor = product_info_collection.find(query)  # cursor type
+            except Exception as e:
+                print("DB_error : Class Rows.model()", end=" >> ")
+                print(e)
             for product_info_dic in product_info_cursor:
                 # print("info_dic : ", end="")
                 # print(product_info_dic)
                 _week_list.append(product_info_dic['week'])
                 _sn_list.append(product_info_dic['sn'])
-                model_id = product_info_dic['model_id']
-
-            model_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'model')
-            query = {"_id": {'$eq': ObjectId(model_id)}}
-            model_info_cursor = model_collection.find(query)  # cursor type
-            for model_info_dic in model_info_cursor:
-                _model_list.append(model_info_dic['model'])
+                _model_id_list.append(product_info_dic['model_id'])
+                _model_list.append(product_info_dic['model'])
 
         for i in range(0, len(_product_id_list)):
             res = {"product_info_id": _product_id_list[i], "model": _model_list[i], "sn": _sn_list[i],
                    "week": _week_list[i], "location": _location_list[i], "state": _state_list[i],
-                   "reason": _reason_list[i]}
+                   "reason": _reason_list[i], 'model_id': _model_id_list[i]}
             result_rows.append(res)
         self._DB_object.db_close()
         print("Main Table : ", end="")
@@ -118,6 +120,7 @@ class Rows:
         return result_rows
 
     def production_main_model(self):
+        print('Load - Class production_main_model()')
         try:
             # db_object = Mongodb_connection()
             rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'model')
@@ -131,6 +134,7 @@ class Rows:
         return rows_list
 
     def production_main_history(self):
+        print('Load - Class production_main_history()')
         try:
             # db_object = Mongodb_connection()
             rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'history')
@@ -144,6 +148,7 @@ class Rows:
         return rows_list
 
     def production_main_info_list(self):
+        print('Load - Class production_main_info_list()')
         try:
             # db_object = Mongodb_connection()
             rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'product_info')
@@ -157,6 +162,7 @@ class Rows:
         return rows_list
 
     def production_main_specific_date_list(self):
+        print('Load - Class production_main_specific_date_list()')
         page = 'p_page'
         date = datetime.datetime.today().strftime('%Y-%m-%d')
         now = date.split('-')
@@ -174,11 +180,8 @@ class Rows:
         # print("date list")
         return rows_list
 
-    def date(self):
-        date = datetime.datetime.today().strftime('%Y-%m-%d')
-        return date
-
     def week(self):
+        print('Load - Class week()')
         date = datetime.datetime.today().strftime('%Y-%m-%d')
         now = date.split('-')
         for i in range(0, 3):
@@ -187,6 +190,7 @@ class Rows:
         return week
 
     def manufacture_list(self):
+        print('Load - Class manufacture_list()')
         try:
             rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'manufacture')
             rows_list = list(rows_collection.find())  # cursor type -> list type
@@ -200,6 +204,7 @@ class Rows:
         return rows_list
 
     def sales_list(self):
+        print('Load - Class sales_list()')
         try:
             rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'project_num')
             rows_list = list(rows_collection.find())  # cursor type -> list type
@@ -214,6 +219,10 @@ class Rows:
         print("Sales Row List : ", end='')
         print(rows_list)
         return rows_list
+
+    def date(self):
+        print('Load - Class date()')
+        return datetime.datetime.today().strftime('%Y-%m-%d')
 
 
 def make_read_excel():
@@ -1445,9 +1454,8 @@ def getBarGraph2():
         cs = coll.find(query)
         _list = []
         for cs_item in cs:
-            print(cs_item['number'])
             _list.extend(copy.deepcopy(cs_item['number']))
-        print(_list)
+        #print(_list)
         return sum(map(int, _list))
 
     try:

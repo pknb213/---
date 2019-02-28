@@ -4,8 +4,8 @@
     function register_of_pn() {
         $('#insert_pn_table').append(
             $('<tr>').append(
-                $('<td><input type="text" class="form-control" name="pn_field">'),
-                $('<td><input type="text" class="form-control" name="project_name_field">')
+                $('<td><input type="text" id="pn_field" class="form-control" name="pn_field">'),
+                $('<td><input type="text" id="project_name_field" class="form-control" name="project_name_field">')
             )
         );
     }
@@ -19,10 +19,10 @@
                 $('<th>주소</th>')
             ),
             $('<tr>').append(
-                $('<td><input type="text" class="form-control" name="classification">'),
-                $('<td><input type="text" class="form-control" name="partner_name_field">'),
-                $('<td><input type="text" class="form-control" name="b_field">'),
-                $('<td><input type="text" class="form-control" name="address_field">')
+                $('<td><input type="text" id="classification_field" class="form-control" name="classification">'),
+                $('<td><input type="text" id="partner_name_field" class="form-control" name="partner_name_field">'),
+                $('<td><input type="text" id="b_field" class="form-control" name="b_field">'),
+                $('<td><input type="text" id="address_field" class="form-control" name="address_field">')
             ),
             $('<tr>').append(
                 $('<th>담당자</th>'),
@@ -31,10 +31,10 @@
                 $('<th>비고</th>')
             ),
             $('<tr>').append(
-                $('<td><input type="text" class="form-control" name="header_field">'),
-                $('<td><input type="text" class="form-control" name="phone_field">'),
-                $('<td><input type="text" class="form-control" name="email_field">'),
-                $('<td><input type="text" class="form-control" name="var_field">')
+                $('<td><input type="text" id="header_field" class="form-control" name="header_field">'),
+                $('<td><input type="text" id="phone_field" class="form-control" name="phone_field">'),
+                $('<td><input type="text" id="email_field" class="form-control" name="email_field">'),
+                $('<td><input type="text" id="var_field" class="form-control" name="var_field">')
             )
         );
     }
@@ -42,9 +42,9 @@
     function register_of_order() {
         $('#obtain_order_table').append(
             $('<tr>').append(
-                $('<td colspan="2"><input type="text" class="form-control" name="product_field">'),
-                $('<td><input type="text" class="form-control" name="number_of_field">'),
-                $('<td><input type="text" class="form-control" name="day_limit_filed">')
+                $('<td colspan="2"><input type="text" id="product_field" class="form-control" name="product_field">'),
+                $('<td><input type="text" id="number_of_field" class="form-control" name="number_of_field">'),
+                $('<td><input type="text" id="day_limit_filed" class="form-control" name="day_limit_filed">')
             )
         );
     }
@@ -99,6 +99,85 @@
         register_of_partner();
         register_of_order();
         register_of_pn();
+
+        $('#submit_pn').click(function () {
+            if ($('#pn_field').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#pn_field').focus();
+                return false;
+            }
+            if ($('#project_name_field').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#project_name_field').focus();
+                return false;
+            }
+        });
+        $('#submit_partner').click(function () {
+            if ($('#classification_field').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#classification_field').focus();
+                return false;
+            }
+            if ($('#partner_name_field').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#partner_name_field').focus();
+                return false;
+            }
+            if ($('#b_field').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#b_field').focus();
+                return false;
+            }
+            if ($('#address_field').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#address_field').focus();
+                return false;
+            }
+            if ($('#pn_field').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#pn_field').focus();
+                return false;
+            }
+            if ($('#phone_field').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#phone_field').focus();
+                return false;
+            }
+            if ($('#email_field').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#email_field').focus();
+                return false;
+            }
+            if ($('#var_field').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#var_field').focus();
+                return false;
+            }
+        });
+        $('#submit_order').click(function () {
+            if ($('#').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#').focus();
+                return false;
+            }
+            if ($('#').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#').focus();
+                return false;
+            }
+        });
+        $('#insert_submit_btn').click(function () {
+            if ($('#').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#').focus();
+                return false;
+            }
+            if ($('#').val().length == 0) {
+                alert("빈 칸을 입력하세요");
+                $('#').focus();
+                return false;
+            }
+        });
     });
 </script>
 {% endblock %}
