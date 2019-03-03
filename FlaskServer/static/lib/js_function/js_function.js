@@ -181,65 +181,6 @@ function detail_table() {
             .always(function (xhr, status) {
                 $("#text").html("요청 완료");
             });
-
-        /*
-        var product_row = $('#model_list').val();
-        var product_info_row = $('#info_list').val();
-        var history_row = $('#history_list').val();
-        var received_id = $(this).val();
-        var _date = new Array();
-        var _location = new Array();
-        var _state = new Array();
-        var _week = new Array();
-        var _reason = new Array();
-        product_row = JSON_parse_convertor(product_row);
-        product_info_row = JSON_parse_convertor(product_info_row);
-        history_row = JSON_parse_convertor(history_row);
-        var _model, _sn, _header, _model_id;
-        for (var j = 0; j < history_row.length; j++) {
-            if (received_id == history_row[j]['product_id']) {
-                _date.push(history_row[j]['date']);
-                _location.push(history_row[j]['location']);
-                _state.push(history_row[j]['state']);
-                _reason.push(history_row[j]['reason']);
-            }
-        }
-        for (var k = 0; k < product_info_row.length; k++) {
-            if (received_id == product_info_row[k]['_id']) {
-                _model_id = product_info_row[k]['model_id'];
-                _sn = product_info_row[k]['sn'];
-                _week = product_info_row[k]['week'];
-                _header = product_info_row[k]['header'];
-                for (var p = 0; p < product_row.length; p++) {
-                    if (_model_id == product_row[p]['_id']) {
-                        _model = product_row[p]['model'];
-                    }
-                }
-            }
-        }
-        //console.log(_date);
-        //console.log(_location);
-        //console.log(_state);
-        if (product_info_row.length != product_info_row.length) {
-            alert("DB Length is wrong !");
-        }
-        $('#detail_info').append(
-            $('<tr>').append(
-                $('<th class="text-right">').append("Model:  " + _model),
-                $('<th class="text-right">').append("SN:  " + _sn),
-                $('<th class="text-right">').append("생산 Week:  " + _week),
-                $('<th class="text-right">').append("Header:  " + _header)
-            )
-        );
-        for (var i = 0; i < _date.length; i++) {
-            $('#detail_table').append(
-                $('<tr>').append(
-                    $('<td>').append(_date[i]),
-                    $('<td>').append(_location[i]),
-                    $('<td>').append(_state[i]),
-                    $('<td>').append(_reason[i]))
-            );
-        }*/
     });
 }
 

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="../static/lib/bootstrap4.2.1/js/bootstrap.min.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.7.2/js/all.js"
+            integrity="sha384-0pzryjIRos8mFBWMzSSZApWtPl/5++eIfzYmTgBBmXYdhvxPc+XcFEk+zJwDgWbP"
+            crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="menu-box">
+    <div>
+        <h1 align="center">Main Menu</h1>
+    </div>
+    <div style="float: left; width: 50%">
+        <form action="/" method="GET">
+        <button style="height: 180px;" class="btn" type="submit" value="">재고 관리 화면</button>
+        </form>
+    </div>
+    <div style="float: right; clear: right; width: 50%">
+        <form action="/manufacture_main" method="GET">
+        <button style="height: 180px" class="btn" type="submit" value="">생산 관리 화면</button>
+        </form>
+    </div>
+    <div style="float: left; width: 50%">
+        <form action="/sales_main" method="GET">
+        <button style="height: 180px" class="btn" type="submit" value="">영업 관리 화면</button>
+        </form>
+    </div>
+    <div style="float: right; clear: right; width: 50%">
+        <form action="/statistics_main" method="GET">
+        <button style="height: 180px" class="btn" type="submit" value="">통계 화면</button>
+        </form>
+    </div>
+    <div>
+        <form action="/logout" method="GET">
+        <button style="height: 55px" class="btn" type="submit" value="">Log out</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
+
+<!--     <th rowspan="2"><h1 align="center">Main Menu</h1></th>
+        </tr>
+        <tr>
+            <td>
+                <button class="btn" type="button" placeholder="Username" name="" value="BTN"></button>
+            </td>
+            <td>
+                <button class="btn" type="button" placeholder="Username" name="" value="bTN"></button>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <button class="btn" type="button" placeholder="PW" name="" value=""></button>
+            </td>
+            <td>
+                <button class="btn" type="button" placeholder="PW" name="" value=""></button>
+            </td>
+        </tr>
+        <tr>
+            <td rowspan="2">
+                <form action="/post_login" method="POST">
+                    <input class="btn" type="submit" name="" value="Sign In">
+                </form>
+            </td>
+
+-->

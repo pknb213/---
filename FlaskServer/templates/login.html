@@ -1,10 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="../static/lib/bootstrap4.2.1/js/bootstrap.min.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.7.2/js/all.js"
+            integrity="sha384-0pzryjIRos8mFBWMzSSZApWtPl/5++eIfzYmTgBBmXYdhvxPc+XcFEk+zJwDgWbP"
+            crossorigin="anonymous"></script>
 </head>
 <body>
-
+<div class="login-box">
+    <form class="form-inline" action="/api/login" method="POST">
+    <h1>Login</h1>
+    <div class="textbox">
+        <i class="fas fa-user" aria-hidden="true"></i>
+        <input type="text" placeholder="Username" name="user_id" id="user_id" value="">
+    </div>
+    <div class="textbox">
+        <i class="fas fa-lock" aria-hidden="true"></i>
+        <input type="password" placeholder="Password" name="passwd_hash" id="passwd_hash" value="">
+    </div>
+        <input id="sign" class="btn" type="submit" name="" value="Sign In">
+    </form>
+</div>
+<script>
+    $(document).ready(function () {
+        $('#sign').click(function () {
+            if ($('#user_id').val().length == 0) {
+                alert("아이디를 입력하세요");
+                $('#user_id').focus();
+                return false;
+            }
+            if ($('#passwd_hash').val().length == 0) {
+                alert("패스워드를 입력하세요");
+                $('#passwd_hash').focus();
+                return false;
+            }
+        });
+    });
+</script>
 </body>
 </html>

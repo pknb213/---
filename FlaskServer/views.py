@@ -1,5 +1,5 @@
 from builtins import enumerate
-
+import flask_login
 from FlaskServer import app
 import os
 import random
@@ -9,18 +9,110 @@ import pandas
 import copy
 from flask import render_template, request, current_app, make_response, url_for, redirect, jsonify, abort
 from bson.objectid import ObjectId  # For ObjectId to work
+from flask_login import login_required, current_user, login_user, logout_user
 from math import ceil
 from collections import OrderedDict
 
+login_manager = flask_login.LoginManager()
+login_manager.init_app(app)
 
-'''
-ip = '211.106.106.183'
-port = 27019
-conn = pymongo.MongoClient(db_ip, db_port)
-db = conn.get_database('ERP_testbk')
-rows_collection = db.get_collection('test1')
-print(type(rows_collection))
-'''
+
+class User:
+    # ==========================================================================
+    def __init__(self, user_id, email=None, passwd_hash=None,
+                 authenticated=False):
+        self.user_id = user_id
+        self.email = email
+        self.passwd_hash = passwd_hash
+        self.authenticated = authenticated
+
+    # ==========================================================================
+    def __repr__(self):
+        r = {
+            'user_id': self.user_id,
+            'email': self.email,
+            'passwd_hash': self.passwd_hash,
+            'authenticated': self.authenticated,
+        }
+        return str(r)
+
+    # ==========================================================================
+    def can_login(self, passwd_hash):
+        return self.passwd_hash == passwd_hash
+
+    # ==========================================================================
+    def is_active(self):
+        return True
+
+    # ==========================================================================
+    def get_id(self):
+        return self.user_id
+
+    # ==========================================================================
+    def is_authenticated(self):
+        return self.authenticated
+
+    # ==========================================================================
+    def is_anonymous(self):
+        return False
+
+
+USERS = {
+    "user01": User("user01", passwd_hash='user'),
+    "user02": User("user02", passwd_hash='user'),
+    "user03": User("user03", passwd_hash='user'),
+}
+
+
+@login_manager.user_loader
+def user_loader(user_id):
+    return USERS[user_id]
+
+
+@app.route("/api/auth_func", methods=['POST'])
+@login_required
+def auth_func():
+    user = current_user
+    json_res = {'ok': True, 'msg': 'auth_func(%s),user_id=%s'
+                                   % (request.json, user.user_id)}
+    return jsonify(json_res)
+
+
+@app.route("/api/notauth_func", methods=['POST'])
+def notauth_func():
+    json_res = {'ok': True, 'msg': 'notauth_func(%s)'
+                                   % request.json}
+    return jsonify(json_res)
+
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    # user_id = request.json['user_id']
+    # passwd_hash = request.json['passwd_hash']
+    user_id = request.values.get('user_id')
+    passwd_hash = request.values.get('passwd_hash')
+    if user_id not in USERS:
+        json_res = {'ok': False, 'error': 'Invalid user_id or password'}
+    elif not USERS[user_id].can_login(passwd_hash):
+        json_res = {'ok': False, 'error': 'Invalid user_id or password'}
+    else:
+        json_res = {'ok': True, 'msg': 'user <%s> logined' % user_id}
+        USERS[user_id].authenticated = True
+        login_user(USERS[user_id], remember=True)
+    if not json_res['ok']:
+        return jsonify(json_res)
+    else:
+        return render_template('/menu.html')
+
+
+@app.route('/api/logout', methods=['POST'])
+@login_required
+def logout():
+    user = current_user
+    user.authenticated = False
+    json_res = {'ok': True, 'msg': 'user <%s> logout' % user.user_id}
+    logout_user()
+    return jsonify(json_res)
 
 
 class MongodbConnection:
@@ -247,23 +339,74 @@ def make_read_excel():
     '''
 
 
-'''
-query = {u"_id": {u"$eq": ObjectId('5c569b1e0f055d57e83e0dda') } }
-query2 = {u"user_id": {u"$eq": '5c569b1e0f055d57e83e0dda' } }
-query2 = {u"product_id": {u"$eq": ObjectId('5c5707d7cbf63c5290057130') }}
-
-'''
-
-
 @app.route('/index')
+@login_required
 def index():
     return render_template('index.html')
 
 
-# @app.route('/test')
-# def test():
-#     object = Rows()
-#     return render_template('test.html', object=object)
+@app.route('/test')
+def test():
+    user = USERS["user01"]
+    login_user(user)
+    object = Rows()
+    return render_template('test.html', object=object)
+
+
+@app.route('/login')
+def test_login():
+    return render_template('login.html')
+
+
+@app.route('/test_login')
+def loginTest():
+    user = user_loader('user01')
+    login_user(user)
+    return "User : %s" % user
+
+
+@app.route('/post_login', methods=["POST"])
+def postLogin():
+    user_id = request.values.get("user_id")
+    user_pw = request.values.get("passwd_hash")
+    print(user_id)
+    print(user_pw)
+
+    user = User(user_id, passwd_hash=user_pw)
+    print(user)
+    print(user.can_login(user.passwd_hash))
+
+    user2 = USERS["user01"]
+    print(user2)
+    print(user2.can_login(user2.passwd_hash))
+
+    if user in USERS:
+        user = USERS[user_id]
+        print(user.can_login(user_pw))
+
+    if user.is_authenticated():
+        print("인즘됨")
+        login_user(user, remember=True)
+
+    else:
+        print("인증안됨")
+
+    if not current_user.is_authenticated:
+        return current_app.login_manager.unauthorized()
+    return redirect('/main')
+
+
+@app.route('/logout')
+@login_required
+def logoutTest():
+    logout_user()
+    return "You are now logged out"
+
+
+@app.route('/main')
+@login_required
+def main_menu():
+    return render_template('menu.html')
 
 
 @app.route('/upload')
@@ -274,7 +417,6 @@ def ckeditor4():
 @app.route('/')
 def production_main():
     row_object = Rows()
-
     return render_template('production_main.html', specific_list=None, object=row_object)
 
 
@@ -436,174 +578,6 @@ def filtering():
     return render_template('production_main.html', specific_list=third_filtering_list, object=row_object)
 
 
-@app.route('/filtering2', methods=["POST"])
-def filtering2():
-    _model_filter = request.values.get('model_filter')
-    _location_filter = request.values.get('location_filter')
-    _state_filter = request.values.get('state_filter')
-    _sDate = request.values.get('sDate')
-    _eDate = request.values.get('eDate')
-
-    print("Get value : ")
-    print(_model_filter + ' ' + _location_filter + ' ' + _state_filter + ' ' + _sDate + ' ' + _eDate)
-
-    _sDate = _sDate.split('-')
-    _eDate = _eDate.split('-')
-    for i in range(0, 3):
-        _sDate[i] = int(_sDate[i])
-        _eDate[i] = int(_eDate[i])
-    s_week = week_num(_sDate[0], _sDate[1], _sDate[2])
-    e_week = week_num(_eDate[0], _eDate[1], _eDate[2])
-
-    query = {
-        "$and": [
-            {
-                u"week": {
-                    u"$gte": s_week
-                }
-            },
-            {
-                u"week": {
-                    u"$lte": e_week
-                }
-            },
-            {
-                u"show": {
-                    u"$eq": '1'
-                }
-            }
-        ]
-    }
-
-    try:
-        _DB_object = MongodbConnection()
-        rows_collection = _DB_object.db_conn(_DB_object.db_client(), 'product_info')
-        rows_list = list(rows_collection.find(query))  # cursor type -> list type
-    except Exception as e:
-        print("DB_error : Class Rows.manufacture()", end=" >> ")
-        print(e)
-    finally:
-        _DB_object.db_close()
-
-    model_rows = []
-    model_coll = _DB_object.db_conn(_DB_object.db_client(), 'model')
-    for row in rows_list:
-        query = {"_id": {'$eq': ObjectId(row['model_id'])}}
-        model_rows.extend(list(model_coll.find(query)))  # cursor type -> list type
-
-    history_rows = []
-    history_coll = _DB_object.db_conn(_DB_object.db_client(), 'history')
-    for row in rows_list:
-        query = {"$and": [{"product_id": {'$eq': str(row['_id'])}}, {'show': {'$eq': '1'}}]}
-        history_rows.extend(list(history_coll.find(query)))  # cursor type -> list type
-
-    print("Date match rows :")
-    for row in rows_list:
-        print(row)
-    print("Reference model rows :")
-    for row in model_rows:
-        print(row)
-
-    print("Reference history rows :")
-    for row in history_rows:
-        print(row)
-
-    merge_list = []
-    for i in range(0, len(rows_list)):
-        new_dic = {}
-        new_dic.update(rows_list[i])
-        new_dic.update(model_rows[i])
-        new_dic.update(history_rows[i])
-        merge_list.append(new_dic)
-
-    print("Merge List")
-    for lis in merge_list:
-        print(lis)
-
-    if _model_filter == '모델':
-        m_value = None
-    else:
-        m_value = _model_filter
-
-    if _location_filter == '위치':
-        l_value = None
-    else:
-        l_value = _location_filter
-
-    if _state_filter == '상태':
-        s_value = None
-    else:
-        s_value = _state_filter
-
-    _filter = {'model': m_value, 'location': l_value, 'state': s_value}
-
-    print(_filter)
-
-    first_filtering_list = []
-    second_filtering_list = []
-    third_filtering_list = []
-    print("> Model Filtering")
-    if _filter['model'] is not None:
-        for idx, merge_row in enumerate(merge_list):
-            if merge_row.get('model') == _filter['model']:
-                print(idx, merge_row)
-                first_filtering_list.append(merge_row)
-            else:
-                print("Delete : ", end='')
-                print(idx, merge_row)
-    else:
-        first_filtering_list = merge_list
-
-    print(">> Location Filtering")
-    if _filter['location'] is not None:
-        for idx, merge_row in enumerate(first_filtering_list):
-            if merge_row.get('location') == _filter['location']:
-                print(idx, merge_row)
-                second_filtering_list.append(merge_row)
-            else:
-                print("Delete : ", end='')
-                print(idx, merge_row)
-    else:
-        second_filtering_list = first_filtering_list
-
-    print(">>> State Filtering")
-    if _filter['state'] is not None:
-        for idx, merge_row in enumerate(second_filtering_list):
-            if merge_row.get('state') == _filter['state']:
-                print(idx, merge_row)
-                third_filtering_list.append(merge_row)
-            else:
-                print("Delete : ", end='')
-                print(idx, merge_row)
-    else:
-        third_filtering_list = second_filtering_list
-
-    print("After Filtering")
-    if not third_filtering_list:
-        print("After filtering . . . List is Empty")
-    else:
-        for lis in third_filtering_list:
-            print(lis)
-    print(third_filtering_list)
-    row_object = Rows()
-
-    return render_template('production_main.html', date_rows=third_filtering_list, object=row_object)
-
-
-@app.route('/ajax')
-def ajaxTest():
-    print("ajax test....")
-    _name = request.args.get("name")
-    print(_name)
-    print(type(_name))
-    testJson = {"key": _name}
-    print(testJson)
-    testJson = jsonify(testJson)
-    print(type(testJson))
-    print(testJson)
-    return testJson
-
-
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
@@ -718,91 +692,6 @@ def week_num(year, mon, day):
     year = str(year)  # casting int -> str
     result = year[2:4] + str(wn)  # slice 2~4 char + week num
     return result
-
-
-@app.route('/search', methods=['POST'])
-def data_search():
-    _page = request.values.get("page")
-    _sdate = request.values.get("startDate")
-    _edate = request.values.get("endDate")
-    sdate = _sdate.split('-')
-    edate = _edate.split('-')
-    for i in range(0, 3):
-        sdate[i] = int(sdate[i])
-        edate[i] = int(edate[i])
-
-    if int(sdate[0]) < int(edate[0]):
-        rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]), _page)
-    elif int(sdate[0]) == int(edate[0]):
-        if int(sdate[1]) < int(edate[1]):
-            rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]),
-                                     _page)
-        elif int(sdate[1]) == int(edate[1]):
-            if int(sdate[2]) < int(edate[2]):
-                rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]),
-                                         _page)
-            elif int(sdate[2]) == int(edate[2]):
-                rows_list = search_query(week_num(sdate[0], sdate[1], sdate[2]), week_num(edate[0], edate[1], edate[2]),
-                                         _page)
-            else:
-                print("Day Error")
-                return redirect('/')
-        else:
-            print("month Error")
-            return redirect('/')
-    else:
-        print("Year Error")
-        return redirect('/')
-
-    row_object = Rows()
-
-    if _page == 'p_page':
-        print("Date search : ", end="")
-        print(rows_list)
-        return render_template('production_main.html', date_rows=rows_list, object=row_object)
-    # Not use
-    elif _page == 's_page':
-        return render_template('shipment_main.html', rows=rows_list, now_sdate=_sdate, now_edate=_edate)
-    else:
-        print("POST hidden page value error ")
-
-
-@app.route('/all_collection')
-def all_collection_show():
-    # Not use
-    '''
-    query = {u"show": {u"$eq": "1"}}
-    try:
-        db_object = Mongodb_connection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'product')
-        rows_list = list(rows_collection.find())  # cursor type -> list type
-        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-        new_list = list(rows_collection.find(query))  # cursor type -> list type
-    except Exception as e:
-        print("DB_error : all_collection_show()", end=" >> ")
-        print(e)
-    finally:
-        db_object.db_close()
-
-    rows_list = rows_list + new_list
-    print(rows_list)
-
-    for row in rows_list:
-        for key, val in row.items():
-            if key == '_id':
-                print("%s    %s " % (key, val))
-
-    rows_object = Rows()
-
-
-    return render_template('production_main.html', specific_list=rows_list, object=rows_object)
-    '''
-    return render_template('404.html'), 404
-
-
-@app.route('/insert_plan')
-def insert_plan():
-    return render_template('plan_list.html', rows={})
 
 
 def insert_model(collection, model):
@@ -1070,90 +959,6 @@ def update_history(collection, product_id):
     return collection.update(match_query, value_query, multi=True)
 
 
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'xlsx'])
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-@app.route('/excel_table', methods=['POST'])
-def excel_table():
-    try:
-        if request.method == 'POST':
-            # check if the post request has the file part
-            if 'file' not in request.files:
-                print('No file part')
-                return redirect('/insert_plan')
-            file = request.files['file']
-            # if user does not select file, browser also
-            # submit an empty part without filename
-            if file.filename == '':
-                print('No selected file')
-                return redirect('/insert_plan')
-            if file and allowed_file(file.filename):
-                # filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-
-                df = pandas.read_excel('./FlaskServer/static/excel/생산계획.xlsx', sheet_name='sheet1', engine='xlrd')
-
-                print(df)
-                print(type(df))
-                # print(df['월'])
-
-                rows_list = [list(df.loc[0]), list(df.loc[1]), list(df.loc[2]), list(df.loc[3]), list(df.loc[4])]
-                # rows_list.append(list(df.loc[4]))
-
-                return render_template('plan_list.html', rows=rows_list)
-                # return redirect(url_for('insert_plan', filename=file.filename))
-    except Exception as e:
-        print(" Excel_error : excel_table()", end=" >> ")
-        print(e)
-        render_template('404.html'), 404
-
-
-@app.route('/ckprocess', methods=['POST'])
-def ckeditor4_process():
-    return redirect('/')
-
-
-def gen_rnd_filename():
-    filename_prefix = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    return '%s%s' % (filename_prefix, str(random.randrange(1000, 10000)))
-
-
-@app.route('/ckupload/', methods=['POST', 'OPTIONS'])
-def ckupload():
-    """CKEditor4 file upload"""
-    error = ''
-    url = ''
-    callback = request.args.get("CKEditorFuncNum")
-    if request.method == 'POST' and 'upload' in request.files:
-        fileobj = request.files['upload']
-        fname, fext = os.path.splitext(fileobj.filename)
-        rnd_name = '%s%s' % (gen_rnd_filename(), fext)
-        filepath = os.path.join(current_app.static_folder, 'img', rnd_name)
-        dirname = os.path.dirname(filepath)
-        if not os.path.exists(dirname):
-            try:
-                os.makedirs(dirname)
-            except:
-                error = 'ERROR_CREATE_DIR'
-        elif not os.access(dirname, os.W_OK):
-            error = 'ERROR_DIR_NOT_WRITEABLE'
-        if not error:
-            fileobj.save(filepath)
-            url = url_for('static', filename='%s/%s' % ('img', rnd_name))
-    else:
-        error = 'post error'
-    res = """<script type="text/javascript"> 
-             window.parent.CKEDITOR.tools.callFunction(%s, '%s', '%s');
-             </script>""" % (callback, url, error)
-    response = make_response(res)
-    response.headers["Content-Type"] = "text/html"
-    return response
-
-
 @app.route('/manufacture_main')
 def manufacture_main():
     object_rows = Rows()
@@ -1183,6 +988,7 @@ def search_week(coll, data_list):
     return coll.find(query)
 
 
+# 생산 page
 @app.route('/manufacture_insert', methods=["POST"])
 def manufacture_insert():
     date = datetime.datetime.today().strftime('%Y-%m-%d')
@@ -1266,18 +1072,12 @@ def getProductData():
     return jsonify(_table_list)
 
 
+# 영업 page
 @app.route('/sales_main')
 def sales_main():
     row_object = Rows()
 
     return render_template('sales_main.html', specific_rows=None, object=row_object)
-
-
-@app.route('/statistics_main')
-def statistics_main():
-    row_object = Rows()
-
-    return render_template('statistics_main.html', specific_rows=None, object=row_object)
 
 
 def insert_project_num(collection, data_list):
@@ -1358,6 +1158,13 @@ def partner_register():
     finally:
         db_object.db_close()
     return redirect('/sales_main')
+
+
+# 통계 page
+@app.route('/statistics_main')
+def statistics_main():
+    row_object = Rows()
+    return render_template('statistics_main.html', specific_rows=None, object=row_object)
 
 
 @app.route('/getBarGraph')
@@ -1455,7 +1262,7 @@ def getBarGraph2():
         _list = []
         for cs_item in cs:
             _list.extend(copy.deepcopy(cs_item['number']))
-        #print(_list)
+        # print(_list)
         return sum(map(int, _list))
 
     try:
@@ -1501,282 +1308,87 @@ def getBarGraph2():
             print(item)
 
     return jsonify(result)
-'''
-@app.route('/getBarGraph2')
-def getBarGraph2():
-    def distinct_month_value_list(coll):
-        return coll.distinct('date')
 
-    def distinct_week_value_list(coll):
-        return coll.distinct('week')
 
-    def find_week_item_from_manufacture(coll, week):
-        query = {
-            'week': week
-        }
-        return coll.find(query, {'_id': False, 'date': False, 'week': False})
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'xlsx'])
 
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route('/excel_table', methods=['POST'])
+def excel_table():
     try:
-        db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'manufacture')
-        week_list = distinct_week_value_list(rows_collection)
+        if request.method == 'POST':
+            # check if the post request has the file part
+            if 'file' not in request.files:
+                print('No file part')
+                return redirect('/insert_plan')
+            file = request.files['file']
+            # if user does not select file, browser also
+            # submit an empty part without filename
+            if file.filename == '':
+                print('No selected file')
+                return redirect('/insert_plan')
+            if file and allowed_file(file.filename):
+                # filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+
+                df = pandas.read_excel('./FlaskServer/static/excel/생산계획.xlsx', sheet_name='sheet1', engine='xlrd')
+
+                print(df)
+                print(type(df))
+                # print(df['월'])
+
+                rows_list = [list(df.loc[0]), list(df.loc[1]), list(df.loc[2]), list(df.loc[3]), list(df.loc[4])]
+                # rows_list.append(list(df.loc[4]))
+
+                return render_template('plan_list.html', rows=rows_list)
+                # return redirect(url_for('insert_plan', filename=file.filename))
     except Exception as e:
-        print("DB_error : insert_manufacture()", end=" : ")
+        print(" Excel_error : excel_table()", end=" >> ")
         print(e)
-
-    print(week_list)
-
-    find_list = []
-    find_dic = {}
-    temp_dic = {}
-    try:
-        for _week in week_list:
-            #find_list.append(list(find_week_item_from_manufacture(rows_collection, _week)))
-            _cursor = find_week_item_from_manufacture(rows_collection, _week)
-            for _dict in _cursor:
-                #print(_dict)
-                find_dic[_dict['model']] = int(_dict['number'])
-                temp_dic = find_dic.copy()
-            find_list.append(temp_dic)
-            find_dic.clear()
-            #print('--------')
-
-    except Exception as e:
-        print("DB_error : insert_manufacture()", end=" : ")
-        print(e)
-    finally:
-        db_object.db_close()
-
-    result = [week_list, find_list]
-    for val in result:
-        for item in val:
-            print(item)
-
-    return jsonify(result)
-'''
-
-'''
-
-# Not use 
-
-'''
+        render_template('404.html'), 404
 
 
-@app.route('/shipment_main')
-def shipment_main():
-    date = datetime.datetime.today().strftime('%Y-%m-%d')
-    sdate = datetime.datetime.today().strftime('%Y-%m-01')
-
-    row_object = Rows()
-
-    # Temporarily
-    rows = [{'_model': 'Indy', '_sn': 'D321321', '_product_week': '1907', '_outDate': '2019-02-11'}]
-
-    return render_template('shipment_main.html', object=row_object, rows=rows, now_sdate=sdate, now_edate=date)
+@app.route('/ckprocess', methods=['POST'])
+def ckeditor4_process():
+    return redirect('/')
 
 
-@app.route('/business_goal')
-def business_goal():
-    return render_template('business_goal.html')
+def gen_rnd_filename():
+    filename_prefix = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    return '%s%s' % (filename_prefix, str(random.randrange(1000, 10000)))
 
 
-@app.route('/sales_performance')
-def sales_performance():
-    return render_template('sales_performance.html')
-
-
-@app.route('/partners_list')
-def partners_list():
-    return render_template('partners_list.html')
-
-
-@app.route('/receiving_inspection')
-def receiving_inspection():
-    return render_template('receiving_inspection.html')
-
-
-def custom_list():
-    query = {"$and": [{u"detail.quality": {u"$eq": 'N'}}, {u"detail.show": {u"$eq": '1'}}]}
-    print("c_list()")
-    try:
-        db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
-        rows_list = list(rows_collection.find(query))  # cursor type -> list type
-    except Exception as e:
-        print("DB_error : ()", end=" >> ")
-        print(e)
-    finally:
-        db_object.db_close()
-
-    if len(rows_list):
-        sdata = []
-        sloca = []
-        sdate = []
-        nlist = []
-        id = []
-        for i in range(0, len(rows_list)):
-            id.append(rows_list[i]['_id'])
-            sdata.append(rows_list[i]['detail']['state'])
-            sloca.append(rows_list[i]['location'])
-            sdate.append(rows_list[i]['date']['s_date'])
-            nlist.append({'_id': id[i], 'sdata': sdata[i], 'sloca': sloca[i], 'sdate': sdate[i]})
-        print(nlist)
-        return nlist
-    return rows_list
-
-
-def shipment_modal_rows():
-    # Must be a change quality value.
-    query = {"$and": [{u"detail.quality": {u"$eq": 'N'}}, {u"detail.show": {u"$eq": '1'}}]}
-    try:
-        db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
-        rows_list = list(rows_collection.find(query))  # cursor type -> list type
-    except Exception as e:
-        print("DB_error : all_collection_show()", end=" >> ")
-        print(e)
-    finally:
-        db_object.db_close()
-
-    print(rows_list)
-
-    if len(rows_list):
-        new_list = []
-        for i in range(0, len(rows_list)):
-            if len(rows_list[i]['location']) == 1:
-                lo_point = 0
-            else:
-                lo_point = -1
-            if len(rows_list[i]['detail']['state']) == 1:
-                st_point = 0
-            else:
-                st_point = -1
-            if len(rows_list[i]['date']['s_date']) == 1:
-                sd_point = 0
-            else:
-                sd_point = -1
-            new_list.append({"_id": rows_list[i]['_id'], "model": rows_list[i]['model'], "sn": rows_list[i]['sn'],
-                             "location": rows_list[i]['location'][lo_point],
-                             "s_date": rows_list[i]['date']['s_date'][sd_point],
-                             "state": rows_list[i]['detail']['state'][st_point]})
-        print("new list", end=": ")
-        print(new_list)
-        return new_list
+@app.route('/ckupload/', methods=['POST', 'OPTIONS'])
+def ckupload():
+    """CKEditor4 file upload"""
+    error = ''
+    url = ''
+    callback = request.args.get("CKEditorFuncNum")
+    if request.method == 'POST' and 'upload' in request.files:
+        fileobj = request.files['upload']
+        fname, fext = os.path.splitext(fileobj.filename)
+        rnd_name = '%s%s' % (gen_rnd_filename(), fext)
+        filepath = os.path.join(current_app.static_folder, 'img', rnd_name)
+        dirname = os.path.dirname(filepath)
+        if not os.path.exists(dirname):
+            try:
+                os.makedirs(dirname)
+            except:
+                error = 'ERROR_CREATE_DIR'
+        elif not os.access(dirname, os.W_OK):
+            error = 'ERROR_DIR_NOT_WRITEABLE'
+        if not error:
+            fileobj.save(filepath)
+            url = url_for('static', filename='%s/%s' % ('img', rnd_name))
     else:
-        return rows_list
-
-
-@app.route('/insert_information', methods=["POST"])
-def insert_information():
-    if request.values.get("data_empty"):
-        print("insert_information POST data is empty")
-        print(request.values.get("data_empty"))
-        return redirect('shipment_main')
-    elif not len(request.values.getlist("check_box")):
-        print("insert_information rows is empty")
-        return redirect('shipment_main')
-    else:
-        try:
-            _update_date = datetime.datetime.today().strftime('%Y-%m-%d')
-            _checkbox = request.values.getlist("check_box")  # Checked the Object _id value
-            _contractNum = request.values.getlist("contractNum")
-            _sum = request.values.getlist("sum")
-            _deliveryDate = request.values.getlist("deliveryDate")
-            _expectPayDate = request.values.getlist("expectPayDate")
-            _realPayDate = request.values.getlist("realPayDate")
-
-            print(_checkbox)
-            print(_contractNum)
-            print(_sum)
-            print(_deliveryDate)
-            print(_expectPayDate)
-            print(_realPayDate)
-            print(len(_checkbox))
-
-        except Exception as e:
-            print("POST_error : insert_insert_information()", end=" >> ")
-            print(e)
-        try:
-            find_result = []
-            rows = []
-            db_object = MongodbConnection()
-            for i in range(0, len(_checkbox)):
-                # return find() -> Cursor Type
-                # return insert() -> Object Type
-                # return update() -> Dict Type
-                rows_collection = db_object.db_conn(db_object.db_client(), 'test2')
-                find_result.append(rows_collection.find({
-
-                    u"_id": {
-                        u"$eq": ObjectId(_checkbox[i])
-                    }
-
-                }))
-                print(find_result[i])  # Cursor Type
-                rows += list(find_result[i])
-            print(rows)
-            for j in range(0, len(_checkbox)):
-                rows_collection.update({
-
-                    '_id': rows[j]['_id']
-                }, {
-                    '$set': {
-                        '_contractNum': _contractNum[j],
-                        '_sum': _sum[j],
-                        '_deliveryDate': _deliveryDate[j],
-                        '_expectPayDate': _expectPayDate[j],
-                        '_realPayDate': _realPayDate[j]
-                    }
-                })
-
-        except Exception as e:
-            print("DB_error : state_change()", end=" >> ")
-            print(e)
-        finally:
-            db_object.db_close()
-
-        return redirect('/shipment_main')
-
-
-@app.route('/detail_modal', methods=["POST"])
-def detail_modal():
-    date = datetime.datetime.today().strftime('%Y-%m-%d')
-    now = date.split('-')
-    for i in range(0, 3):
-        now[i] = int(now[i])
-    now = week_num(now[0], now[1], now[2])
-
-    # Input value
-    _model = request.values.get("model")
-    _sn = request.values.get("sn")
-    _header = request.values.get("header")
-    print(_model, end=" ")
-    print(_sn, end=" ")
-    print(_header, end=" ")
-
-    # Auto value
-    _week = now
-    _quality = 'N'
-    _site = '대전'
-    _state = '재고'  # 재고, 판매, 기증, 내수용, A/S입고, 폐기
-    _show = '1'
-    print(_week, end=" ")
-    print(_quality, end=" ")
-    print(_site, end=" ")
-    print(_state, end=" ")
-    print(_show, end=" ")
-    # 0 ~ 7 : 8 value
-    data_list = [_model, _sn, _header, _week, _quality, _site, _state, _show]
-
-    try:
-        db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'test1')
-        # insert_model(rows_collection, data_list)
-
-    except Exception as e:
-        print("DB_error : insert_data()", end=" >> ")
-        print(e)
-    finally:
-        db_object.db_close()
-
-    return redirect('/all_collection')
+        error = 'post error'
+    res = """<script type="text/javascript"> 
+             window.parent.CKEDITOR.tools.callFunction(%s, '%s', '%s');
+             </script>""" % (callback, url, error)
+    response = make_response(res)
+    response.headers["Content-Type"] = "text/html"
+    return response
