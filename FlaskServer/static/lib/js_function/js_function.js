@@ -21,6 +21,7 @@ function JSON_parse_convertor(string) {
 
 function getNoneTable(tableId, colspan) {
     console.log("None Table Id : " + tableId);
+    $('#' + tableId + '> tbody:last').empty();
     $('#' + tableId).append(
         $('<tr>').append(
             $('<td class="text-center" colspan=' + colspan + '><h1>Table Is Empty</h1></td>')
@@ -115,18 +116,28 @@ function state_change_table(table_rows) {
     }
 }
 
-// 나중에 행 추가, 삭제 기능
 function insert_table() {
+    console.log("Called the Insert Table");
+    $('#insert_table > tbody:last').empty();
     $('#insert_table').append(
         $('<tr>').append(
+            $('<td><input type="text" class="form-control" id="insert_week" name="week">'),
             $('<td><select class="form-control" id="insert_model" name="model">' +
+                '<option>STEP2</option>\n' +
                 '<option>Indy3</option>\n' +
                 '<option>Indy5</option>\n' +
                 '<option>Indy7</option>\n' +
-                '<option>Opti</option>\n' +
-                '<option>Step-pc2</option>\n' +
-                '<option>Core</option>\n' +
-                '<option>Conty</option>\n' +
+                '<option>Indy10</option>\n' +
+                '<option>Indy-RP2</option>\n' +
+                '<option>IndyCB</option>\n' +
+                '<option>OPTi5</option>\n' +
+                '<option>OPTi10</option>\n' +
+                '<option>CORE100</option>\n' +
+                '<option>CORE200</option>\n' +
+                '<option>CORE500</option>\n' +
+                '<option>CORE1000</option>\n' +
+                '<option>LASER400</option>\n' +
+                '<option>LASER650</option>\n' +
                 '</select>'),
             $('<td><input type="text" class="form-control" id="insert_sn" name="sn">'),
             $('<td><input type="text" class="form-control" id="insert_header" name="header">')
@@ -734,6 +745,41 @@ function pagination_test(html, number) {
     });
     // Class를 이용한 여러개 콘텐츠에 동기화하기
     // $('.sync-pagination')
+}
+
+function pagination_test_ver(html, number, list) {
+    console.log("Test ver");
+    var specific_row = list;
+    var rows = list;
+
+    if (typeof (rows) == 'string')
+        rows = JSON_parse_convertor(rows);
+    var rows_length = rows.length;
+    console.log("Main Rows List : " + rows);
+    console.log("Total Rows Size : " + rows_length);
+    var number_of_visual_row = number;
+    var totalPages;
+    if (rows_length == 0) {
+        totalPages = 1;
+    } else {
+        totalPages = rows_length / number_of_visual_row;
+    }
+    if (rows_length % number_of_visual_row > 0) {
+        totalPages++;
+    }
+    $('#pagination').twbsPagination({
+        totalPages: totalPages, // 전체 page블럭 수
+        visiblePages: number_of_visual_row,  // 출력될 page 블럭수 상수로 지정해 줘도 되고, 변수로 지정해줘도 된다.
+        prev: "이전",
+        next: "다음",
+        first: '<span aria-hidden="true">«</span>',
+        last: '<span aria-hidden="true">»</span>',
+        onPageClick: function (event, page) {
+            //$('#page_content').text('페이지 ' + page);
+            console.log("Pagination");
+            paging(html, page, rows, specific_row, rows_length, number_of_visual_row);
+        }
+    });
 }
 
 function paging(html, page, rows, specific_row, number_of_total_row, number_of_visual_row) {

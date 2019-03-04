@@ -4,17 +4,28 @@ from FlaskServer import app
 import os
 import random
 import datetime
+from datetime import timedelta
 import pymongo
 import pandas
 import copy
-from flask import render_template, request, current_app, make_response, url_for, redirect, jsonify, abort
+from flask import render_template, request, current_app, make_response, url_for, redirect, jsonify, abort, session
 from bson.objectid import ObjectId  # For ObjectId to work
 from flask_login import login_required, current_user, login_user, logout_user
 from math import ceil
 from collections import OrderedDict
 
-login_manager = flask_login.LoginManager()
+login_manager = flask_login.LoginManager(app)
 login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.refresh_view = 'relogin'
+login_manager.needs_refresh_message = u"Session timed out, please re-login"
+login_manager.needs_refresh_message_category = "info"
+
+
+@app.before_first_request
+def before_request():
+    session.permanent = True
+    app.permanent_session_lifetime = timedelta(minutes=5)
 
 
 class User:
@@ -100,9 +111,10 @@ def login():
         USERS[user_id].authenticated = True
         login_user(USERS[user_id], remember=True)
     if not json_res['ok']:
-        return jsonify(json_res)
+        #return jsonify(json_res)
+        return render_template('error.html', title='Login Fail :(', str='Please... retry the login.', url='main_login')
     else:
-        return render_template('/menu.html')
+        return render_template('menu.html')
 
 
 @app.route('/api/logout', methods=['POST'])
@@ -353,9 +365,14 @@ def test():
     return render_template('test.html', object=object)
 
 
-@app.route('/login')
-def test_login():
+@app.route('/')
+def main_login():
     return render_template('login.html')
+
+
+@app.route('/t')
+def testing():
+    return render_template('menu.html')
 
 
 @app.route('/test_login')
@@ -363,37 +380,6 @@ def loginTest():
     user = user_loader('user01')
     login_user(user)
     return "User : %s" % user
-
-
-@app.route('/post_login', methods=["POST"])
-def postLogin():
-    user_id = request.values.get("user_id")
-    user_pw = request.values.get("passwd_hash")
-    print(user_id)
-    print(user_pw)
-
-    user = User(user_id, passwd_hash=user_pw)
-    print(user)
-    print(user.can_login(user.passwd_hash))
-
-    user2 = USERS["user01"]
-    print(user2)
-    print(user2.can_login(user2.passwd_hash))
-
-    if user in USERS:
-        user = USERS[user_id]
-        print(user.can_login(user_pw))
-
-    if user.is_authenticated():
-        print("인즘됨")
-        login_user(user, remember=True)
-
-    else:
-        print("인증안됨")
-
-    if not current_user.is_authenticated:
-        return current_app.login_manager.unauthorized()
-    return redirect('/main')
 
 
 @app.route('/logout')
@@ -410,14 +396,52 @@ def main_menu():
 
 
 @app.route('/upload')
+@login_required
 def ckeditor4():
     return render_template('ckeditor4.html')
 
 
-@app.route('/')
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('error.html', title='Route Fail :(', str='Please... rewrite the path.', url='main_menu'), 404
+
+
+@app.route('/product_main')
+@login_required
 def production_main():
     row_object = Rows()
     return render_template('production_main.html', specific_list=None, object=row_object)
+
+
+@app.route('/shipment_main')
+@login_required
+def shipment_main():
+    row_object = Rows()
+    return render_template('shipment_main.html', rows=None, object=row_object)
+
+
+@app.route('/business_goal')
+@login_required
+def business_goal():
+    return render_template('business_goal.html')
+
+
+@app.route('/sales_performance')
+@login_required
+def sales_performance():
+    return render_template('sales_performance.html')
+
+
+@app.route('/partners_list')
+@login_required
+def partners_list():
+    return render_template('partners_list.html')
+
+
+@app.route('/receiving_inspection')
+@login_required
+def receiving_inspection():
+    return render_template('receiving_inspection.html')
 
 
 @app.route('/filtering', methods=["POST"])
@@ -578,9 +602,162 @@ def filtering():
     return render_template('production_main.html', specific_list=third_filtering_list, object=row_object)
 
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html'), 404
+@app.route('/filtering2', methods=["GET"])
+def filtering2():
+    _filter = request.args.get('filter')
+    _sub_filter = request.args.get('sub_filter')
+    _sDate = request.args.get('sDate')
+    _eDate = request.args.get('eDate')
+
+    print("Get value : ")
+    print(_filter + ' ' + _sub_filter + ' ' + _sDate + ' ' + _eDate)
+
+    _sDate = _sDate.split('-')
+    _eDate = _eDate.split('-')
+    for i in range(0, 3):
+        _sDate[i] = int(_sDate[i])
+        _eDate[i] = int(_eDate[i])
+    s_week = week_num(_sDate[0], _sDate[1], _sDate[2])
+    e_week = week_num(_eDate[0], _eDate[1], _eDate[2])
+
+    query = {
+        "$and": [
+            {
+                u"week": {
+                    u"$gte": s_week
+                }
+            },
+            {
+                u"week": {
+                    u"$lte": e_week
+                }
+            },
+            {
+                u"show": {
+                    u"$eq": '1'
+                }
+            }
+        ]
+    }
+
+    try:
+        _DB_object = MongodbConnection()
+        rows_collection = _DB_object.db_conn(_DB_object.db_client(), 'product_info')
+        rows_list = list(rows_collection.find(query))  # cursor type -> list type
+    except Exception as e:
+        print("DB_error : Class Rows.manufacture()", end=" >> ")
+        print(e)
+    finally:
+        _DB_object.db_close()
+
+    model_rows = []
+    model_coll = _DB_object.db_conn(_DB_object.db_client(), 'model')
+    for row in rows_list:
+        query = {"_id": {'$eq': ObjectId(row['model_id'])}}
+        model_rows.extend(list(model_coll.find(query)))  # cursor type -> list type
+
+    history_rows = []
+    history_coll = _DB_object.db_conn(_DB_object.db_client(), 'history')
+    for row in rows_list:
+        query = {"$and": [{"product_id": {'$eq': str(row['_id'])}}, {'show': {'$eq': '1'}}]}
+        history_rows.extend(list(history_coll.find(query)))  # cursor type -> list type
+
+    print("Date match rows :")
+    for row in rows_list:
+        print(row)
+    print("Reference model rows :")
+    for row in model_rows:
+        print(row)
+
+    print("Reference history rows :")
+    for row in history_rows:
+        print(row)
+
+    merge_list = []
+    for i in range(0, len(rows_list)):
+        new_dic = {}
+        new_dic.update(rows_list[i])
+        new_dic.update(model_rows[i])
+        new_dic.update(history_rows[i])
+        merge_list.append(new_dic)
+
+    print("Merge List")
+    for lis in merge_list:
+        del lis['_id']
+        print(lis)
+
+    if _filter == '전체':
+        m_value = None
+        l_value = None
+        s_value = None
+    elif _filter == '모델':
+        m_value = _sub_filter
+        l_value = None
+        s_value = None
+    elif _filter == '위치':
+        m_value = None
+        l_value = _sub_filter
+        s_value = None
+    elif _filter == '상태':
+        m_value = None
+        l_value = None
+        s_value = _sub_filter
+    else:
+        m_value = _sub_filter
+        l_value = _sub_filter
+        s_value = _sub_filter
+
+    _filter_dic = {'model': m_value, 'location': l_value, 'state': s_value}
+
+    print(_filter_dic)
+
+    first_filtering_list = []
+    second_filtering_list = []
+    third_filtering_list = []
+    print("> Model Filtering")
+    if _filter_dic['model'] is not None:
+        for idx, merge_row in enumerate(merge_list):
+            if merge_row.get('model') == _filter_dic['model']:
+                print(idx, merge_row)
+                first_filtering_list.append(merge_row)
+            else:
+                print("Delete : ", end='')
+                print(idx, merge_row)
+    else:
+        first_filtering_list = merge_list
+
+    print(">> Location Filtering")
+    if _filter_dic['location'] is not None:
+        for idx, merge_row in enumerate(first_filtering_list):
+            if merge_row.get('location') == _filter_dic['location']:
+                print(idx, merge_row)
+                second_filtering_list.append(merge_row)
+            else:
+                print("Delete : ", end='')
+                print(idx, merge_row)
+    else:
+        second_filtering_list = first_filtering_list
+
+    print(">>> State Filtering")
+    if _filter_dic['state'] is not None:
+        for idx, merge_row in enumerate(second_filtering_list):
+            if merge_row.get('state') == _filter_dic['state']:
+                print(idx, merge_row)
+                third_filtering_list.append(merge_row)
+            else:
+                print("Delete : ", end='')
+                print(idx, merge_row)
+    else:
+        third_filtering_list = second_filtering_list
+
+    print("After Filtering")
+    if not third_filtering_list:
+        print("After filtering . . . List is Empty")
+    else:
+        for lis in third_filtering_list:
+            print(lis)
+
+    return jsonify(third_filtering_list)
 
 
 def search_query(sdate, edate, page):
@@ -770,7 +947,7 @@ def insert_data():
             print("DB_error : insert_history()", end=" : ")
             print(e)
 
-    return redirect('/')
+    return redirect(url_for('product_main'))
 
 
 def find_production_info_item(coll, product_id):
@@ -792,7 +969,7 @@ def find_history_all_item(coll, product_id):
 @app.route('/getDetailTable')
 def getDetailTable():
     _id = request.args.get('product_info_id')
-    print("Detail Agix : ", end='')
+    print("Detail Ajax : ", end='')
     print(_id)
 
     try:
@@ -950,7 +1127,7 @@ def state_change():
     finally:
         db_object.db_close()
 
-    return redirect('/')
+    return redirect(url_for('product_main'))
 
 
 def update_history(collection, product_id):
@@ -960,6 +1137,7 @@ def update_history(collection, product_id):
 
 
 @app.route('/manufacture_main')
+@login_required
 def manufacture_main():
     object_rows = Rows()
     return render_template('manufacture.html', specific_list=None, object=object_rows)
@@ -1022,7 +1200,7 @@ def manufacture_insert():
     finally:
         db_object.db_close()
 
-    return redirect('/manufacture_main')
+    return redirect(url_for('manufacture_main'))
 
 
 @app.route("/getProductData")
@@ -1074,6 +1252,7 @@ def getProductData():
 
 # 영업 page
 @app.route('/sales_main')
+@login_required
 def sales_main():
     row_object = Rows()
 
@@ -1106,7 +1285,7 @@ def project_number_register():
     finally:
         db_object.db_close()
 
-    return redirect('/sales_main')
+    return redirect(url_for('sales_main'))
 
 
 def insert_partner_list(collection, data_list):
@@ -1157,11 +1336,12 @@ def partner_register():
         print(e)
     finally:
         db_object.db_close()
-    return redirect('/sales_main')
+    return redirect(url_for('sales_main'))
 
 
 # 통계 page
 @app.route('/statistics_main')
+@login_required
 def statistics_main():
     row_object = Rows()
     return render_template('statistics_main.html', specific_rows=None, object=row_object)
@@ -1324,13 +1504,13 @@ def excel_table():
             # check if the post request has the file part
             if 'file' not in request.files:
                 print('No file part')
-                return redirect('/insert_plan')
+                return redirect(url_for('insert_plan'))
             file = request.files['file']
             # if user does not select file, browser also
             # submit an empty part without filename
             if file.filename == '':
                 print('No selected file')
-                return redirect('/insert_plan')
+                return redirect(url_for('insert_plan'))
             if file and allowed_file(file.filename):
                 # filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
@@ -1354,7 +1534,7 @@ def excel_table():
 
 @app.route('/ckprocess', methods=['POST'])
 def ckeditor4_process():
-    return redirect('/')
+    return redirect(url_for('product_main'))
 
 
 def gen_rnd_filename():

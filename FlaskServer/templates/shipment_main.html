@@ -10,8 +10,8 @@
 {% block body %}
 <form class="form-inline" action="/search" method="POST">
     <div class="row container-fluid">
-        <input type="date" name="startDate" value={{now_sdate}} class="col-2 btn-primary">
-        <input type="date" name="endDate" value={{now_edate}} class="col-2 btn-primary date_box">
+        <input type="date" name="startDate" value={{object.date}} class="col-2 btn-primary">
+        <input type="date" name="endDate" value={{object.date}} class="col-2 btn-primary date_box">
         <input type="hidden" name="page" value="s_page"/>
         <button type="submit" class="btn col-1 btn-warning">검색</button>
     </div>
