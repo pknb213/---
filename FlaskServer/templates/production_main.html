@@ -5,9 +5,8 @@
     $(document).ready(function () {
         pagination_test('production_main', 20);
         //main_table();
-        btn_click_event();
+        state_change_btn_click_event();
         //state_change_table();
-        insert_table();
         model_filter();
         location_filter();
         state_filter();
@@ -20,6 +19,10 @@
         add_and_delete_row_btn('production_main');
         filtering();
 
+        $('#insert_btn').click(function () {
+            $('#insert_table > tbody:last').empty();
+            insert_table();
+        });
         $('#state_submit_btn').click(function () {
             if ($('#state').val().length == 0) {
                 alert("빈 칸을 입력하세요");
@@ -184,10 +187,12 @@
             <!-- Dynamic creation -->
         </select>
         <button type="button" id="filter_btn" class="btn btn-secondary col-1">필터 적용</button>
-        <button type="button" id="state_change_btn" class="btn btn-warning col-1" data-toggle="modal"
-                data-target="#shipment_modal">상태 변경
+        <!--<button type="button" id="state_change_btn" class="btn btn-warning col-1" data-toggle="modal"
+                data-target="#shipment_modal">상태 변경-->
+        <button type="button" id="state_change_btn" class="btn btn-warning col-1">상태 변경
         </button>
-        <button type="button" class="btn btn-warning col-1" data-toggle="modal" data-target="#insert_modal"> 등록
+        <button type="button" id="insert_btn" class="btn btn-warning col-1" data-toggle="modal"
+                data-target="#insert_modal"> 등록
         </button>
     </div>
     <!--</form>-->
@@ -229,6 +234,7 @@
 <table class="table table-striped table-bordered table-sm text-center tablesorter" id="main_table">
     <thead class="thead-dark">
     <tr>
+        <th></th>
         <th>모델명</th>
         <th>시리얼 넘버</th>
         <th>생산 주차</th>
@@ -238,7 +244,7 @@
     </tr>
     </thead>
     <tbody>
-    <!--  Call of the Java Script Function (table) -->
+    <!--  Call of the Java Script main_stock_table Function (table) -->
     </tbody>
 </table>
 <!-- Pageination -->
@@ -284,9 +290,8 @@
                 <div class="modal-footer">
                     <button type="button" id='btn-add-row' class="btn offset-4 btn-secondary">행 추가하기</button>
                     <button type="button" id='btn-delete-row' class="btn btn-secondary">행 삭제하기</button>
-                    <button type="submit" id="insert_submit_btn" class="btn btn-warning">확 인
-                    <button type="button" class="btn btn-warning" data-dismiss="modal">취 소
-                    </button>
+                    <button type="submit" id="insert_submit_btn" class="btn btn-warning">확 인</button>
+                    <button type="button" class="btn btn-warning" data-dismiss="modal">취 소</button>
                 </div>
             </div>
         </form>
@@ -302,15 +307,16 @@
                     <h1 class="page-header">상태 변경 화면</h1>
                 </div>
                 <!-- Modal Body -->
-                <div class="modal-body">
+                <div class="modal-body row">
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered text-center" id="state_table">
                             <thead class="thead-dark">
                             <tr>
-                                <th>모델명</th>
-                                <th>시리얼 넘버</th>
-                                <th>위치</th>
+                                <th class="col-1">모델명</th>
+                                <th class="col-3">시리얼 넘버</th>
+                                <th class="col-5">위치</th>
                                 <th>사유</th>
+                                <th>비고</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -321,9 +327,8 @@
                 </div>
                 <!-- Modal Footer -->
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-warning">확 인
-                    <button type="button" class="btn btn-warning" data-dismiss="modal">취 소
-                    </button>
+                    <button type="submit" class="btn btn-warning">확 인</button>
+                    <button type="button" class="btn btn-warning" data-dismiss="modal">취 소</button>
                 </div>
             </div>
         </form>

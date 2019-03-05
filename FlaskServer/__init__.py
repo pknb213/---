@@ -1,6 +1,5 @@
 from flask import Flask
-import os
-import flask_login
+
 
 UPLOAD_FOLDER = './FlaskServer/static/excel'
 app = Flask(__name__)

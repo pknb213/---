@@ -24,7 +24,7 @@ function getNoneTable(tableId, colspan) {
     $('#' + tableId + '> tbody:last').empty();
     $('#' + tableId).append(
         $('<tr>').append(
-            $('<td class="text-center" colspan=' + colspan + '><h1>Table Is Empty</h1></td>')
+            $('<td class="text-center" rowspan="5" colspan=' + colspan + '><h1>Table Is Empty</h1></td>')
         )
     );
 }
@@ -46,15 +46,18 @@ function make_main_stock_table(list, startRow, endRow) {
         console.log("Stock Row Size : " + list.length);
         $('#main_table > tbody:last').empty();
         for (var i = startRow; i < endRow; i++) {
+            console.log(list[i]);
+            console.log(list[i]['product_id']);
             $('#main_table').append(
                 $('<tr>').append(
                     //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
-                    $('<td class="align-middle"><input type="checkbox" name="main_checkbox"/>').append(list[i]['model']),
+                    $('<td class="align-middle"><input type="checkbox" name="main_checkbox"/>'),
+                    $('<td class="align-middle">').append(list[i]['model']),
                     $('<td class="align-middle">').append(list[i]['sn']),
                     $('<td class="align-middle">').append(list[i]['week']),
                     $('<td class="align-middle">').append(list[i]['location']),
                     $('<td class="align-middle">').append(list[i]['state']),
-                    $('<td><button type="button" name="detail_btn" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal" value=' + list[i]['product_info_id'] + '>자세히</button>')
+                    $('<td><button type="button" name="detail_btn" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal" value=' + list[i]['product_id'] + '>자세히</button>')
                 )
             );
             //document.getElementsByName("detail_btn")[i].value = list[i]['product_info_id'];
@@ -71,7 +74,7 @@ function main_table(table_rows, specific_row, startRow, endRow) {
         make_main_stock_table(specific_row, startRow, endRow);
     } else if (table_rows == undefined || table_rows == 'None' || specific_row == 0 || table_rows == '[]') {
         console.log('Main Table length is empty');
-        getNoneTable('main_table', 6);
+        getNoneTable('main_table', 7);
     } else {
         make_main_stock_table(table_rows, startRow, endRow);
     }
@@ -92,10 +95,10 @@ function state_change_table(table_rows) {
                 $('<tr>').append(
                     //$('<td><input class="checkbox" type="checkbox" name="check_box" value=""/>').append(table_rows[i]['model']),
                     $('<td>').append(table_rows[i]['model']),
-                    $('<input type="hidden" name="id" value="">'),
+                    $('<input type="hidden" name="id" value='+ table_rows[i]['product_id'] +'>'),
                     $('<td>').append(table_rows[i]['sn']),
-                    $('<td><input type="text" class="form-control" name="location" value="" >'),
-                    $('<td><select class="form-control" name="reason" id="reason" value="">' +
+                    $('<td><input style="width: 50%" type="text" class="form-control" name="location" value='+ table_rows[i]['location'] +' >'),
+                    $('<td><select class="form-control" name="reason" id="reason" value='+ table_rows[i]['reason'] +'>' +
                         '<option>신규생산</option>' +
                         '<option>판매</option>' +
                         '<option>기증</option>' +
@@ -104,25 +107,44 @@ function state_change_table(table_rows) {
                         '<option>불량</option>' +
                         '<option>반납</option>' +
                         '<option>이동</option>' +
-                        '</select>')
+                        '</select>'),
+                    $('<td><textarea id="text" name="text" value="" rows="4" cols="20" placeholder=" "></textarea>')
                 )
             );
             //$("#state option:eq(i)").attr("selected", "selected");
             //document.getElementsByName("check_box")[i].value = table_rows[i]['product_info_id'];
-            document.getElementsByName("id")[i].value = table_rows[i]['product_id'];
-            document.getElementsByName("location")[i].value = table_rows[i]['location'];
-            document.getElementsByName("reason")[i].value = table_rows[i]['reason'];
+            // document.getElementsByName("id")[i].value = table_rows[i]['product_id'];
+            // document.getElementsByName("location")[i].value = table_rows[i]['location'];
+            // document.getElementsByName("reason")[i].value = table_rows[i]['reason'];
         }
     }
 }
 
+function add_and_delete_row_btn(html) {
+    $('#btn-add-row').click(function () {
+        var time = new Date().toLocaleTimeString();
+        //$('#insert_table > tbody:last').append('<tr><td>{{ a }}</td><td>' + time + '</td></tr>');
+        if (html == 'production_main')
+            insert_table();
+        else if (html == 'manufacture')
+            insert_manufacture_table();
+    });
+    $('#btn-delete-row').click(function () {
+        var trCount = $('#insert_table > tbody > tr').size();     // 행삭제 body row count
+        if (trCount == 1) {
+            alert('더이상 삭제할 수 없습니다.');
+            return;
+        } else
+            $('#insert_table > tbody:last > tr:last').remove();
+    });
+}
+
 function insert_table() {
     console.log("Called the Insert Table");
-    $('#insert_table > tbody:last').empty();
     $('#insert_table').append(
         $('<tr>').append(
-            $('<td><input type="text" class="form-control" id="insert_week" name="week">'),
-            $('<td><select class="form-control" id="insert_model" name="model">' +
+            $('<td class="col-xl-2"><input type="text" class="form-control" id="insert_week" name="week">'),
+            $('<td class="col-xl-2"><select class="form-control" id="insert_model" name="model">' +
                 '<option>STEP2</option>\n' +
                 '<option>Indy3</option>\n' +
                 '<option>Indy5</option>\n' +
@@ -139,8 +161,8 @@ function insert_table() {
                 '<option>LASER400</option>\n' +
                 '<option>LASER650</option>\n' +
                 '</select>'),
-            $('<td><input type="text" class="form-control" id="insert_sn" name="sn">'),
-            $('<td><input type="text" class="form-control" id="insert_header" name="header">')
+            $('<td class="col-xl-4"><input type="text" class="form-control" id="insert_sn" name="sn">'),
+            $('<td class="col-xl-2"><input type="text" class="form-control" id="insert_header" name="header">')
         )
     );
 }
@@ -153,6 +175,8 @@ function detail_table() {
 
         var received_id = $(this).val();
         console.log("Received ID : " + received_id);
+        if(received_id == undefined || received_id == 'None')
+            alert("Detail modal error");
 
         $.ajax({
             url: "/getDetailTable",
@@ -190,41 +214,13 @@ function detail_table() {
                     .append("상태 : " + status);
             })
             .always(function (xhr, status) {
-                $("#text").html("요청 완료");
+                //$("#detail_table").html("요청 완료");
             });
     });
 }
 
-function main_table_info() {
-    var tableList = new Array();
-    var table = $('#main_table > tbody > tr');
-    console.log(table);
-    table.each(function () {
-        var rowData = new Array();
-        $(this).find("td").each(function (index) {
-            //console.log("text val(" + index + ") \n" + $(this).text());
-            rowData.push($(this).text());
-        })
-        rowData.pop(); // '자세히' 마지막 text 삭제
-        var dic = {};
-        dic["model"] = rowData[0];
-        dic["sn"] = rowData[1];
-        dic["week"] = rowData[2];
-        dic["location"] = rowData[3];
-        dic["state"] = rowData[4];
-        //console.log(dic);
-        tableList.push(dic)
-        console.log("rowData: ");
-        console.log(rowData);
-    });
-    console.log("tableList: ");
-    console.log(tableList);
 
-    return tableList
-}
-
-// Not use
-function btn_click_event() {
+function state_change_btn_click_event() {
     $("#state_change_btn").click(function () {
         var rowData = new Array();
         var tdArr = new Array();
@@ -237,18 +233,18 @@ function btn_click_event() {
             // checkbox.parent().parent() : <td>의 부모이므로 <tr>이다.
             var tr = checkbox.parent().parent().eq(i);
             var td = tr.children();
-            var btn = td.eq(5).children();
+            var btn = td.eq(6).children();
 
 
             // 체크된 row의 모든 값을 배열에 담는다.
             rowData.push(tr.text());
 
             // td.eq(0)은 체크박스 이므로  td.eq(1)의 값부터 가져온다.
-            var model = td.eq(0).text();
-            var sn = td.eq(1).text();
-            var week = td.eq(2).text();
-            var location = td.eq(3).text();
-            var state = td.eq(4).text();
+            var model = td.eq(1).text();
+            var sn = td.eq(2).text();
+            var week = td.eq(3).text();
+            var location = td.eq(4).text();
+            var state = td.eq(5).text();
             var product_id = btn.val();
 
             // 가져온 값을 배열에 담는다.
@@ -274,19 +270,24 @@ function btn_click_event() {
                 console.log("State Change Table Ajax is DONE");
                 console.log(json);
                 if(json.length == 0){
-                    getNoneTable('state_table', 4);
+                    //getNoneTable('state_table', 4);
+                    alert("Checkbox is empty.");
+                    $('#shipment_modal').on("show.bs.modal", function(e){
+                        $('#shipment_modal').modal('hide');
+                    });
                 }
                 else if (json){
+                    $('#shipment_modal').modal('show');
                     state_change_table(json);
                 }
             })
             .fail(function (xhr, status, errorThrown) {
-                $("#test").html("오류발생<br>")
+                $("#state_table").html("오류발생<br>")
                     .append("오류명 : " + errorThrown + "<br>")
                     .append("상태 : " + status);
             })
             .always(function (xhr, status) {
-                $("#text").html("요청 완료");
+                //$("#state_table").html("요청 완료");
             });
 
         /*
@@ -327,7 +328,6 @@ function btn_click_event() {
         for(var i=0; i<tdArr.length; i++){
             console.log("tdArr["+i+"] : " + tdArr[i]);
         }
-
 
         $("#ex3_Result1").html(" * 체크된 Row의 모든 데이터 = " + rowData);
         $("#ex3_Result2").html(tdArr);
@@ -415,164 +415,6 @@ function state_filter() {
     }
 }
 
-function detect_model_filter() {
-    $('#model_filter').change(function () {
-        var filter_value = $('#model_filter').val();
-        var filter_key = 'model';
-        console.log("FIlter Value : " + filter_value);
-
-        var main_table = main_table_info();
-        console.log("MT : ");
-        console.log(main_table);
-        $.ajax({
-            url: "/filtering",
-            data: {
-                'table_list': JSON.stringify(main_table),
-                'filter_key': filter_key,
-                'filter': filter_value
-            },
-            type: "GET",
-            dataType: "json"
-        })
-            .done(function (json) {
-                console.log("Filtering Ajax is DONE");
-                console.log(json);
-                console.log(json['filter_name']);
-                console.log(json.key);
-                for (key in json) {
-                    console.log(key + ' ' + json.key);
-                }
-                $.each(json, function (key, value) {
-                    console.log(key + ' ' + value);
-                });
-
-                make_main_stock_table(json);
-
-                // 바꿔야할점 -> main table 함수에 row_list 인자를 받아 해당리스트로 출력으로 변환
-                // 그리고 필터가 중첩되는거 바꿔야할듯, 필터자체 파이썬 코드로 변환해야할듯
-            })
-            .fail(function (xhr, status, errorThrown) {
-                $("#test").html("오류발생<br>")
-                    .append("오류명 : " + errorThrown + "<br>")
-                    .append("상태 : " + status);
-            })
-            .always(function (xhr, status) {
-                $("#text").html("요청 완료");
-            });
-    });
-}
-
-function detect_location_filter() {
-    $('#location_filter').change(function () {
-        var filter_value = $('#location_filter').val();
-        var filter_key = 'location';
-        console.log("FIlter Value : " + filter_value);
-
-        var main_table = main_table_info();
-        console.log("MT : ");
-        console.log(main_table);
-        $.ajax({
-            url: "/filtering",
-            data: {
-                'table_list': JSON.stringify(main_table),
-                'filter_key': filter_key,
-                'filter': filter_value
-            },
-            type: "GET",
-            dataType: "json"
-        })
-            .done(function (json) {
-                console.log("Filtering Ajax is DONE");
-                console.log(json);
-                console.log(json['filter_name']);
-                console.log(json.key);
-                for (key in json) {
-                    console.log(key + ' ' + json.key);
-                }
-                $.each(json, function (key, value) {
-                    console.log(key + ' ' + value);
-                });
-
-                make_main_stock_table(json);
-
-                // 바꿔야할점 -> main table 함수에 row_list 인자를 받아 해당리스트로 출력으로 변환
-                // 그리고 필터가 중첩되는거 바꿔야할듯, 필터자체 파이썬 코드로 변환해야할듯
-            })
-            .fail(function (xhr, status, errorThrown) {
-                $("#test").html("오류발생<br>")
-                    .append("오류명 : " + errorThrown + "<br>")
-                    .append("상태 : " + status);
-            })
-            .always(function (xhr, status) {
-                $("#text").html("요청 완료");
-            });
-    });
-}
-
-function detect_state_filter() {
-    $('#state_filter').change(function () {
-        var filter_value = $('#state_filter').val();
-        var filter_key = 'state';
-        console.log("FIlter Value : " + filter_value);
-        var main_table = main_table_info();
-        console.log("MT : ");
-        console.log(main_table);
-        $.ajax({
-            url: "/filtering",
-            data: {
-                'table_list': JSON.stringify(main_table),
-                'filter_key': filter_key,
-                'filter': filter_value
-            },
-            type: "GET",
-            dataType: "json"
-        })
-            .done(function (json) {
-                console.log("Filtering Ajax is DONE");
-                console.log(json);
-                console.log(json['filter_name']);
-                console.log(json.key);
-                for (key in json) {
-                    console.log(key + ' ' + json.key);
-                }
-                $.each(json, function (key, value) {
-                    console.log(key + ' ' + value);
-                });
-
-                make_main_stock_table(json);
-
-                // 바꿔야할점 -> main table 함수에 row_list 인자를 받아 해당리스트로 출력으로 변환
-                // 그리고 필터가 중첩되는거 바꿔야할듯, 필터자체 파이썬 코드로 변환해야할듯
-            })
-            .fail(function (xhr, status, errorThrown) {
-                $("#test").html("오류발생<br>")
-                    .append("오류명 : " + errorThrown + "<br>")
-                    .append("상태 : " + status);
-            })
-            .always(function (xhr, status) {
-                $("#text").html("요청 완료");
-            });
-    });
-}
-
-function add_and_delete_row_btn(html) {
-    $('#btn-add-row').click(function () {
-        var time = new Date().toLocaleTimeString();
-        //$('#insert_table > tbody:last').append('<tr><td>{{ a }}</td><td>' + time + '</td></tr>');
-        if (html == 'production_main')
-            insert_table();
-        else if (html == 'manufacture')
-            insert_manufacture_table();
-    });
-    $('#btn-delete-row').click(function () {
-        var trCount = $('#insert_table > tbody > tr').size();     // 행삭제 body row count
-        if (trCount == 1) {
-            alert('더이상 삭제할 수 없습니다.');
-            return;
-        } else
-            $('#insert_table > tbody:last > tr:last').remove();
-    });
-}
 
 function make_main_specific_table(list) {
     console.log("Specific Row Size : " + list.length);
@@ -666,11 +508,11 @@ function make_main_manufacture_table(json_table_rows, startRow, endRow) {
             }
         })
         .fail(function (xhr, status, errorThrown) {
-            $("#test").html("오류발생<br>")
+            $("#main_table").html("오류발생<br>")
                 .append("오류명 : " + errorThrown + "<br>")
         })
         .always(function (xhr, status) {
-            $("#text").html("요청 완료");
+            //$("#main_table").html("요청 완료");
         });
 }
 
@@ -800,6 +642,6 @@ function paging(html, page, rows, specific_row, number_of_total_row, number_of_v
     }
     // 페이지 생성 후 적용해야 할 함수
     detail_table();
-    $('#main_table').tablesorter({ sortList: [[2,1], [0,0], [1,0]]}).trigger('update');
+    $('#main_table').tablesorter({ sortList: [[3,1], [1,0], [2,0]]}).trigger('update');
 }
 

@@ -5,14 +5,15 @@ import os
 import random
 import datetime
 from datetime import timedelta
-import pymongo
 import pandas
 import copy
 from flask import render_template, request, current_app, make_response, url_for, redirect, jsonify, abort, session
 from bson.objectid import ObjectId  # For ObjectId to work
 from flask_login import login_required, current_user, login_user, logout_user
-from math import ceil
-from collections import OrderedDict
+import FlaskServer.ajax as ajax
+import FlaskServer.query as query
+from FlaskServer.rowObejct import Rows
+from FlaskServer.pymongo import MongodbConnection\
 
 login_manager = flask_login.LoginManager(app)
 login_manager.init_app(app)
@@ -127,230 +128,6 @@ def logout():
     return jsonify(json_res)
 
 
-class MongodbConnection:
-    def __init__(self):
-        # print(" ~~ ", sep = '\n')
-        print("MongoDB init")
-        self._ip = '222.106.48.150'
-        self._port = 27019
-
-    def db_client(self):
-        return pymongo.MongoClient(self._ip, self._port)
-
-    def db_conn(self, client, coll):
-        try:
-            db = client['ERP_test']
-        except Exception as e:
-            print("Connected fail (Database)")
-            print(e)
-            client.db_close()
-        print("Connect", end=' >> ')
-        return db[coll]
-        # return db.get_collection(coll)
-
-    def db_close(self):
-        print("Disconnect")
-        return self.db_client().close()
-
-
-class Rows:
-    def __init__(self):
-        print("Rows Class init")
-        self._DB_object = MongodbConnection()
-
-    # def production_main_list(self):
-
-    def main_table_rows(self):
-        print('Load - Class main_table_rows()')
-        result_rows = []
-        # show key is the most recently value.
-        query = {"show": {'$eq': '1'}}
-        try:
-            rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'history')
-            _history_list = list(rows_collection.find(query))  # cursor type -> list type
-        except Exception as e:
-            print("DB_error : Class Rows.model()", end=" >> ")
-            print(e)
-
-        _product_id_list = []
-        _location_list = []
-        _state_list = []
-        _date_list = []
-        _reason_list = []
-        for row in _history_list:
-            _product_id_list.append(row['product_id'])
-            _location_list.append(row['location'])
-            _state_list.append(row['state'])
-            _date_list.append(row['date'])
-            _reason_list.append(row['reason'])
-
-        _week_list = []
-        _sn_list = []
-        _model_list = []
-        _model_id_list = []
-        try:
-            product_info_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'product_info')
-        except Exception as e:
-            print("DB_error : Class Rows.model()", end=" >> ")
-            print(e)
-        for product_id in _product_id_list:
-            query = {"_id": {'$eq': ObjectId(product_id)}}
-            try:
-                product_info_cursor = product_info_collection.find(query)  # cursor type
-            except Exception as e:
-                print("DB_error : Class Rows.model()", end=" >> ")
-                print(e)
-            for product_info_dic in product_info_cursor:
-                # print("info_dic : ", end="")
-                # print(product_info_dic)
-                _week_list.append(product_info_dic['week'])
-                _sn_list.append(product_info_dic['sn'])
-                _model_id_list.append(product_info_dic['model_id'])
-                _model_list.append(product_info_dic['model'])
-
-        for i in range(0, len(_product_id_list)):
-            res = {"product_info_id": _product_id_list[i], "model": _model_list[i], "sn": _sn_list[i],
-                   "week": _week_list[i], "location": _location_list[i], "state": _state_list[i],
-                   "reason": _reason_list[i], 'model_id': _model_id_list[i]}
-            result_rows.append(res)
-        self._DB_object.db_close()
-        print("Main Table : ", end="")
-        print(result_rows)
-
-        if not result_rows:
-            print('empty')
-        elif result_rows:
-            print('exist')
-        return result_rows
-
-    def production_main_model(self):
-        print('Load - Class production_main_model()')
-        try:
-            # db_object = Mongodb_connection()
-            rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'model')
-            rows_list = list(rows_collection.find())  # cursor type -> list type
-        except Exception as e:
-            print("DB_error : Class Rows.model()", end=" >> ")
-            print(e)
-        finally:
-            self._DB_object.db_close()
-        # print("all list")\
-        return rows_list
-
-    def production_main_history(self):
-        print('Load - Class production_main_history()')
-        try:
-            # db_object = Mongodb_connection()
-            rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'history')
-            rows_list = list(rows_collection.find())  # cursor type -> list type
-        except Exception as e:
-            print("DB_error : Class Rows.history()", end=" >> ")
-            print(e)
-        finally:
-            self._DB_object.db_close()
-        # print("all list")\
-        return rows_list
-
-    def production_main_info_list(self):
-        print('Load - Class production_main_info_list()')
-        try:
-            # db_object = Mongodb_connection()
-            rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'product_info')
-            rows_list = list(rows_collection.find())  # cursor type -> list type
-        except Exception as e:
-            print("DB_error : Class Rows.info()", end=" >> ")
-            print(e)
-        finally:
-            self._DB_object.db_close()
-        # print("all info list")\
-        return rows_list
-
-    def production_main_specific_date_list(self):
-        print('Load - Class production_main_specific_date_list()')
-        page = 'p_page'
-        date = datetime.datetime.today().strftime('%Y-%m-%d')
-        now = date.split('-')
-        for i in range(0, 3):
-            now[i] = int(now[i])
-        now = week_num(now[0], now[1], now[2])  # year, month, day
-
-        try:
-            rows_list = search_query(now, now, page)
-        except Exception as e:
-            print("DB_error : production_main()", end=" >> ")
-            print(e)
-            return render_template('404.html'), 404
-
-        # print("date list")
-        return rows_list
-
-    def week(self):
-        print('Load - Class week()')
-        date = datetime.datetime.today().strftime('%Y-%m-%d')
-        now = date.split('-')
-        for i in range(0, 3):
-            now[i] = int(now[i])
-        week = week_num(now[0], now[1], now[2])
-        return week
-
-    def manufacture_list(self):
-        print('Load - Class manufacture_list()')
-        try:
-            rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'manufacture')
-            rows_list = list(rows_collection.find())  # cursor type -> list type
-        except Exception as e:
-            print("DB_error : Class Rows.manufacture()", end=" >> ")
-            print(e)
-        finally:
-            self._DB_object.db_close()
-        # print("all info list")
-        # rows_list = [{"model": "씨발", "new_product": "444"}]
-        return rows_list
-
-    def sales_list(self):
-        print('Load - Class sales_list()')
-        try:
-            rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'project_num')
-            rows_list = list(rows_collection.find())  # cursor type -> list type
-        except Exception as e:
-            print("DB_error : Class Rows.manufacture()", end=" >> ")
-            print(e)
-        finally:
-            self._DB_object.db_close()
-        if not rows_list:
-            print('Database is Empty')
-            rows_list = None
-        print("Sales Row List : ", end='')
-        print(rows_list)
-        return rows_list
-
-    def date(self):
-        print('Load - Class date()')
-        return datetime.datetime.today().strftime('%Y-%m-%d')
-
-
-def make_read_excel():
-    import numpy as np
-    # make excel file
-    '''
-    writer = pandas.ExcelWriter('./FaskServer/static/excel/test.xlsx')
-    df = pandas.DataFrame({"col_{}".format(i):list(np.random.randint(0, 100, 100)) for i in range(0, 8)})
-    df.to_excel(writer, 'sheet1')
-    writer.save()
-    
-    ## read excel file
-    df = pandas.read_excel('./FaskServer/abc.xlsx', sheet_name='Sheet1')
-    ## 아주 다행히도, dataframe을 html 문서로 바로 변환해주는 형식이 있습니다.
-    #return df.to_html()
-    print(df.head())
-    if os.path.isfile(df):
-        xl = pandas.ExcelFile('static/excel/생산계획.xlsx')
-    else:
-        print("Eroor < load fail : %s" % (df))
-    return xl.parse(''.join(xl.sheet_names))
-    '''
-
-
 @app.route('/index')
 @login_required
 def index():
@@ -408,7 +185,7 @@ def page_not_found(e):
 
 @app.route('/product_main')
 @login_required
-def production_main():
+def product_main():
     row_object = Rows()
     return render_template('production_main.html', specific_list=None, object=row_object)
 
@@ -444,322 +221,6 @@ def receiving_inspection():
     return render_template('receiving_inspection.html')
 
 
-@app.route('/filtering', methods=["POST"])
-def filtering():
-    _filter = request.values.get('filter')
-    _sub_filter = request.values.get('sub_filter')
-    _sDate = request.values.get('sDate')
-    _eDate = request.values.get('eDate')
-
-    print("Get value : ")
-    print(_filter + ' ' + _sub_filter + ' ' + _sDate + ' ' + _eDate)
-
-    _sDate = _sDate.split('-')
-    _eDate = _eDate.split('-')
-    for i in range(0, 3):
-        _sDate[i] = int(_sDate[i])
-        _eDate[i] = int(_eDate[i])
-    s_week = week_num(_sDate[0], _sDate[1], _sDate[2])
-    e_week = week_num(_eDate[0], _eDate[1], _eDate[2])
-
-    query = {
-        "$and": [
-            {
-                u"week": {
-                    u"$gte": s_week
-                }
-            },
-            {
-                u"week": {
-                    u"$lte": e_week
-                }
-            },
-            {
-                u"show": {
-                    u"$eq": '1'
-                }
-            }
-        ]
-    }
-
-    try:
-        _DB_object = MongodbConnection()
-        rows_collection = _DB_object.db_conn(_DB_object.db_client(), 'product_info')
-        rows_list = list(rows_collection.find(query))  # cursor type -> list type
-    except Exception as e:
-        print("DB_error : Class Rows.manufacture()", end=" >> ")
-        print(e)
-    finally:
-        _DB_object.db_close()
-
-    model_rows = []
-    model_coll = _DB_object.db_conn(_DB_object.db_client(), 'model')
-    for row in rows_list:
-        query = {"_id": {'$eq': ObjectId(row['model_id'])}}
-        model_rows.extend(list(model_coll.find(query)))  # cursor type -> list type
-
-    history_rows = []
-    history_coll = _DB_object.db_conn(_DB_object.db_client(), 'history')
-    for row in rows_list:
-        query = {"$and": [{"product_id": {'$eq': str(row['_id'])}}, {'show': {'$eq': '1'}}]}
-        history_rows.extend(list(history_coll.find(query)))  # cursor type -> list type
-
-    print("Date match rows :")
-    for row in rows_list:
-        print(row)
-    print("Reference model rows :")
-    for row in model_rows:
-        print(row)
-
-    print("Reference history rows :")
-    for row in history_rows:
-        print(row)
-
-    merge_list = []
-    for i in range(0, len(rows_list)):
-        new_dic = {}
-        new_dic.update(rows_list[i])
-        new_dic.update(model_rows[i])
-        new_dic.update(history_rows[i])
-        merge_list.append(new_dic)
-
-    print("Merge List")
-    for lis in merge_list:
-        print(lis)
-
-    if _filter == '전체':
-        m_value = None
-        l_value = None
-        s_value = None
-    elif _filter == '모델':
-        m_value = _sub_filter
-        l_value = None
-        s_value = None
-    elif _filter == '위치':
-        m_value = None
-        l_value = _sub_filter
-        s_value = None
-    elif _filter == '상태':
-        m_value = None
-        l_value = None
-        s_value = _sub_filter
-    else:
-        m_value = _sub_filter
-        l_value = _sub_filter
-        s_value = _sub_filter
-
-    _filter_dic = {'model': m_value, 'location': l_value, 'state': s_value}
-
-    print(_filter_dic)
-
-    first_filtering_list = []
-    second_filtering_list = []
-    third_filtering_list = []
-    print("> Model Filtering")
-    if _filter_dic['model'] is not None:
-        for idx, merge_row in enumerate(merge_list):
-            if merge_row.get('model') == _filter_dic['model']:
-                print(idx, merge_row)
-                first_filtering_list.append(merge_row)
-            else:
-                print("Delete : ", end='')
-                print(idx, merge_row)
-    else:
-        first_filtering_list = merge_list
-
-    print(">> Location Filtering")
-    if _filter_dic['location'] is not None:
-        for idx, merge_row in enumerate(first_filtering_list):
-            if merge_row.get('location') == _filter_dic['location']:
-                print(idx, merge_row)
-                second_filtering_list.append(merge_row)
-            else:
-                print("Delete : ", end='')
-                print(idx, merge_row)
-    else:
-        second_filtering_list = first_filtering_list
-
-    print(">>> State Filtering")
-    if _filter_dic['state'] is not None:
-        for idx, merge_row in enumerate(second_filtering_list):
-            if merge_row.get('state') == _filter_dic['state']:
-                print(idx, merge_row)
-                third_filtering_list.append(merge_row)
-            else:
-                print("Delete : ", end='')
-                print(idx, merge_row)
-    else:
-        third_filtering_list = second_filtering_list
-
-    print("After Filtering")
-    if not third_filtering_list:
-        print("After filtering . . . List is Empty")
-    else:
-        for lis in third_filtering_list:
-            print(lis)
-    row_object = Rows()
-
-    return render_template('production_main.html', specific_list=third_filtering_list, object=row_object)
-
-
-@app.route('/filtering2', methods=["GET"])
-def filtering2():
-    _filter = request.args.get('filter')
-    _sub_filter = request.args.get('sub_filter')
-    _sDate = request.args.get('sDate')
-    _eDate = request.args.get('eDate')
-
-    print("Get value : ")
-    print(_filter + ' ' + _sub_filter + ' ' + _sDate + ' ' + _eDate)
-
-    _sDate = _sDate.split('-')
-    _eDate = _eDate.split('-')
-    for i in range(0, 3):
-        _sDate[i] = int(_sDate[i])
-        _eDate[i] = int(_eDate[i])
-    s_week = week_num(_sDate[0], _sDate[1], _sDate[2])
-    e_week = week_num(_eDate[0], _eDate[1], _eDate[2])
-
-    query = {
-        "$and": [
-            {
-                u"week": {
-                    u"$gte": s_week
-                }
-            },
-            {
-                u"week": {
-                    u"$lte": e_week
-                }
-            },
-            {
-                u"show": {
-                    u"$eq": '1'
-                }
-            }
-        ]
-    }
-
-    try:
-        _DB_object = MongodbConnection()
-        rows_collection = _DB_object.db_conn(_DB_object.db_client(), 'product_info')
-        rows_list = list(rows_collection.find(query))  # cursor type -> list type
-    except Exception as e:
-        print("DB_error : Class Rows.manufacture()", end=" >> ")
-        print(e)
-    finally:
-        _DB_object.db_close()
-
-    model_rows = []
-    model_coll = _DB_object.db_conn(_DB_object.db_client(), 'model')
-    for row in rows_list:
-        query = {"_id": {'$eq': ObjectId(row['model_id'])}}
-        model_rows.extend(list(model_coll.find(query)))  # cursor type -> list type
-
-    history_rows = []
-    history_coll = _DB_object.db_conn(_DB_object.db_client(), 'history')
-    for row in rows_list:
-        query = {"$and": [{"product_id": {'$eq': str(row['_id'])}}, {'show': {'$eq': '1'}}]}
-        history_rows.extend(list(history_coll.find(query)))  # cursor type -> list type
-
-    print("Date match rows :")
-    for row in rows_list:
-        print(row)
-    print("Reference model rows :")
-    for row in model_rows:
-        print(row)
-
-    print("Reference history rows :")
-    for row in history_rows:
-        print(row)
-
-    merge_list = []
-    for i in range(0, len(rows_list)):
-        new_dic = {}
-        new_dic.update(rows_list[i])
-        new_dic.update(model_rows[i])
-        new_dic.update(history_rows[i])
-        merge_list.append(new_dic)
-
-    print("Merge List")
-    for lis in merge_list:
-        del lis['_id']
-        print(lis)
-
-    if _filter == '전체':
-        m_value = None
-        l_value = None
-        s_value = None
-    elif _filter == '모델':
-        m_value = _sub_filter
-        l_value = None
-        s_value = None
-    elif _filter == '위치':
-        m_value = None
-        l_value = _sub_filter
-        s_value = None
-    elif _filter == '상태':
-        m_value = None
-        l_value = None
-        s_value = _sub_filter
-    else:
-        m_value = _sub_filter
-        l_value = _sub_filter
-        s_value = _sub_filter
-
-    _filter_dic = {'model': m_value, 'location': l_value, 'state': s_value}
-
-    print(_filter_dic)
-
-    first_filtering_list = []
-    second_filtering_list = []
-    third_filtering_list = []
-    print("> Model Filtering")
-    if _filter_dic['model'] is not None:
-        for idx, merge_row in enumerate(merge_list):
-            if merge_row.get('model') == _filter_dic['model']:
-                print(idx, merge_row)
-                first_filtering_list.append(merge_row)
-            else:
-                print("Delete : ", end='')
-                print(idx, merge_row)
-    else:
-        first_filtering_list = merge_list
-
-    print(">> Location Filtering")
-    if _filter_dic['location'] is not None:
-        for idx, merge_row in enumerate(first_filtering_list):
-            if merge_row.get('location') == _filter_dic['location']:
-                print(idx, merge_row)
-                second_filtering_list.append(merge_row)
-            else:
-                print("Delete : ", end='')
-                print(idx, merge_row)
-    else:
-        second_filtering_list = first_filtering_list
-
-    print(">>> State Filtering")
-    if _filter_dic['state'] is not None:
-        for idx, merge_row in enumerate(second_filtering_list):
-            if merge_row.get('state') == _filter_dic['state']:
-                print(idx, merge_row)
-                third_filtering_list.append(merge_row)
-            else:
-                print("Delete : ", end='')
-                print(idx, merge_row)
-    else:
-        third_filtering_list = second_filtering_list
-
-    print("After Filtering")
-    if not third_filtering_list:
-        print("After filtering . . . List is Empty")
-    else:
-        for lis in third_filtering_list:
-            print(lis)
-
-    return jsonify(third_filtering_list)
-
-
 def search_query(sdate, edate, page):
     # rows_list = list(rows_collection.find({'$and': [{'week': {'$gte': sdate}},{'week': {'$lte': edate}}]}))
     # query = {}
@@ -785,27 +246,6 @@ def search_query(sdate, edate, page):
                 }
             }
         ]}
-    # Not use
-    elif page == 's_page':
-        coll = 'test2'
-        query = {"$and": [
-            {
-                u"_product_week": {
-                    u"$gte": sdate
-                }
-            },
-            {
-                u"_product_week": {
-                    u"$lte": edate
-                }
-            },
-            {
-                u"_show": {
-                    u"$eq": '1'
-                }
-            }
-        ]}
-
     else:
         print("page parameter is wrong")
 
@@ -871,38 +311,12 @@ def week_num(year, mon, day):
     return result
 
 
-def insert_model(collection, model):
-    # Add Meta Data Later.
-    query = {'model': model}
-    return collection.insert(query)  # Return value is ObjectId
-
-
-def insert_history(collection, args_list):
-    query = {'product_id': args_list[0],
-             'show': '1',
-             'date': args_list[1],
-             'location': args_list[2],
-             'state': args_list[3],
-             'reason': args_list[4]}
-    return collection.insert(query)
-
-
-def insert_product_info(collection, args_list):
-    query = {'model_id': args_list[0], 'model': args_list[1], 'sn': args_list[2], 'header': args_list[3],
-             'week': args_list[4], 'quality': args_list[5], 'show': args_list[6]}
-
-    return collection.insert(query)  # Return value is ObjectId
-
-
 @app.route('/insert_data', methods=["POST"])
 def insert_data():
     date = datetime.datetime.today().strftime('%Y-%m-%d')
-    now = date.split('-')
-    for i in range(0, 3):
-        now[i] = int(now[i])
-    now = week_num(now[0], now[1], now[2])
 
     # Input name value
+    _week = request.values.getlist("week")
     _model = request.values.getlist("model")
     _sn = request.values.getlist("sn")
     _header = request.values.getlist("header")
@@ -911,21 +325,20 @@ def insert_data():
         try:
             db_object = MongodbConnection()
             rows_collection = db_object.db_conn(db_object.db_client(), 'model')
-            _model_id = str(insert_model(rows_collection, _model[i]))
+            _model_id = str(query.insert_model(rows_collection, _model[i]))
         except Exception as e:
             db_object.db_close()
             print("DB_error : insert_model()", end=" : ")
             print(e)
 
         # Auto value
-        _week = now
         _quality = 'N'
         _show = '1'
-        auto_values = [_model_id, _model[i], _sn[i], _header[i], _week, _quality, _show]
+        auto_values = [_model_id, _model[i], _sn[i], _header[i], _week[i], _quality, _show]
 
         try:
             rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-            _product_id = str(insert_product_info(rows_collection, auto_values))
+            _product_id = str(query.insert_product_info(rows_collection, auto_values))
         except Exception as e:
             print("DB_error : insert_product_info()", end=" >> ")
             print(e)
@@ -941,122 +354,13 @@ def insert_data():
 
         try:
             rows_collection = db_object.db_conn(db_object.db_client(), 'history')
-            insert_history(rows_collection, history_values)
+            query.insert_history(rows_collection, history_values)
         except Exception as e:
             db_object.db_close()
             print("DB_error : insert_history()", end=" : ")
             print(e)
 
     return redirect(url_for('product_main'))
-
-
-def find_production_info_item(coll, product_id):
-    query = {
-        u"_id": ObjectId(product_id)
-    }
-    return coll.find(query)
-
-
-def find_history_all_item(coll, product_id):
-    query = {
-        u"product_id": {
-            u"$eq": product_id
-        }
-    }
-    return coll.find(query)
-
-
-@app.route('/getDetailTable')
-def getDetailTable():
-    _id = request.args.get('product_info_id')
-    print("Detail Ajax : ", end='')
-    print(_id)
-
-    try:
-        db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'history')
-        history_list = list(find_history_all_item(rows_collection, _id))
-    except Exception as e:
-        print("DB_error : insert_manufacture()", end=" : ")
-        print(e)
-
-    try:
-        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-        product_info_list = list(find_production_info_item(rows_collection, _id))
-    except Exception as e:
-        print("DB_error : insert_manufacture()", end=" : ")
-        print(e)
-    finally:
-        db_object.db_close()
-
-    print("Product info : ", end='')
-    print(product_info_list)
-    product_info_list[0].pop('_id')
-
-    for result in history_list:
-        result.pop('_id')
-        product_info_list.append(result)
-
-    print(product_info_list)
-    return jsonify(product_info_list)
-
-
-def find_history_item(coll, product_id):
-    query = {
-        "$and":
-            [
-                {
-                    u"product_id": {
-                        u"$eq": product_id
-                    }
-                },
-                {
-                    'show': {'$eq': '1'}
-                }
-            ]
-    }
-    return coll.find(query)
-
-
-@app.route('/getStateChangeTable')
-def getStateChangeTable():
-    _product_info_id = eval(request.args.get('product_info_id'))
-    print("Checkbox Agix : ", end='')
-    print(_product_info_id)
-    if not len(_product_info_id):
-        print("Not have a Checked box")
-        return jsonify(_product_info_id)
-
-    result_list = []
-    for _id in _product_info_id:
-        try:
-            db_object = MongodbConnection()
-            rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-            product_list = list(find_production_info_item(rows_collection, _id))
-        except Exception as e:
-            print("DB_error : getStateChangeTable() - product_info", end=" : ")
-            print(e)
-
-        try:
-            rows_collection = db_object.db_conn(db_object.db_client(), 'history')
-            history_list = list(find_history_item(rows_collection, _id))
-        except Exception as e:
-            print("DB_error : getStateChangeTable() - history", end=" : ")
-            print(e)
-        finally:
-            db_object.db_close()
-
-        product_list[0].pop('_id')
-        history_list[0].pop('_id')
-
-        result_dic = {}
-        result_dic.update(product_list[0])
-        result_dic.update(history_list[0])
-        result_list.append(result_dic)
-
-    print(result_list)
-
-    return jsonify(result_list)
 
 
 @app.route('/state_change', methods=["POST"])
@@ -1085,15 +389,17 @@ def state_change():
         _id = request.values.getlist("id")
         _location = request.values.getlist("location")
         _reason = request.values.getlist("reason")
+        _note = request.values.getlist("text")
         row_list = []
         print("GET State Change List")
         print(_id)
         print(_location)
         print(_reason)
+        print(_note)
         for i in range(0, len(_id)):
             _state = getStateFromReason(_reason[i])
             row_list.append({'id': _id[i], 'location': _location[i],
-                             'state': _state, 'reason': _reason[i]})
+                             'state': _state, 'reason': _reason[i], 'note': _note[i]})
     except Exception as e:
         print("POST_error : state_change()", end=" >> ")
         print(e)
@@ -1108,7 +414,7 @@ def state_change():
         # for i in range(0, len(_checked_id)):
         for j in range(0, len(row_list)):
             # if _checked_id[i] == row_list[j]['id']:
-            print("Change !! ", end=" ")
+            print("Change !! - ", end=" ")
             # print(_checked_id[i], end=" <-- ")
             print(row_list[j])
             # return find() -> Cursor Type
@@ -1116,10 +422,10 @@ def state_change():
             # return update() -> Dict Type
 
             p_id = row_list[j]['id']
-            update_history(rows_collection, p_id)
+            query.update_history(rows_collection, p_id)
             data = [row_list[j]['id'], date, row_list[j]['location'],
-                    row_list[j]['state'], row_list[j]['reason']]
-            insert_history(rows_collection, data)
+                    row_list[j]['state'], row_list[j]['reason'], row_list[j]['note']]
+            query.insert_history(rows_collection, data)
 
     except Exception as e:
         print("DB_error : state_change()", end=" >> ")
@@ -1130,12 +436,7 @@ def state_change():
     return redirect(url_for('product_main'))
 
 
-def update_history(collection, product_id):
-    match_query = {'product_id': product_id}
-    value_query = {'$set': {'show': '0'}}
-    return collection.update(match_query, value_query, multi=True)
-
-
+# 생산 page
 @app.route('/manufacture_main')
 @login_required
 def manufacture_main():
@@ -1143,30 +444,6 @@ def manufacture_main():
     return render_template('manufacture.html', specific_list=None, object=object_rows)
 
 
-def insert_manufacture_info(collection, data_list):
-    # Add Meta Data Later.
-    query = {'week': data_list[0], 'model': data_list[1], 'number': data_list[2], 'date': data_list[3]}
-    return collection.insert(query)  # Return value is ObjectId
-
-
-def find_number_of_model(coll, arg, arg2):
-    query = {
-        u"model": {
-            u"$eq": arg
-        },
-        u"week": {
-            u"$eq": arg2
-        }
-    }
-    return coll.find(query).count()
-
-
-def search_week(coll, data_list):
-    query = {}
-    return coll.find(query)
-
-
-# 생산 page
 @app.route('/manufacture_insert', methods=["POST"])
 def manufacture_insert():
     date = datetime.datetime.today().strftime('%Y-%m-%d')
@@ -1193,7 +470,7 @@ def manufacture_insert():
         db_object = MongodbConnection()
         for i in range(0, len(_data_list)):
             rows_collection = db_object.db_conn(db_object.db_client(), 'manufacture')
-            _insert_id = insert_manufacture_info(rows_collection, _data_list[i])
+            _insert_id = query.insert_manufacture_info(rows_collection, _data_list[i])
     except Exception as e:
         print("DB_error : insert_manufacture()", end=" : ")
         print(e)
@@ -1201,53 +478,6 @@ def manufacture_insert():
         db_object.db_close()
 
     return redirect(url_for('manufacture_main'))
-
-
-@app.route("/getProductData")
-def getProductData():
-    # 모델명을 받아서 model 콜렉션에서 해당 일치하는 모델의 수를 넘겨준다.
-    # 그 수량이 완료 필드에 들어가야한다. Aging은 넘겨줘서 계산하도록 한다.
-    # 완료 수량 = 재고 DB에 있는 모델의 수
-
-    _model_list = eval(request.args.get('model_list'))
-    _week_list = eval(request.args.get('week_list'))
-    _table_list = eval(request.args.get('table_list'))
-    print(_model_list)
-
-    # print("Model list : ")
-    # for _model in _model_list:
-    #     print(_model)
-    # print("Week list : ")
-    # for _week in _week_list:
-    #     print(_week)
-    # print("Table row : ")
-    # for table_row in _table_list:
-    #     print(table_row)
-
-    count_dic = {}
-    try:
-        db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-        for i in range(0, len(_model_list)):
-            count_dic[_model_list[i]] = find_number_of_model(rows_collection, _model_list[i], _week_list[i])
-        # for model in _model_list:
-        #    count_dic[model] = find_number_of_model(rows_collection, model)
-    except Exception as e:
-        print("DB_error : insert_manufacture()", end=" : ")
-        print(e)
-    finally:
-        db_object.db_close()
-
-    print("Number of Model Dic : ")
-    print(count_dic)
-
-    print("Result rows : ")
-    for row in _table_list:
-        result = list(row.values() & count_dic.keys())
-        row[result[0]] = count_dic[result[0]]
-        print(row)
-
-    return jsonify(_table_list)
 
 
 # 영업 page
@@ -1288,16 +518,6 @@ def project_number_register():
     return redirect(url_for('sales_main'))
 
 
-def insert_partner_list(collection, data_list):
-    date = datetime.datetime.today().strftime('%Y-%m-%d')
-    query = {'classification': data_list[0], 'partner_name_field': data_list[1], 'b_field': data_list[2],
-             'address_field': data_list[3],
-             'header_field': data_list[4], 'phone_field': data_list[5], 'email_field': data_list[6],
-             'var_field': data_list[7],
-             'date': date}
-    return collection.insert(query)
-
-
 @app.route('/registerPartner', methods=['POST'])
 def partner_register():
     _classification = request.values.get('classification')
@@ -1330,7 +550,7 @@ def partner_register():
     try:
         db_object = MongodbConnection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'project_num')
-        _insert_id = insert_partner_list(rows_collection, insert_data_list)
+        _insert_id = query.insert_partner_list(rows_collection, insert_data_list)
     except Exception as e:
         print("DB_error : insert_manufacture()", end=" : ")
         print(e)
@@ -1491,6 +711,28 @@ def getBarGraph2():
 
 
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'xlsx'])
+
+
+def make_read_excel():
+    import numpy as np
+    # make excel file
+    '''
+    writer = pandas.ExcelWriter('./FaskServer/static/excel/test.xlsx')
+    df = pandas.DataFrame({"col_{}".format(i):list(np.random.randint(0, 100, 100)) for i in range(0, 8)})
+    df.to_excel(writer, 'sheet1')
+    writer.save()
+
+    ## read excel file
+    df = pandas.read_excel('./FaskServer/abc.xlsx', sheet_name='Sheet1')
+    ## 아주 다행히도, dataframe을 html 문서로 바로 변환해주는 형식이 있습니다.
+    #return df.to_html()
+    print(df.head())
+    if os.path.isfile(df):
+        xl = pandas.ExcelFile('static/excel/생산계획.xlsx')
+    else:
+        print("Eroor < load fail : %s" % (df))
+    return xl.parse(''.join(xl.sheet_names))
+    '''
 
 
 def allowed_file(filename):
