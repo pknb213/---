@@ -18,6 +18,7 @@
         itemChange();
         add_and_delete_row_btn('production_main');
         filtering();
+        getInsertModalValueFromManufactureDB();
 
         $('#insert_btn').click(function () {
             $('#insert_table > tbody:last').empty();
@@ -95,6 +96,54 @@
                         //$("#barChart").html("요청 완료");
                     });
             });
+        }
+
+
+        function getInsertModalValueFromManufactureDB() {
+            var _week, _model = null;
+            var result = new Array();
+            $(document).on("change", $('input[name=insert_week]'), function () {
+                _week = $('input[name=insert_week]').val();
+                console.log('Week is changed : ' + _week);
+                result[0] = _week;
+            });
+
+            $(document).on("change", $('input[name=insert_model]'), function () {
+                _model = $('input[name=insert_model]').val();
+                console.log('Model is changed : ' + _model);
+                result[1] = _model;
+            });
+
+
+
+            $(document).on("change", result, function () {
+                if (_week && _model) {
+                    console.log("Result : " + result);
+                    $.ajax({
+                        url: "/getManufactureDB",
+                        data: {
+                            'week': _week,
+                            'model': _model
+                        },
+                        type: "GET",
+                        dataType: "json"
+                    })
+                        .done(function (json) {
+                            console.log("GetInsertModalValueFromManufactureDB Ajax Done : \n" + json);
+                            var test = $('input[name=manufactureDB]');
+                            console.log(test)
+                        })
+                        .fail(function (xhr, status, errorThrown) {
+                            $(".modal-header").html("오류발생<br>")
+                                .append("오류명 : " + errorThrown + "<br>")
+                                .append("상태 : " + status);
+                        })
+                        .always(function (xhr, status) {
+                            //$("#barChart").html("요청 완료");
+                        });
+                }
+            });
+
         }
 
         function itemChange() {
@@ -232,7 +281,7 @@
 <input hidden id="main_rows" value="{{ object.main_table_rows() }}"/>
 <input hidden id="specific_list" value="{{ specific_list }}"/>
 <table class="table table-striped table-bordered table-sm text-center tablesorter" id="main_table">
-    <thead class="thead-dark">
+    <thead class="header-sort thead-dark">
     <tr>
         <th></th>
         <th>모델명</th>
@@ -261,12 +310,12 @@
 
 <!-- The Product Insert Modal -->
 <div class="modal fade" id="insert_modal">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <form class="form-inline" action="/insert_data" method="POST" enctype=multipart/form-data>
             <div class="modal-content">
                 <!-- Modal Header -->
-                <div class="modal-header text-white bg-secondary">
-                    <h1 class="page-header">등 록</h1>
+                <div class="modal-header">
+                    <h1>등 록</h1>
                 </div>
                 <!-- Modal Body -->
                 <div class="modal-body">
@@ -274,10 +323,11 @@
                         <table class="table table-striped table-bordered text-center" id="insert_table">
                             <thead class="thead-dark">
                             <tr>
-                                <th>주 차</th>
+                                <th size="10">주 차</th>
                                 <th>모델명</th>
+                                <th size="7">미 등록 수량</th>
                                 <th>시리얼넘버</th>
-                                <th>담당자</th>
+                                <th size="10">담당자</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -299,12 +349,12 @@
 </div>
 <!-- Modify State The Modal -->
 <div class="modal fade" id="shipment_modal">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <form class="form-inline" action="/state_change" method="POST" enctype=multipart/form-data>
             <div class="modal-content">
                 <!-- Modal Header -->
-                <div class="modal-header text-white bg-secondary">
-                    <h1 class="page-header">상태 변경 화면</h1>
+                <div class="modal-header">
+                    <h1>상태 변경 화면</h1>
                 </div>
                 <!-- Modal Body -->
                 <div class="modal-body row">
@@ -312,11 +362,11 @@
                         <table class="table table-striped table-bordered text-center" id="state_table">
                             <thead class="thead-dark">
                             <tr>
-                                <th class="col-1">모델명</th>
-                                <th class="col-3">시리얼 넘버</th>
-                                <th class="col-5">위치</th>
+                                <th>모델명</th>
+                                <th>시리얼 넘버</th>
+                                <th>위치</th>
                                 <th>사유</th>
-                                <th>비고</th>
+                                <th size="40">비고</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -339,13 +389,11 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <!-- Modal Header -->
-            <div class="modal-header text-white bg-secondary table-responsive">
+            <div class="modal-header table-responsive">
+                <h1>상세 화면</h1>
+            </div>
+            <div>
                 <table class="table table-borderless" id="detail_info">
-                    <thead>
-                    <tr>
-                        <th><h1>상세 화면</h1></th>
-                    </tr>
-                    </thead>
                     <tbody>
                     <!--  Call of the Java Script Function (table) -->
                     </tbody>

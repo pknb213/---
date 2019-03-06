@@ -401,6 +401,19 @@ def getStateChangeTable():
     return jsonify(result_list)
 
 
+@app.route("/getManufactureDB")
+def getManufactureDB():
+    _week = request.args.get("week")
+    _model = request.args.get("model")
+    print("Get ManufactureDB Ajax : ", end="")
+    print(_week, end=" ")
+    print(_model)
+
+
+
+    return jsonify(8)
+
+
 # 생산 관리
 @app.route("/getProductData")
 def getProductData():

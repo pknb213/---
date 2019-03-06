@@ -50,6 +50,12 @@
             background: url("../static/img/mobile_bg00.png") no-repeat;
         }
 
+        .title-css {
+            font-size: 30px;
+            font-weight: bold;
+            margin-bottom: -15px;
+        }
+
         .table thead tr th {
             border: none;
             outline: none;
@@ -88,6 +94,49 @@
 
         .nav-link {
             color: #32383e;
+        }
+
+        .modal-content {
+            padding: 5px;
+        }
+
+        .modal-header {
+            background-color: #4f87c6;
+        }
+
+        .modal-header h1 {
+            font-size: 35px;
+            color: white;
+        }
+
+        #detail_info {
+            background-color: #74b2e2;
+            font-size: 20px;
+            color: white;
+        }
+
+        input[type=checkbox] {
+            content: url("../static/img/Checkobx_base.png");
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 15px;
+            display: inline-block;
+            background-color: #4f87c6;
+            color: red;
+        }
+
+        input[type=checkbox]:checked {
+            content: url("../static/img/Checkobx_checked.png");
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 15px;
+            display: inline-block;
+        }
+
+        .header-sort {
+            cursor: pointer;
         }
 
         .btn {
@@ -193,7 +242,7 @@
             </ul>
         </div>
         <div class="body-img col-10 col-offset-2">
-            <h1 class="page-header">{% block main_title %}{% endblock %}</h1>
+            <h1 class="title-css page-header">{% block main_title %}{% endblock %}</h1>
             <hr/>
             {% block body %}
 

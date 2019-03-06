@@ -51,7 +51,7 @@ function make_main_stock_table(list, startRow, endRow) {
             $('#main_table').append(
                 $('<tr>').append(
                     //$('<td><input type="checkbox" name="main_checkbox"/>').append(model_row[i]['model']),
-                    $('<td class="align-middle"><input type="checkbox" name="main_checkbox"/>'),
+                    $('<td class="align-middle"><input type="checkbox" id="checkbox" name="main_checkbox"/>'),
                     $('<td class="align-middle">').append(list[i]['model']),
                     $('<td class="align-middle">').append(list[i]['sn']),
                     $('<td class="align-middle">').append(list[i]['week']),
@@ -108,7 +108,7 @@ function state_change_table(table_rows) {
                         '<option>반납</option>' +
                         '<option>이동</option>' +
                         '</select>'),
-                    $('<td><textarea id="text" name="text" value="" rows="4" cols="20" placeholder=" "></textarea>')
+                    $('<td><textarea id="text" name="text" value="" rows="4" cols="40" placeholder=" "></textarea>')
                 )
             );
             //$("#state option:eq(i)").attr("selected", "selected");
@@ -141,10 +141,12 @@ function add_and_delete_row_btn(html) {
 
 function insert_table() {
     console.log("Called the Insert Table");
+    var trCount = $('#insert_table > tbody > tr').size();
+    console.log(trCount);
     $('#insert_table').append(
         $('<tr>').append(
-            $('<td class="col-xl-2"><input type="text" class="form-control" id="insert_week" name="week">'),
-            $('<td class="col-xl-2"><select class="form-control" id="insert_model" name="model">' +
+            $('<td><input type="text" class="form-control" size="10" id='+ "insert_week" + trCount +' name="week">'),
+            $('<td><select class="form-control" id='+ "insert_model" + trCount + ' name="model">' +
                 '<option>STEP2</option>\n' +
                 '<option>Indy3</option>\n' +
                 '<option>Indy5</option>\n' +
@@ -161,8 +163,9 @@ function insert_table() {
                 '<option>LASER400</option>\n' +
                 '<option>LASER650</option>\n' +
                 '</select>'),
-            $('<td class="col-xl-4"><input type="text" class="form-control" id="insert_sn" name="sn">'),
-            $('<td class="col-xl-2"><input type="text" class="form-control" id="insert_header" name="header">')
+            $('<td><input type="text" readonly class="text-center" size="7" id=' + "manufactureDB" + trCount + ' name="manufactureDB" value="1">').append(),
+            $('<td><input type="text" class="form-control" id="insert_sn" name="sn">'),
+            $('<td><input type="text" class="form-control" size="10" id="insert_header" name="header">')
         )
     );
 }
@@ -192,10 +195,10 @@ function detail_table() {
 
                 $('#detail_info').append(
                     $('<tr>').append(
-                        $('<th class="text-right">').append("Model:  " + json[0]['model']),
-                        $('<th class="text-right">').append("SN:  " + json[0]['sn']),
-                        $('<th class="text-right">').append("생산 Week:  " + json[0]['week']),
-                        $('<th class="text-right">').append("Header:  " + json[0]['header'])
+                        $('<th class="text-center">').append("Model:  " + json[0]['model']),
+                        $('<th class="text-center">').append("SN:  " + json[0]['sn']),
+                        $('<th class="text-center">').append("생산 Week:  " + json[0]['week']),
+                        $('<th class="text-center">').append("Header:  " + json[0]['header'])
                     )
                 );
                 for (var i = 1; i < json.length; i++) {
