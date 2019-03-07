@@ -226,10 +226,10 @@ def insert_data():
     date = datetime.datetime.today().strftime('%Y-%m-%d')
 
     # Input name value
-    _week = request.values.getlist("week")
-    _model = request.values.getlist("model")
-    _sn = request.values.getlist("sn")
-    _header = request.values.getlist("header")
+    _week = request.values.getlist("insert_week")
+    _model = request.values.getlist("insert_model")
+    _sn = request.values.getlist("insert_sn")
+    _header = request.values.getlist("insert_header")
 
     for i in range(0, len(_model)):
         try:
@@ -348,10 +348,10 @@ def state_change():
 
 @app.route('/sendDetailModificationModalValue', methods=["POST"])
 def sendDetailModificationModalValue():
-    _sn = request.values.get("sn")
-    _week = request.values.get("week")
-    _header = request.values.get("header")
-    _product_id = request.values.get("product_id")
+    _sn = request.values.get("modify_sn")
+    _week = request.values.get("modify_week")
+    _header = request.values.get("modify_header")
+    _product_id = request.values.get("modify_product_id")
 
     print("Get modification data : ", end="")
     print(type(_sn), end=" ")
@@ -397,10 +397,10 @@ def sendDetailModificationModalValue():
     print("Result : ")
     print(_DicTypeResult)
 
-    _date = request.values.getlist('date')
-    _location = request.values.getlist('location')
-    _state = request.values.getlist('state')
-    _reason = request.values.getlist('reason')
+    _date = request.values.getlist('modify_date')
+    _location = request.values.getlist('modify_location')
+    _state = request.values.getlist('modify_state')
+    _reason = request.values.getlist('modify_reason')
     history_list = []
 
     print("Get modification list data : ", end="")

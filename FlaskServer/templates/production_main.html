@@ -99,25 +99,27 @@
             });
         }
 
+        function f() {
+            
+        }
+        
 
         function getInsertModalValueFromManufactureDB() {
             var _week, _model = null;
             var result = new Array();
             $(document).on("change", $('#row_count'), function () {
-                console.log($('#row_count').val());
-            });
-            $('#row_count').on("change", function () {
-                console.log($('#row_count').val());
+                console.log("Count : " + $('#row_count').val());
             });
 
-            $(document).on("keyup", $('input[name=week].value'), function () {
+            $(document).on("change", $('input[name=insert_week]'), function () {
                 _week = $('input[name=insert_week]').val();
                 console.log('Week is changed : ' + _week);
                 result[0] = _week;
             });
 
-            $(document).on("mouseleave", $('select[name=model]'), function () {
-                _model = $('input[name=insert_model]').val();
+            $(document).on("change", $('select[name=insert_model]'), function () {
+                //_model = $('input[name=insert_model]').eq(0).val();
+                _model = $('#insert_model0').val();
                 console.log('Model is changed : ' + _model);
                 result[1] = _model;
             });
@@ -248,26 +250,26 @@
                 $('#detail_modification_info').append(
                     $('<tr>').append(
                         $('<th class="text-center">').append("Model: " + json[0]['model']),
-                        $('<th class="text-center">SN: <input type="text" name="sn" value=' + json[0]['sn'] + '>'),
-                        $('<th class="text-center">생산 Week: <input type="text" name="week" value=' + json[0]['week'] + '>'),
-                        $('<th class="text-center">Header: <input type="text" name="header" value=' + json[0]['header'] + '>'),
-                        $('<input type="hidden" name="product_id" value=' + received_id + '>')
+                        $('<th class="text-center">SN: <input type="text" name="modify_sn" value=' + json[0]['sn'] + '>'),
+                        $('<th class="text-center">생산 Week: <input type="text" name="modify_week" value=' + json[0]['week'] + '>'),
+                        $('<th class="text-center">Header: <input type="text" name="modify_header" value=' + json[0]['header'] + '>'),
+                        $('<input type="hidden" name="modify_product_id" value=' + received_id + '>')
                     )
                 );
                 for (var i = 1; i < json.length; i++) {
                     $('#detail_modification_table').append(
                         $('<tr>').append(
-                            $('<th class="text-center"><input type="text" name="date" value=' + json[i]['date'] + '>'),
-                            $('<th class="text-center"><input type="text" name="location" value=' + json[i]['location'] + '>'),
+                            $('<th size="10" class="text-center"><input type="text" name="modify_date" value=' + json[i]['date'] + '>'),
+                            $('<th size="10" class="text-center"><input type="text" name="modify_location" value=' + json[i]['location'] + '>'),
                             //$('<th class="text-center"><input type="text" name="state" value=' + json[i]['state'] + '>'),
                             //$('<th class="text-center"><input type="text" name="reason" value='+ json[i]['reason'] + '>')
-                            $('<th class="text-center"><select name="state" value=' + json[i]['state'] + '>'+
+                            $('<th class="text-center"><select name="modify_state" value=' + json[i]['state'] + '>'+
                                 '<option selected hidden>'+ json[i]['state'] +'</option>' +
                                 '<option>재고</option>' +
                                 '<option>출고</option>' +
                                 '<option>폐기</option>' +
                                 '</select>'),
-                            $('<th class="text-center"><select name="reason" value=' + json[i]['reason'] + '>' +
+                            $('<th class="text-center"><select name="modify_reason" value=' + json[i]['reason'] + '>' +
                                 '<option selected hidden>'+ json[i]['reason'] +'</option>' +
                                 '<option>신규생산</option>' +
                                 '<option>판매</option>' +
@@ -446,9 +448,9 @@
                             <tr>
                                 <th>모델명</th>
                                 <th>시리얼 넘버</th>
-                                <th>위치</th>
-                                <th>사유</th>
-                                <th size="40">비고</th>
+                                <th size="5">위치</th>
+                                <th size="7">사유</th>
+                                <th size="70">비고</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -510,14 +512,14 @@
 
     </div>
 </div>
-<!-- The Detail Console Modal -->
+<!-- The Detail Modification Console Modal -->
 <div class="modal fade" id="detail_modification_modal">
     <div class="modal-dialog modal-xl">
         <form class="form-inline" action="/sendDetailModificationModalValue" method="POST" enctype=multipart/form-data>
             <div class="modal-content">
                 <!-- Modal Header -->
                 <div class="modal-header table-responsive">
-                    <h1>상세 화면</h1>
+                    <h1>상세 정보 수정 화면</h1>
                 </div>
                 <div>
                     <table class="table table-borderless" id="detail_modification_info">
@@ -532,9 +534,9 @@
                         <table class="table table-striped table-bordered text-center" id="detail_modification_table">
                             <thead class="thead-dark">
                             <tr>
-                                <th>날짜</th>
-                                <th>위치</th>
-                                <th>상태</th>
+                                <th size="10">날짜</th>
+                                <th size="7">위치</th>
+                                <th size="7">상태</th>
                                 <th>비고(사유)</th>
                             </tr>
                             </thead>

@@ -97,7 +97,7 @@ function state_change_table(table_rows) {
                     $('<td>').append(table_rows[i]['model']),
                     $('<input type="hidden" name="id" value='+ table_rows[i]['product_id'] +'>'),
                     $('<td>').append(table_rows[i]['sn']),
-                    $('<td><input style="width: 50%" type="text" class="form-control" name="location" value='+ table_rows[i]['location'] +' >'),
+                    $('<td><input type="text" class="form-control" name="location" value='+ table_rows[i]['location'] +' >'),
                     $('<td><select class="form-control" name="reason" id='+ "reason" + i +' value='+ table_rows[i]['reason'] +'>' +
                         '<option selected hidden>'+ table_rows[i]['reason'] +'</option>' +
                         '<option>신규생산</option>' +
@@ -144,11 +144,12 @@ function insert_table() {
     console.log("Called the Insert Table\n Size : ");
     var trCount = $('#insert_table > tbody > tr').size();
     console.log(trCount);
+    $('#insert_table > tbody > tr > input').empty();
     $('#insert_table').append(
         $('<tr>').append(
             $('<input type="hidden" id="row_count" name="row_count" value=' + trCount + '>'),
-            $('<td><input type="text" class="form-control" size="10" value="" id='+ "insert_week" + trCount +' name="week">'),
-            $('<td><select class="form-control" value="" id='+ "insert_model" + trCount + ' name="model">' +
+            $('<td><input type="text" class="form-control insert_week" size="10" value="" id='+ "insert_week" + trCount +' name="insert_week">'),
+            $('<td><select class="form-control" value="" id='+ "insert_model" + trCount + ' name="insert_model">' +
                 '<option>STEP2</option>\n' +
                 '<option>Indy3</option>\n' +
                 '<option>Indy5</option>\n' +
@@ -165,9 +166,9 @@ function insert_table() {
                 '<option>LASER400</option>\n' +
                 '<option>LASER650</option>\n' +
                 '</select>'),
-            $('<td><input type="text" readonly class="text-center" size="7" id=' + "manufactureDB" + trCount + ' name="manufactureDB" value="1">').append(),
-            $('<td><input type="text" class="form-control" id="insert_sn" name="sn">'),
-            $('<td><input type="text" class="form-control" size="10" id="insert_header" name="header">')
+            $('<td><input type="text" readonly class="text-center" size="7" id=' + "manufactureDB" + trCount + ' name="insert_manufactureDB" value="1">').append(),
+            $('<td><input type="text" class="form-control" id="insert_sn" name="insert_sn">'),
+            $('<td><input type="text" class="form-control" size="10" id="insert_header" name="insert_header">')
         )
     );
 }

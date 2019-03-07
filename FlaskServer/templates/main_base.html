@@ -24,7 +24,7 @@
     <style type="text/css">
         body {
             font-family: sans-serif;
-            padding-top: 40px;
+            padding-top: 80px;
             padding-bottom: 40px;
             background-color: #4263b7;
             margin-left: auto;
@@ -32,7 +32,13 @@
         }
 
         .body-img {
-            background: url("../static/img/background_10.png") no-repeat;
+            margin: 0;
+            padding: 0;
+            background-image: url("../static/img/background_10.png");
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: -100px 0%;
         }
 
         .body-img h1 {
@@ -66,18 +72,18 @@
             border: none;
             outline: none;
             background: none;
-            //border-bottom: 2px solid #5d69a5;
+        / / border-bottom: 2 px solid #5d69a5;
         }
 
         .sidebar {
-        / / position: fixed;
+            list-style: none;
             color: white;
-            top: 5px;
+            top: 80px;
             bottom: 0;
             left: 0;
             z-index: 1000;
             display: block;
-            padding: 20px;
+            padding: 0px;
             overflow-x: hidden;
             overflow-y: auto;
         / / background: url("../static/img/mobile_bg.png") no-repeat;
@@ -112,6 +118,12 @@
         #detail_info {
             background-color: #74b2e2;
             font-size: 20px;
+            color: white;
+        }
+
+        #detail_modification_info {
+            background-color: #74b2e2;
+            font-size: 15px;
             color: white;
         }
 
@@ -178,58 +190,65 @@
 </head>
 <!------------------------------------------------------------------------------------------>
 <body>
-<nav class="navbar navbar-expand-sm navbar-dark">
-    <ul class="navbar-nav">
-        <li class="navbar-item active">
-            <a class="nav-link" href="/"><h3>{% block body_title %}{% endblock %}</h3></a>
-        </li>
-    </ul>
-</nav>
-
+<header>
+    <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
+        <ul class="navbar-nav">
+            <li class="navbar-item active">
+                <a class="nav-link" href="/"><h3>{% block body_title %}{% endblock %}</h3></a>
+            </li>
+        </ul>
+    </nav>
+</header>
 <div class="container-fluid">
     <div class="row">
-        <div class="sidebar col-2">
-            <ul class="nav nav-tabs flex-column">
-                <li class="nav-item active">
+        <nav class="d-none d-sm-block sidebar col-2 bg-light position-fixed">
+            <ul class="nav nav-pills flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#">
+                        Side Menu
+                        <span class="sr-only">(current)</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="/product_main">
                         재고 관리
                         <span class="sr-only">(current)</span>
                     </a>
                 </li>
-                <li class="nav-item active">
+                <li class="nav-item">
                     <a class="nav-link" href="/manufacture_main">
                         생산 관리
                         <span class="sr-only">(current)</span>
                     </a>
                 </li>
-                <li class="nav-item active">
+                <li class="nav-item">
                     <a class="nav-link" href="/sales_main">
                         영업 관리
                         <span class="sr-only">(current)</span>
                     </a>
                 </li>
-                <li class="nav-item active">
+                <li class="nav-item">
                     <a class="nav-link" href="/statistics_main ">
                         통계
                         <span class="sr-only">(current)</span>
                     </a>
                 </li>
-                <li class="nav-item active">
+                <li class="nav-item">
                     <a class="nav-link" href="/shipment_main">
                         Test
                     </a>
                 </li>
-                <li class="nav-item active">
+                <li class="nav-item">
                     <a class="nav-link" href="/business_goal">
                         Business goal
                     </a>
                 </li>
-                <li class="nav-item active">
+                <li class="nav-item">
                     <a class="nav-link" href="/sales_performance">
                         Sales performance
                     </a>
                 </li>
-                <li class="nav-item active">
+                <li class="nav-item">
                     <a class="nav-link" href="/partners_list">
                         Partners list
                     </a>
@@ -240,14 +259,14 @@
                     </a>
                 </li>
             </ul>
-        </div>
-        <div class="body-img col-10 col-offset-2">
+        </nav>
+        <main role="main" class="body-img mx-xl-auto col-auto">
             <h1 class="title-css page-header">{% block main_title %}{% endblock %}</h1>
             <hr/>
             {% block body %}
 
             {% endblock %}
-        </div>
+        </main>
     </div>
 </div>
 </body>

@@ -409,9 +409,31 @@ def getManufactureDB():
     print(_week, end=" ")
     print(_model)
 
+    def find_manufacture_count(collection, week, model):
+        _query = {
+            u"week": {
+                u"$eq": week
+            },
+            u"model": {
+                u"$eq": model
+            }
+        }
+        return collection.find(_query).count()
 
+    try:
+        db_object = MongodbConnection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'history')
+        numberOfManufacture = find_manufacture_count(rows_collection, _week, _model)
+    except Exception as e:
+        print("DB_error : getStateChangeTable() - history", end=" : ")
+        print(e)
+    finally:
+        db_object.db_close()
 
-    return jsonify(8)
+    print("Number of result : ", end="")
+    print(numberOfManufacture)
+
+    return jsonify(numberOfManufacture)
 
 
 # 생산 관리
