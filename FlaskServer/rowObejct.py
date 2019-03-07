@@ -2,7 +2,96 @@ from flask import render_template
 from FlaskServer.pymongo import MongodbConnection
 from bson.objectid import ObjectId
 import datetime
-import FlaskServer.views as fc
+
+
+def search_query(sdate, edate, page):
+    # rows_list = list(rows_collection.find({'$and': [{'week': {'$gte': sdate}},{'week': {'$lte': edate}}]}))
+    # query = {}
+    # query["$and"] = [
+    if page == 'p_page':
+        collection_of_model = 'model'
+        collection_of_history = 'history'
+        collection_of_product_info = 'product_info'
+        product_info_query = {"$and": [
+            {
+                u"week": {
+                    u"$gte": sdate
+                }
+            },
+            {
+                u"week": {
+                    u"$lte": edate
+                }
+            },
+            {
+                u"show": {
+                    u"$eq": '1'
+                }
+            }
+        ]}
+    else:
+        print("page parameter is wrong")
+
+    try:
+        db_object = MongodbConnection()
+        rows_collection = db_object.db_conn(db_object.db_client(), collection_of_product_info)
+        rows_list = list(rows_collection.find(product_info_query))  # cursor type -> list type
+        list_of_model_id = []
+        list_of_history_id = []
+        for row in rows_list:
+            list_of_model_id.append(row['model_id'])
+            list_of_history_id.append(str(row['_id']))
+        # print("list_of_model_id : ", end="")
+        # print(list_of_model_id)
+        # print("list_of_history_id : ", end="")
+        # print(list_of_history_id)
+
+        rows_collection = db_object.db_conn(db_object.db_client(), collection_of_model)
+        list_of_model = []
+        for model_id in list_of_model_id:
+            model_query = {u"_id": {u"$eq": ObjectId(model_id)}}
+            list_of_model.extend(list(rows_collection.find(model_query)))  # cursor type -> list type
+
+        rows_collection = db_object.db_conn(db_object.db_client(), collection_of_history)
+        list_of_history = []
+        for history_id in list_of_history_id:
+            history_query = {"$and": [{u"product_id": {u"$eq": history_id}}, {u"show": {u"$eq": '1'}}]}
+            list_of_history.extend(list(rows_collection.find(history_query)))  # cursor type -> list type
+
+    except Exception as e:
+        print("DB_error : search_query()", end=" >> ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    new_list = []
+    for i in range(0, len(rows_list)):
+        new_dic = {'model': list_of_model[i]['model'],
+                   'sn': rows_list[i]['sn'],
+                   'week': rows_list[i]['week'],
+                   'state': list_of_history[i]['state'],
+                   'location': list_of_history[i]['location'],
+                   '_id': rows_list[i]['_id']}
+        new_list.append(new_dic)
+    print("Result List : ")
+    for row in new_list:
+        print(row)
+
+    return new_list
+
+
+def week_num(year, mon, day):
+    n = datetime.datetime(year, mon, day)
+    # print(n) # calender date
+    n = n.isocalendar()
+    # print(n) # week num
+    n = list(n)  # casting tuple -> list
+    wn = str(n[1])
+    if len(wn) == 1:
+        wn = '0' + wn
+    year = str(year)  # casting int -> str
+    result = year[2:4] + str(wn)  # slice 2~4 char + week num
+    return result
 
 
 class Rows:
@@ -124,10 +213,10 @@ class Rows:
         now = date.split('-')
         for i in range(0, 3):
             now[i] = int(now[i])
-        now = fc.week_num(now[0], now[1], now[2])  # year, month, day
+        now = week_num(now[0], now[1], now[2])  # year, month, day
 
         try:
-            rows_list = fc.search_query(now, now, page)
+            rows_list = search_query(now, now, page)
         except Exception as e:
             print("DB_error : production_main()", end=" >> ")
             print(e)
@@ -142,7 +231,7 @@ class Rows:
         now = date.split('-')
         for i in range(0, 3):
             now[i] = int(now[i])
-        week = fc.week_num(now[0], now[1], now[2])
+        week = week_num(now[0], now[1], now[2])
         return week
 
     def manufacture_list(self):

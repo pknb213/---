@@ -221,96 +221,6 @@ def receiving_inspection():
     return render_template('receiving_inspection.html')
 
 
-def search_query(sdate, edate, page):
-    # rows_list = list(rows_collection.find({'$and': [{'week': {'$gte': sdate}},{'week': {'$lte': edate}}]}))
-    # query = {}
-    # query["$and"] = [
-    if page == 'p_page':
-        collection_of_model = 'model'
-        collection_of_history = 'history'
-        collection_of_product_info = 'product_info'
-        product_info_query = {"$and": [
-            {
-                u"week": {
-                    u"$gte": sdate
-                }
-            },
-            {
-                u"week": {
-                    u"$lte": edate
-                }
-            },
-            {
-                u"show": {
-                    u"$eq": '1'
-                }
-            }
-        ]}
-    else:
-        print("page parameter is wrong")
-
-    try:
-        db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), collection_of_product_info)
-        rows_list = list(rows_collection.find(product_info_query))  # cursor type -> list type
-        list_of_model_id = []
-        list_of_history_id = []
-        for row in rows_list:
-            list_of_model_id.append(row['model_id'])
-            list_of_history_id.append(str(row['_id']))
-        # print("list_of_model_id : ", end="")
-        # print(list_of_model_id)
-        # print("list_of_history_id : ", end="")
-        # print(list_of_history_id)
-
-        rows_collection = db_object.db_conn(db_object.db_client(), collection_of_model)
-        list_of_model = []
-        for model_id in list_of_model_id:
-            model_query = {u"_id": {u"$eq": ObjectId(model_id)}}
-            list_of_model.extend(list(rows_collection.find(model_query)))  # cursor type -> list type
-
-        rows_collection = db_object.db_conn(db_object.db_client(), collection_of_history)
-        list_of_history = []
-        for history_id in list_of_history_id:
-            history_query = {"$and": [{u"product_id": {u"$eq": history_id}}, {u"show": {u"$eq": '1'}}]}
-            list_of_history.extend(list(rows_collection.find(history_query)))  # cursor type -> list type
-
-    except Exception as e:
-        print("DB_error : search_query()", end=" >> ")
-        print(e)
-    finally:
-        db_object.db_close()
-
-    new_list = []
-    for i in range(0, len(rows_list)):
-        new_dic = {'model': list_of_model[i]['model'],
-                   'sn': rows_list[i]['sn'],
-                   'week': rows_list[i]['week'],
-                   'state': list_of_history[i]['state'],
-                   'location': list_of_history[i]['location'],
-                   '_id': rows_list[i]['_id']}
-        new_list.append(new_dic)
-    print("Result List : ")
-    for row in new_list:
-        print(row)
-
-    return new_list
-
-
-def week_num(year, mon, day):
-    n = datetime.datetime(year, mon, day)
-    # print(n) # calender date
-    n = n.isocalendar()
-    # print(n) # week num
-    n = list(n)  # casting tuple -> list
-    wn = str(n[1])
-    if len(wn) == 1:
-        wn = '0' + wn
-    year = str(year)  # casting int -> str
-    result = year[2:4] + str(wn)  # slice 2~4 char + week num
-    return result
-
-
 @app.route('/insert_data', methods=["POST"])
 def insert_data():
     date = datetime.datetime.today().strftime('%Y-%m-%d')
@@ -429,6 +339,119 @@ def state_change():
 
     except Exception as e:
         print("DB_error : state_change()", end=" >> ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    return redirect(url_for('product_main'))
+
+
+@app.route('/sendDetailModificationModalValue', methods=["POST"])
+def sendDetailModificationModalValue():
+    _sn = request.values.get("sn")
+    _week = request.values.get("week")
+    _header = request.values.get("header")
+    _product_id = request.values.get("product_id")
+
+    print("Get modification data : ", end="")
+    print(type(_sn), end=" ")
+    print(len(_sn), end=" ")
+    print(_sn, end=" ")
+    print(_week, end=" ")
+    print(_header, end=" ")
+    print(_product_id)
+
+    modify_list = []
+    if not _sn and _week and _header:
+        print("Post value is Empty")
+    if _sn:
+        modify_list.append(_sn)
+    else:
+        modify_list.append(None)
+    if _week:
+        modify_list.append(_week)
+    else:
+        modify_list.append(None)
+    if _header:
+        modify_list.append(_header)
+    else:
+        modify_list.append(None)
+    print("Modify_list : ")
+    print(modify_list)
+
+    def update_product_info(collection, product_info_id, args_list):
+        match_query = {'_id': ObjectId(product_info_id)}
+        value_query = {'$set': {'sn': args_list[0], 'week': args_list[1], 'header': args_list[2]}}
+        return collection.update(match_query, value_query)
+
+    try:
+        db_object = MongodbConnection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')  # test db : Copy_of_product_info
+        _DicTypeResult = update_product_info(rows_collection, _product_id, modify_list)
+    except Exception as e:
+        print("DB_error : insert_manufacture()", end=" : ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    print("Result : ")
+    print(_DicTypeResult)
+
+    _date = request.values.getlist('date')
+    _location = request.values.getlist('location')
+    _state = request.values.getlist('state')
+    _reason = request.values.getlist('reason')
+    history_list = []
+
+    print("Get modification list data : ", end="")
+    print(_date, end=" ")
+    print(_location, end=" ")
+    print(_state, end=" ")
+    print(_reason)
+
+    for i in range(0, len(_date)):
+        history_list.append({'date': _date[i], 'location': _location[i], 'state': _state[i], 'reason': _reason[i]})
+
+    print("history List : ")
+    for result in history_list:
+        print(result)
+
+    # 지금은 Index 방법으로 update를 하지만 추 후에는 ajax과정에서 id들도 같이 넘여주어서 id를 통해 update를 해야한다.
+
+    try:
+        db_object = MongodbConnection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'history')   # test db : Copy_of_history
+        _CurTypeResult = rows_collection.find({'product_id': _product_id})
+    except Exception as e:
+        print("DB_error : rows_collection.find()", end=" : ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    print("Result : ")
+    historyId = []
+    for result in _CurTypeResult:
+        historyId.append(result['_id'])
+        print(result)
+
+    print("History Id : ")
+    print(historyId)
+
+    def update_history(collection, history_id, args_dic):
+        match_query = {'_id': ObjectId(history_id)}
+        value_query = {'$set': {'date': args_dic['date'], 'location': args_dic['location'],
+                                'state': args_dic['state'], 'reason': args_dic['reason']}}
+        return collection.update(match_query, value_query)
+
+    try:
+        db_object = MongodbConnection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'Copy_of_history')
+        for i in range(0, len(historyId)):
+            _DicTypeResult = update_history(rows_collection, historyId[i], history_list[i])
+            print("Modify !!")
+            print(_DicTypeResult)
+    except Exception as e:
+        print("DB_error : update_history()", end=" : ")
         print(e)
     finally:
         db_object.db_close()

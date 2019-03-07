@@ -98,7 +98,8 @@ function state_change_table(table_rows) {
                     $('<input type="hidden" name="id" value='+ table_rows[i]['product_id'] +'>'),
                     $('<td>').append(table_rows[i]['sn']),
                     $('<td><input style="width: 50%" type="text" class="form-control" name="location" value='+ table_rows[i]['location'] +' >'),
-                    $('<td><select class="form-control" name="reason" id="reason" value='+ table_rows[i]['reason'] +'>' +
+                    $('<td><select class="form-control" name="reason" id='+ "reason" + i +' value='+ table_rows[i]['reason'] +'>' +
+                        '<option selected hidden>'+ table_rows[i]['reason'] +'</option>' +
                         '<option>신규생산</option>' +
                         '<option>판매</option>' +
                         '<option>기증</option>' +
@@ -140,13 +141,14 @@ function add_and_delete_row_btn(html) {
 }
 
 function insert_table() {
-    console.log("Called the Insert Table");
+    console.log("Called the Insert Table\n Size : ");
     var trCount = $('#insert_table > tbody > tr').size();
     console.log(trCount);
     $('#insert_table').append(
         $('<tr>').append(
-            $('<td><input type="text" class="form-control" size="10" id='+ "insert_week" + trCount +' name="week">'),
-            $('<td><select class="form-control" id='+ "insert_model" + trCount + ' name="model">' +
+            $('<input type="hidden" id="row_count" name="row_count" value=' + trCount + '>'),
+            $('<td><input type="text" class="form-control" size="10" value="" id='+ "insert_week" + trCount +' name="week">'),
+            $('<td><select class="form-control" value="" id='+ "insert_model" + trCount + ' name="model">' +
                 '<option>STEP2</option>\n' +
                 '<option>Indy3</option>\n' +
                 '<option>Indy5</option>\n' +
@@ -210,6 +212,7 @@ function detail_table() {
                             $('<td class="text-center">').append(json[i]['reason']))
                     );
                 }
+                document.getElementById("modify_btn").value = received_id;
             })
             .fail(function (xhr, status, errorThrown) {
                 $("#detail_table").html("오류발생<br>")
@@ -535,13 +538,21 @@ function insert_manufacture_table() {
     $('#insert_table').append(
         $('<tr>').append(
             $('<td><select class="form-control" id="insert_model" name="model">' +
+                '<option>STEP2</option>\n' +
                 '<option>Indy3</option>\n' +
                 '<option>Indy5</option>\n' +
                 '<option>Indy7</option>\n' +
-                '<option>Opti</option>\n' +
-                '<option>Step-pc2</option>\n' +
-                '<option>Core</option>\n' +
-                '<option>Conty</option>\n' +
+                '<option>Indy10</option>\n' +
+                '<option>Indy-RP2</option>\n' +
+                '<option>IndyCB</option>\n' +
+                '<option>OPTi5</option>\n' +
+                '<option>OPTi10</option>\n' +
+                '<option>CORE100</option>\n' +
+                '<option>CORE200</option>\n' +
+                '<option>CORE500</option>\n' +
+                '<option>CORE1000</option>\n' +
+                '<option>LASER400</option>\n' +
+                '<option>LASER650</option>\n' +
                 '</select>'),
             $('<td><input type="text" class="form-control" id="insert_number" name="number">')
         )

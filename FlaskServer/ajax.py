@@ -5,7 +5,7 @@ from FlaskServer import app
 
 # 재고 관리
 from FlaskServer.rowObejct import Rows
-import FlaskServer.views as fc
+from FlaskServer.rowObejct import week_num
 import FlaskServer.query as query
 
 
@@ -24,8 +24,8 @@ def filtering():
     for i in range(0, 3):
         _sDate[i] = int(_sDate[i])
         _eDate[i] = int(_eDate[i])
-    s_week = fc.week_num(_sDate[0], _sDate[1], _sDate[2])
-    e_week = fc.week_num(_eDate[0], _eDate[1], _eDate[2])
+    s_week = week_num(_sDate[0], _sDate[1], _sDate[2])
+    e_week = week_num(_eDate[0], _eDate[1], _eDate[2])
 
     query = {
         "$and": [
@@ -182,8 +182,8 @@ def filtering2():
     for i in range(0, 3):
         _sDate[i] = int(_sDate[i])
         _eDate[i] = int(_eDate[i])
-    s_week = fc.week_num(_sDate[0], _sDate[1], _sDate[2])
-    e_week = fc.week_num(_eDate[0], _eDate[1], _eDate[2])
+    s_week = week_num(_sDate[0], _sDate[1], _sDate[2])
+    e_week = week_num(_eDate[0], _eDate[1], _eDate[2])
 
     query = {
         "$and": [

@@ -1,5 +1,16 @@
 # 재고 관리
 from bson import ObjectId
+import datetime
+
+''''#####################################################
+
+Query return value
+    find function : Cursor Type
+    insert function : Object Type
+    update function : Dict Type
+    
+#####################################################'''
+
 
 def insert_model(collection, model):
     # Add Meta Data Later.
