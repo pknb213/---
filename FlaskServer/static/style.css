@@ -14,13 +14,17 @@ body{
     left: 50%;
     transform: translate(-50%, -50%);
     color: white;
+    background-color: rgba(0, 0, 0, 0.2);
+
 }
 .login-box h1{
     float: left;
     font-size: 40px;
     border-bottom: 6px solid #59cad0;
     margin-bottom: 50px;
-    padding: 13px 0;
+    margin-left: 10px;
+    margin-top: 0px;
+    padding: 5px 0;
 }
 
 .textbox{

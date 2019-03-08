@@ -418,22 +418,59 @@ def getManufactureDB():
                 u"$eq": model
             }
         }
-        return collection.find(_query).count()
+        _pipeline = [
+            {
+                "$match": {"week": {"$eq": week}, "model": {"$eq": model}}
+            }, {
+                "$group": {"_id": "$_id", "number": {"$sum": "$number"}}
+            }
+        ]
+        #return collection.find(_query)
+        return collection.aggregate(_pipeline)
 
     try:
         db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'history')
-        numberOfManufacture = find_manufacture_count(rows_collection, _week, _model)
+        rows_collection = db_object.db_conn(db_object.db_client(), 'manufacture')
+        numberOfManufacture = list(find_manufacture_count(rows_collection, _week, _model))
     except Exception as e:
-        print("DB_error : getStateChangeTable() - history", end=" : ")
+        print("DB_error : getManufactureDB() - manufacture", end=" : ")
         print(e)
     finally:
         db_object.db_close()
 
+    if not numberOfManufacture:
+        numberOfManufacture = 0
+    else:
+        numberOfManufacture = numberOfManufacture[0]['number']
+
     print("Number of result : ", end="")
     print(numberOfManufacture)
 
-    return jsonify(numberOfManufacture)
+    def find_product_count(collection, week, model):
+        _query = {
+            u"week": week,
+            u"model": model
+        }
+        return collection.find(_query).count()
+
+    try:
+        db_object = MongodbConnection()
+        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
+        numberOfProduct = find_product_count(rows_collection, _week, _model)
+    except Exception as e:
+        print("DB_error : getManufactureDB() - product", end=" : ")
+        print(e)
+    finally:
+        db_object.db_close()
+
+    print("numberOfProduct : ", end="")
+    print(numberOfProduct)
+
+    result = numberOfManufacture - numberOfProduct
+    print("Result : ", end="")
+    print(result)
+
+    return jsonify(result)
 
 
 # 생산 관리

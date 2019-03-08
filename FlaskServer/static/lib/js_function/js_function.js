@@ -39,7 +39,7 @@ function make_main_stock_table(list, startRow, endRow) {
     } else {
         if (typeof (list) == "string")
             list = JSON_parse_convertor(list);
-        list.sort(function(a, b){
+        list.sort(function (a, b) {
             //return a.week > b.week ? -1 : a.week < b.week ? 1 : 0;
             return b.week - a.week;
         });
@@ -95,11 +95,11 @@ function state_change_table(table_rows) {
                 $('<tr>').append(
                     //$('<td><input class="checkbox" type="checkbox" name="check_box" value=""/>').append(table_rows[i]['model']),
                     $('<td>').append(table_rows[i]['model']),
-                    $('<input type="hidden" name="id" value='+ table_rows[i]['product_id'] +'>'),
+                    $('<input type="hidden" name="id" value=' + table_rows[i]['product_id'] + '>'),
                     $('<td>').append(table_rows[i]['sn']),
-                    $('<td><input type="text" class="form-control" name="location" value='+ table_rows[i]['location'] +' >'),
-                    $('<td><select class="form-control" name="reason" id='+ "reason" + i +' value='+ table_rows[i]['reason'] +'>' +
-                        '<option selected hidden>'+ table_rows[i]['reason'] +'</option>' +
+                    $('<td><input type="text" class="form-control" name="location" value=' + table_rows[i]['location'] + ' >'),
+                    $('<td><select class="form-control" name="reason" id=' + "reason" + i + ' value=' + table_rows[i]['reason'] + '>' +
+                        '<option selected hidden>' + table_rows[i]['reason'] + '</option>' +
                         '<option>신규생산</option>' +
                         '<option>판매</option>' +
                         '<option>기증</option>' +
@@ -148,8 +148,8 @@ function insert_table() {
     $('#insert_table').append(
         $('<tr>').append(
             $('<input type="hidden" id="row_count" name="row_count" value=' + trCount + '>'),
-            $('<td><input type="text" class="form-control insert_week" size="10" value="" id='+ "insert_week" + trCount +' name="insert_week">'),
-            $('<td><select class="form-control" value="" id='+ "insert_model" + trCount + ' name="insert_model">' +
+            $('<td><input type="text" class="form-control insert_week" size="10" value="" id=' + "insert_week" + trCount + ' name="insert_week">'),
+            $('<td><select class="form-control" value="" id=' + "insert_model" + trCount + ' name="insert_model">' +
                 '<option>STEP2</option>\n' +
                 '<option>Indy3</option>\n' +
                 '<option>Indy5</option>\n' +
@@ -166,7 +166,7 @@ function insert_table() {
                 '<option>LASER400</option>\n' +
                 '<option>LASER650</option>\n' +
                 '</select>'),
-            $('<td><input type="text" readonly class="text-center" size="7" id=' + "manufactureDB" + trCount + ' name="insert_manufactureDB" value="1">').append(),
+            $('<td><input type="text" readonly class="text-center" size="7" id=' + "manufactureDB" + trCount + ' name="insert_manufactureDB" value="">'),
             $('<td><input type="text" class="form-control" id="insert_sn" name="insert_sn">'),
             $('<td><input type="text" class="form-control" size="10" id="insert_header" name="insert_header">')
         )
@@ -181,7 +181,7 @@ function detail_table() {
 
         var received_id = $(this).val();
         console.log("Received ID : " + received_id);
-        if(received_id == undefined || received_id == 'None')
+        if (received_id == undefined || received_id == 'None')
             alert("Detail modal error");
 
         $.ajax({
@@ -205,12 +205,17 @@ function detail_table() {
                     )
                 );
                 for (var i = 1; i < json.length; i++) {
+                    if(!json[i]['note']){
+                        json[i]['note'] = "";
+                    }
                     $('#detail_table').append(
                         $('<tr>').append(
                             $('<td class="text-center">').append(json[i]['date']),
                             $('<td class="text-center">').append(json[i]['location']),
                             $('<td class="text-center">').append(json[i]['state']),
-                            $('<td class="text-center">').append(json[i]['reason']))
+                            $('<td class="text-center">').append(json[i]['reason']),
+                            $('<td class="text-center">').append(json[i]['note'])
+                        )
                     );
                 }
                 document.getElementById("modify_btn").value = received_id;
@@ -276,14 +281,13 @@ function state_change_btn_click_event() {
             .done(function (json) {
                 console.log("State Change Table Ajax is DONE");
                 console.log(json);
-                if(json.length == 0){
+                if (json.length == 0) {
                     //getNoneTable('state_table', 4);
                     alert("Checkbox is empty.");
-                    $('#shipment_modal').on("show.bs.modal", function(e){
+                    $('#shipment_modal').on("show.bs.modal", function (e) {
                         $('#shipment_modal').modal('hide');
                     });
-                }
-                else if (json){
+                } else if (json) {
                     $('#shipment_modal').modal('show');
                     state_change_table(json);
                 }
@@ -332,8 +336,8 @@ function state_change_btn_click_event() {
         console.log(dic);
         */
         console.log("tdArr : " + tdArr);
-        for(var i=0; i<tdArr.length; i++){
-            console.log("tdArr["+i+"] : " + tdArr[i]);
+        for (var i = 0; i < tdArr.length; i++) {
+            console.log("tdArr[" + i + "] : " + tdArr[i]);
         }
 
         $("#ex3_Result1").html(" * 체크된 Row의 모든 데이터 = " + rowData);
@@ -493,20 +497,25 @@ function make_main_manufacture_table(json_table_rows, startRow, endRow) {
             } else {
                 if (typeof (json) == "string")
                     json = JSON_parse_convertor(json);
+                json.sort(function (a, b) {
+                    //return a.week > b.week ? -1 : a.week < b.week ? 1 : 0;
+                    return b.week - a.week;
+                });
                 $('#main_table > tbody:last').empty();
                 for (var i = startRow; i < endRow; i++) { // 출력 row
                     var aging = json[i]['number'] - json[i][json[i]['model']];
-                    if(aging < 0)
+                    if (aging < 0)
                         aging = 0;
                     $('#main_table').append(
                         $('<tr>').append(
                             //$('<td><input type="checkbox" name="main_checkbox" placeholder="Test"/>').append(i),
-                            $('<td class="align-middle">').append(i),
+                            //$('<td class="align-middle">').append(i),
                             $('<td class="align-middle">').append(json[i]['week']),
                             $('<td class="align-middle">').append(json[i]['model']),
                             $('<td class="align-middle">').append(json[i]['number']),
                             $('<td class="align-middle">').append(aging),
                             $('<td class="align-middle">').append(json[i][json[i]['model']]),
+                            $('<td class="align-middle">').append(json[i]['date']),
                             $('<td class="align-middle"><button type="button" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>')
                         )
                     );
@@ -531,7 +540,7 @@ function main_manufacture_table(rows, specific_rows, startRow, endRow) {
         console.log('Main Table length is empty');
     } else {
         make_main_manufacture_table(rows, startRow, endRow);
-        make_main_specific_table(rows); // Test
+        //make_main_specific_table(rows); // Test
     }
 }
 
@@ -565,10 +574,9 @@ function pagination_test(html, number) {
     var specific_row = $('#specific_list').val();
     var rows;
 
-    if(specific_row != undefined && specific_row != 'None' && specific_row != 0){
+    if (specific_row != undefined && specific_row != 'None' && specific_row != 0) {
         rows = $('#specific_list').val();
-    }
-    else{
+    } else {
         rows = $('#main_rows').val();
     }
 
@@ -656,7 +664,13 @@ function paging(html, page, rows, specific_row, number_of_total_row, number_of_v
         main_sales_table(rows, specific_row, startRow, endRow);
     }
     // 페이지 생성 후 적용해야 할 함수
-    detail_table();
-    $('#main_table').tablesorter({ sortList: [[3,1], [1,0], [2,0]]}).trigger('update');
+    if (html == 'production_main') {
+        detail_table();
+        $('#main_table').tablesorter({sortList: [[3, 1], [1, 0], [2, 0]]}).trigger('update');
+    } else if (html == 'manufacture') {
+        $('#main_table').tablesorter({sortList: [[0, 1], [1, 1], [2, 1]]});
+    } else if (html == 'sales_main') {
+
+    }
 }
 

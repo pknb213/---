@@ -2,10 +2,14 @@
 {% block head %}
 <script>
     $(document).ready(function () {
-        insert_manufacture_table();
         pagination_test('manufacture', 10);
         add_and_delete_row_btn('manufacture');
 
+        $('#insert_btn').click(function () {
+            $('#insert_table > tbody:last').empty();
+            insert_manufacture_table();
+
+        });
         $('#insert_submit_btn').click(function () {
             if ($('#insert_model').val().length == 0) {
                 alert("빈 칸을 입력하세요");
@@ -32,32 +36,30 @@
 {% block body %}
 <input hidden id="main_rows" value="{{ object.manufacture_list() }}"/>
 <input hidden id="specific_list" value="{{ specific_list }}"/>
-<form class="form-inline" action="/" method="POST">
-    <div class="row container-fluid">
-        <button type="button" class="btn btn-warning col-1 offset-9" data-toggle="modal" data-target="#insert_modal">
-            등록
-        </button>
-    </div>
-</form>
-<hr/>
 <div class="row container-fluid">
-    <table class="table table-bordered table-striped table-sm text-center" id="main_table">
-        <thead class="thead-dark">
-        <tr>
-            <th>번호</th>
-            <th>주차</th>
-            <th>모델</th>
-            <th>생산수량</th>
-            <th>Aging</th>
-            <th>완료</th>
-            <th>버튼</th>
-        </tr>
-        </thead>
-        <tbody>
+    <button type="button" id="insert_btn" class="btn btn-warning col-2 offset-9" data-toggle="modal"
+            data-target="#insert_modal">
+        등록
+    </button>
+</div>
+<hr/>
+<table class="table table-bordered table-striped table-sm text-center tablesorter" id="main_table">
+    <thead class="header-sort thead-dark">
+    <tr>
+        <!--<th>번호</th>-->
+        <th>주차</th>
+        <th>모델</th>
+        <th>생산수량</th>
+        <th>Aging</th>
+        <th>완료</th>
+        <th>등록일</th>
+        <th>버튼</th>
+    </tr>
+    </thead>
+    <tbody>
         <!--  Call of the Java Script Function (table) -->
         </tbody>
-    </table>
-</div>
+</table>
 <!-- Pageination -->
 <div class="text-center center-block">
     <div id="page_content"></div>
@@ -67,39 +69,39 @@
 </div>
 <!-- Test Table -->
 <hr/>
-<div class="row container-fluid">
-    <table class="table table-bordered table-striped" id="test_table">
-        <thead class="thead-light">
-        <tr>
-            <th>Id</th>
-            <th>Week</th>
-            <th>Model</th>
-            <th>Number</th>
-            <th>Date</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!--  Call of the Java Script Function (table) -->
-        </tbody>
-    </table>
-</div>
+<!--<table class="table table-bordered table-striped" id="test_table">-->
+<!--<thead class="thead-light">-->
+<!--<tr>-->
+<!--<th>Id</th>-->
+<!--<th>Week</th>-->
+<!--<th>Model</th>-->
+<!--<th>Number</th>-->
+<!--<th>Date</th>-->
+<!--</tr>-->
+<!--</thead>-->
+<!--<tbody>-->
+<!--&lt;!&ndash;  Call of the Java Script Function (table) &ndash;&gt;-->
+<!--</tbody>-->
+<!--</table>-->
 <!-- The Product Insert Modal -->
 <div class="modal fade" id="insert_modal">
     <div class="modal-dialog modal-lg">
         <form class="form-inline" action="/manufacture_insert" method="POST" enctype=multipart/form-data>
             <div class="modal-content">
                 <!-- Modal Header -->
-                <div class="modal-header text-white bg-secondary">
+                <div class="modal-header">
                     <h1 class="page-header">등 록</h1>
                 </div>
                 <!-- Modal Body -->
                 <div class="modal-body">
                     <div class="table-responsive">
-                        <table class="table table-striped table-bordered" id="insert_table">
+                        <table class="table table-striped table-bordered text-center" id="insert_table">
                             <thead class="thead-light">
                             <tr>
-                                <th>주차</th>
-                                <th><input type="text" class="form-control" id="insert_week" name="week" value={{object.week()}}></th>
+                                <th style="border-bottom: 3px solid white">주차</th>
+                                <th style="border-bottom: 3px solid white"><input type="text" class="form-control"
+                                                                                  id="insert_week" name="week"
+                                                                                  value={{object.week()}}></th>
                             </tr>
                             <tr>
                                 <th>모델명</th>
@@ -108,7 +110,7 @@
                             </tr>
                             </thead>
                             <tbody>
-
+                                <!-- insert_manufacture_table().js -->
                             </tbody>
                         </table>
                     </div>

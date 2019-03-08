@@ -376,6 +376,7 @@ def sendDetailModificationModalValue():
         modify_list.append(_header)
     else:
         modify_list.append(None)
+
     print("Modify_list : ")
     print(modify_list)
 
@@ -401,16 +402,19 @@ def sendDetailModificationModalValue():
     _location = request.values.getlist('modify_location')
     _state = request.values.getlist('modify_state')
     _reason = request.values.getlist('modify_reason')
+    _text = request.values.getlist("modify_text")
     history_list = []
 
     print("Get modification list data : ", end="")
     print(_date, end=" ")
     print(_location, end=" ")
     print(_state, end=" ")
-    print(_reason)
+    print(_reason, end=" ")
+    print(_text)
 
     for i in range(0, len(_date)):
-        history_list.append({'date': _date[i], 'location': _location[i], 'state': _state[i], 'reason': _reason[i]})
+        history_list.append({'date': _date[i], 'location': _location[i], 'state': _state[i],
+                             'reason': _reason[i], 'note': _text[i]})
 
     print("history List : ")
     for result in history_list:
@@ -440,8 +444,9 @@ def sendDetailModificationModalValue():
     def update_history(collection, history_id, args_dic):
         match_query = {'_id': ObjectId(history_id)}
         value_query = {'$set': {'date': args_dic['date'], 'location': args_dic['location'],
-                                'state': args_dic['state'], 'reason': args_dic['reason']}}
-        return collection.update(match_query, value_query)
+                                'state': args_dic['state'], 'reason': args_dic['reason'],
+                                'note': args_dic['note']}}
+        return collection.update(match_query, value_query, upsert=True)
 
     try:
         db_object = MongodbConnection()
@@ -484,7 +489,7 @@ def manufacture_insert():
     print(len(_model))
     _data_list = []
     for i in range(0, len(_model)):
-        _list = [_week, _model[i], _number[i], date]
+        _list = [_week, _model[i], int(_number[i]), date]
         _data_list.append(_list)
     print("Data List : ")
     for data in _data_list:

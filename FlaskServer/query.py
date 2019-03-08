@@ -24,7 +24,8 @@ def insert_history(collection, args_list):
              'date': args_list[1],
              'location': args_list[2],
              'state': args_list[3],
-             'reason': args_list[4]}
+             'reason': args_list[4],
+             'note': args_list[5]}
     return collection.insert(query)
 
 
@@ -74,7 +75,6 @@ def update_history(collection, product_id):
     return collection.update(match_query, value_query, multi=True)
 
 
-# 생산 관리
 def find_number_of_model(coll, arg, arg2):
     query = {
         u"model": {
@@ -96,6 +96,9 @@ def insert_manufacture_info(collection, data_list):
     # Add Meta Data Later.
     query = {'week': data_list[0], 'model': data_list[1], 'number': data_list[2], 'date': data_list[3]}
     return collection.insert(query)  # Return value is ObjectId
+
+
+# 생산 관리
 
 
 # 영업
