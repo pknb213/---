@@ -129,6 +129,8 @@ class Rows:
         _sn_list = []
         _model_list = []
         _model_id_list = []
+
+        test = []
         try:
             product_info_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'product_info')
         except Exception as e:
@@ -141,13 +143,21 @@ class Rows:
             except Exception as e:
                 print("DB_error : Class Rows.model()", end=" >> ")
                 print(e)
+
             for product_info_dic in product_info_cursor:
                 # print("info_dic : ", end="")
                 # print(product_info_dic)
                 _week_list.append(product_info_dic['week'])
                 _sn_list.append(product_info_dic['sn'])
                 _model_id_list.append(product_info_dic['model_id'])
-                _model_list.append(product_info_dic['model'])
+                # _model_list.append(product_info_dic['model'])
+
+                test.append(product_info_dic['model_id'])
+
+        model_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'model')
+        for test_item in test:
+            _object = model_collection.find_one({'_id': ObjectId(test_item)})
+            _model_list.append(_object['model'])
 
         for i in range(0, len(_product_id_list)):
             res = {"product_id": _product_id_list[i], "model": _model_list[i], "sn": _sn_list[i],

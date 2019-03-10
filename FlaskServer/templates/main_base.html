@@ -194,7 +194,7 @@
     <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
         <ul class="navbar-nav">
             <li class="navbar-item active">
-                <a class="nav-link" href="/"><h3>{% block body_title %}{% endblock %}</h3></a>
+                <a class="nav-link" href="/menu"><h3>{% block body_title %}{% endblock %}</h3><h3 style="color: red" id="error_text"></H3></a>
             </li>
         </ul>
     </nav>
@@ -221,39 +221,39 @@
                         <span class="sr-only">(current)</span>
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" hidden>
                     <a class="nav-link" href="/sales_main">
                         영업 관리
                         <span class="sr-only">(current)</span>
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" hidden>
                     <a class="nav-link" href="/statistics_main ">
                         통계
                         <span class="sr-only">(current)</span>
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" hidden>
                     <a class="nav-link" href="/shipment_main">
                         Test
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" hidden>
                     <a class="nav-link" href="/business_goal">
                         Business goal
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" hidden>
                     <a class="nav-link" href="/sales_performance">
                         Sales performance
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" hidden>
                     <a class="nav-link" href="/partners_list">
                         Partners list
                     </a>
                 </li>
-                <li class="nav-item active">
+                <li class="nav-item active" hidden>
                     <a class="nav-link" href="/receiving_inspection">
                         Receiving inspection
                     </a>

@@ -91,6 +91,16 @@ function state_change_table(table_rows) {
             table_rows = JSON_parse_convertor(table_rows);
         }
         for (var i = 0; i < table_rows.length; i++) {
+            if(!table_rows[i]['note']){
+                var _text = table_rows[i]['note'];
+                console.log("있는데 왜");
+                console.log(_text);
+            }
+            else{
+                var _text = ' ';
+                console.log("업슨ㄴ데 왜");
+                console.log(_text);
+            }
             $('#state_table').append(
                 $('<tr>').append(
                     //$('<td><input class="checkbox" type="checkbox" name="check_box" value=""/>').append(table_rows[i]['model']),
@@ -109,7 +119,7 @@ function state_change_table(table_rows) {
                         '<option>반납</option>' +
                         '<option>이동</option>' +
                         '</select>'),
-                    $('<td><textarea id="text" name="text" value="" rows="4" cols="40" placeholder=" "></textarea>')
+                    $('<td><textarea id="text" name="text" value="" rows="4" cols="40">'+ table_rows[i]['note'] +'</textarea>')
                 )
             );
             //$("#state option:eq(i)").attr("selected", "selected");
@@ -221,7 +231,7 @@ function detail_table() {
                 document.getElementById("modify_btn").value = received_id;
             })
             .fail(function (xhr, status, errorThrown) {
-                $("#detail_table").html("오류발생<br>")
+                $("#error_text").html("오류발생<br>")
                     .append("오류명 : " + errorThrown + "<br>")
                     .append("상태 : " + status);
             })
@@ -293,7 +303,7 @@ function state_change_btn_click_event() {
                 }
             })
             .fail(function (xhr, status, errorThrown) {
-                $("#state_table").html("오류발생<br>")
+                $("#error_text").html("오류발생<br>")
                     .append("오류명 : " + errorThrown + "<br>")
                     .append("상태 : " + status);
             })
@@ -524,7 +534,7 @@ function make_main_manufacture_table(json_table_rows, startRow, endRow) {
             }
         })
         .fail(function (xhr, status, errorThrown) {
-            $("#main_table").html("오류발생<br>")
+            $("#error_text").html("오류발생<br>")
                 .append("오류명 : " + errorThrown + "<br>")
         })
         .always(function (xhr, status) {

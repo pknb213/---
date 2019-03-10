@@ -13,7 +13,8 @@ class MongodbConnection:
 
     def db_conn(self, client, coll):
         try:
-            db = client['ERP_test']
+            #db = client['ERP_test']
+            db = client['ERP_database']
         except Exception as e:
             print("Connected fail (Database)")
             print(e)

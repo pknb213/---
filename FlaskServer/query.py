@@ -19,37 +19,54 @@ def insert_model(collection, model):
 
 
 def insert_history(collection, args_list):
-    query = {'product_id': args_list[0],
+    query = {'product_id': ObjectId(args_list[0]),
              'show': '1',
              'date': args_list[1],
              'location': args_list[2],
              'state': args_list[3],
              'reason': args_list[4],
              'note': args_list[5]}
-    return collection.insert(query)
+    return collection.insert_one(query)
 
 
 def find_production_info_item(coll, product_id):
     query = {
-        u"_id": ObjectId(product_id)
+        u"_id": {
+            u"$eq": ObjectId(product_id)
+        }
     }
-    return coll.find(query)
+    return coll.find_one(query, {"_id": False})
 
 
 def insert_product_info(collection, args_list):
-    query = {'model_id': args_list[0], 'model': args_list[1], 'sn': args_list[2], 'header': args_list[3],
-             'week': args_list[4], 'quality': args_list[5], 'show': args_list[6]}
-
+    # query = {'model_id': args_list[0], 'model': args_list[1], 'sn': args_list[2], 'header': args_list[3],
+    #          'week': args_list[4], 'quality': args_list[5], 'show': args_list[6]}
+    query = {'model_id': args_list[0], 'sn': args_list[1], 'header': args_list[2],
+             'week': args_list[3], 'quality': args_list[4], 'show': args_list[5]}
     return collection.insert(query)  # Return value is ObjectId
 
 
 def find_history_all_item(coll, product_id):
     query = {
         u"product_id": {
-            u"$eq": product_id
+            u"$eq": ObjectId(product_id)
         }
     }
-    return coll.find(query)
+    return coll.find(query, {"_id": False, "product_id": False})
+
+
+def update_product_info(collection, product_info_id, args_list):
+    match_query = {'_id': ObjectId(product_info_id)}
+    value_query = {'$set': {'sn': args_list[0], 'week': args_list[1], 'header': args_list[2]}}
+    return collection.update(match_query, value_query)
+
+
+def update_modification_history(collection, history_id, args_dic):
+    match_query = {'_id': ObjectId(history_id)}
+    value_query = {'$set': {'date': args_dic['date'], 'location': args_dic['location'],
+                            'state': args_dic['state'], 'reason': args_dic['reason'],
+                            'note': args_dic['note']}}
+    return collection.update(match_query, value_query, upsert=True)
 
 
 def find_history_item(coll, product_id):
@@ -58,7 +75,7 @@ def find_history_item(coll, product_id):
             [
                 {
                     u"product_id": {
-                        u"$eq": product_id
+                        u"$eq": ObjectId(product_id)
                     }
                 },
                 {
@@ -66,11 +83,11 @@ def find_history_item(coll, product_id):
                 }
             ]
     }
-    return coll.find(query)
+    return coll.find_one(query, {'_id': False})
 
 
 def update_history(collection, product_id):
-    match_query = {'product_id': product_id}
+    match_query = {'product_id': ObjectId(product_id)}
     value_query = {'$set': {'show': '0'}}
     return collection.update(match_query, value_query, multi=True)
 

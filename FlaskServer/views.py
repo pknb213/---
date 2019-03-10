@@ -147,7 +147,8 @@ def main_login():
     return render_template('login.html')
 
 
-@app.route('/t')
+@app.route('/menu')
+@login_required
 def testing():
     return render_template('menu.html')
 
@@ -190,37 +191,6 @@ def product_main():
     return render_template('production_main.html', specific_list=None, object=row_object)
 
 
-@app.route('/shipment_main')
-@login_required
-def shipment_main():
-    row_object = Rows()
-    return render_template('shipment_main.html', rows=None, object=row_object)
-
-
-@app.route('/business_goal')
-@login_required
-def business_goal():
-    return render_template('business_goal.html')
-
-
-@app.route('/sales_performance')
-@login_required
-def sales_performance():
-    return render_template('sales_performance.html')
-
-
-@app.route('/partners_list')
-@login_required
-def partners_list():
-    return render_template('partners_list.html')
-
-
-@app.route('/receiving_inspection')
-@login_required
-def receiving_inspection():
-    return render_template('receiving_inspection.html')
-
-
 @app.route('/insert_data', methods=["POST"])
 def insert_data():
     date = datetime.datetime.today().strftime('%Y-%m-%d')
@@ -231,11 +201,18 @@ def insert_data():
     _sn = request.values.getlist("insert_sn")
     _header = request.values.getlist("insert_header")
 
+    def find_model(collection, model):
+        query = {
+            'model': model
+        }
+        return collection.find_one(query)
+
     for i in range(0, len(_model)):
         try:
             db_object = MongodbConnection()
             rows_collection = db_object.db_conn(db_object.db_client(), 'model')
-            _model_id = str(query.insert_model(rows_collection, _model[i]))
+            _model_dic = find_model(rows_collection, _model[i])
+            print(_model_dic)
         except Exception as e:
             db_object.db_close()
             print("DB_error : insert_model()", end=" : ")
@@ -244,11 +221,12 @@ def insert_data():
         # Auto value
         _quality = 'N'
         _show = '1'
-        auto_values = [_model_id, _model[i], _sn[i], _header[i], _week[i], _quality, _show]
+        auto_values = [_model_dic['_id'], _sn[i], _header[i], _week[i], _quality, _show]
 
         try:
             rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-            _product_id = str(query.insert_product_info(rows_collection, auto_values))
+            _product_id = query.insert_product_info(rows_collection, auto_values)
+            print(_product_id)
         except Exception as e:
             print("DB_error : insert_product_info()", end=" >> ")
             print(e)
@@ -260,7 +238,8 @@ def insert_data():
         _location = '대전'
         _state = '재고'  # 재고, 출고, 폐기
         _reason = '신규생산'  # 신규생산, 판매, 기증, 내수용, A/S, 불량, 반납, 이동
-        history_values = [_product_id, _date, _location, _state, _reason]
+        _note = ' '
+        history_values = [_product_id, _date, _location, _state, _reason, _note]
 
         try:
             rows_collection = db_object.db_conn(db_object.db_client(), 'history')
@@ -301,10 +280,10 @@ def state_change():
         _reason = request.values.getlist("reason")
         _note = request.values.getlist("text")
         row_list = []
-        print("GET State Change List")
-        print(_id)
-        print(_location)
-        print(_reason)
+        print("GET State Change List : ",end="")
+        print(_id, end=" ")
+        print(_location, end=" ")
+        print(_reason, end=" ")
         print(_note)
         for i in range(0, len(_id)):
             _state = getStateFromReason(_reason[i])
@@ -380,20 +359,13 @@ def sendDetailModificationModalValue():
     print("Modify_list : ")
     print(modify_list)
 
-    def update_product_info(collection, product_info_id, args_list):
-        match_query = {'_id': ObjectId(product_info_id)}
-        value_query = {'$set': {'sn': args_list[0], 'week': args_list[1], 'header': args_list[2]}}
-        return collection.update(match_query, value_query)
-
     try:
         db_object = MongodbConnection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')  # test db : Copy_of_product_info
-        _DicTypeResult = update_product_info(rows_collection, _product_id, modify_list)
+        _DicTypeResult = query.update_product_info(rows_collection, _product_id, modify_list)
     except Exception as e:
         print("DB_error : insert_manufacture()", end=" : ")
         print(e)
-    finally:
-        db_object.db_close()
 
     print("Result : ")
     print(_DicTypeResult)
@@ -423,14 +395,11 @@ def sendDetailModificationModalValue():
     # 지금은 Index 방법으로 update를 하지만 추 후에는 ajax과정에서 id들도 같이 넘여주어서 id를 통해 update를 해야한다.
 
     try:
-        db_object = MongodbConnection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'history')   # test db : Copy_of_history
-        _CurTypeResult = rows_collection.find({'product_id': _product_id})
+        _CurTypeResult = rows_collection.find({'product_id': ObjectId(_product_id)})
     except Exception as e:
         print("DB_error : rows_collection.find()", end=" : ")
         print(e)
-    finally:
-        db_object.db_close()
 
     print("Result : ")
     historyId = []
@@ -441,22 +410,14 @@ def sendDetailModificationModalValue():
     print("History Id : ")
     print(historyId)
 
-    def update_history(collection, history_id, args_dic):
-        match_query = {'_id': ObjectId(history_id)}
-        value_query = {'$set': {'date': args_dic['date'], 'location': args_dic['location'],
-                                'state': args_dic['state'], 'reason': args_dic['reason'],
-                                'note': args_dic['note']}}
-        return collection.update(match_query, value_query, upsert=True)
-
     try:
-        db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'Copy_of_history')
+        rows_collection = db_object.db_conn(db_object.db_client(), 'history')  # test db = Copy_of_history
         for i in range(0, len(historyId)):
-            _DicTypeResult = update_history(rows_collection, historyId[i], history_list[i])
+            _DicTypeResult = query.update_modification_history(rows_collection, historyId[i], history_list[i])
             print("Modify !!")
             print(_DicTypeResult)
     except Exception as e:
-        print("DB_error : update_history()", end=" : ")
+        print("DB_error : update_modification_history()", end=" : ")
         print(e)
     finally:
         db_object.db_close()
@@ -506,6 +467,47 @@ def manufacture_insert():
         db_object.db_close()
 
     return redirect(url_for('manufacture_main'))
+
+
+'''
+
+
+2019 - 03 - 10 개발 범위
+
+
+'''
+
+
+# Test Html pages
+@app.route('/shipment_main')
+@login_required
+def shipment_main():
+    row_object = Rows()
+    return render_template('shipment_main.html', rows=None, object=row_object)
+
+
+@app.route('/business_goal')
+@login_required
+def business_goal():
+    return render_template('business_goal.html')
+
+
+@app.route('/sales_performance')
+@login_required
+def sales_performance():
+    return render_template('sales_performance.html')
+
+
+@app.route('/partners_list')
+@login_required
+def partners_list():
+    return render_template('partners_list.html')
+
+
+@app.route('/receiving_inspection')
+@login_required
+def receiving_inspection():
+    return render_template('receiving_inspection.html')
 
 
 # 영업 page

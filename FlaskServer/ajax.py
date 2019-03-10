@@ -224,7 +224,7 @@ def filtering2():
     history_rows = []
     history_coll = _DB_object.db_conn(_DB_object.db_client(), 'history')
     for row in rows_list:
-        query = {"$and": [{"product_id": {'$eq': str(row['_id'])}}, {'show': {'$eq': '1'}}]}
+        query = {"$and": [{"product_id": {'$eq': ObjectId(str(row['_id']))}}, {'show': {'$eq': '1'}}]}
         history_rows.extend(list(history_coll.find(query)))  # cursor type -> list type
 
     print("Date match rows :")
@@ -249,6 +249,8 @@ def filtering2():
     print("Merge List")
     for lis in merge_list:
         del lis['_id']
+        del lis['model_id']
+        lis['product_id'] = str(lis['product_id'])
         print(lis)
 
     if _filter == '전체':
@@ -330,7 +332,6 @@ def getDetailTable():
     _id = request.args.get('product_info_id')
     print("Detail Ajax : ", end='')
     print(_id)
-
     try:
         db_object = MongodbConnection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'history')
@@ -338,23 +339,36 @@ def getDetailTable():
     except Exception as e:
         print("DB_error : insert_manufacture()", end=" : ")
         print(e)
+    print(history_list)
 
     product_info_list = []
     try:
         rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-        product_info_list = list(query.find_production_info_item(rows_collection, _id))
+        product_info_dic = query.find_production_info_item(rows_collection, _id)
     except Exception as e:
         print("DB_error : insert_manufacture()", end=" : ")
         print(e)
     finally:
         db_object.db_close()
+    print(product_info_dic)
+
+    try:
+        rows_collection = db_object.db_conn(db_object.db_client(), 'model')
+        model_dic = rows_collection.find_one({'_id': product_info_dic['model_id']})
+    except Exception as e:
+        print("DB_error : insert_manufacture()", end=" : ")
+        print(e)
+    print(model_dic)
 
     print("Product info : ", end='')
+    merge_dic = {}
+    merge_dic.update(product_info_dic)
+    merge_dic.pop('model_id')
+    merge_dic['model'] = model_dic['model']
+    product_info_list.append(merge_dic)
     print(product_info_list)
-    product_info_list[0].pop('_id')
 
     for result in history_list:
-        result.pop('_id')
         product_info_list.append(result)
 
     return jsonify(product_info_list)
@@ -374,28 +388,43 @@ def getStateChangeTable():
         try:
             db_object = MongodbConnection()
             rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-            product_list = list(query.find_production_info_item(rows_collection, _id))
+            product_dic = query.find_production_info_item(rows_collection, _id)
+            product_dic['model_id'] = str(product_dic['model_id'])
+        except Exception as e:
+            print("DB_error : getStateChangeTable() - product_info", end=" : ")
+            print(e)
+
+        try:
+            rows_collection = db_object.db_conn(db_object.db_client(), 'model')
+            model_dic = rows_collection.find_one({'_id': ObjectId(product_dic['model_id'])}, {'_id': False})
         except Exception as e:
             print("DB_error : getStateChangeTable() - product_info", end=" : ")
             print(e)
 
         try:
             rows_collection = db_object.db_conn(db_object.db_client(), 'history')
-            history_list = list(query.find_history_item(rows_collection, _id))
+            history_dic = query.find_history_item(rows_collection, _id)
+            history_dic['product_id'] = str(history_dic['product_id'])
         except Exception as e:
             print("DB_error : getStateChangeTable() - history", end=" : ")
             print(e)
         finally:
             db_object.db_close()
 
-        product_list[0].pop('_id')
-        history_list[0].pop('_id')
+        print("Product list : ")
+        print(product_dic)
+        print("Model list : ")
+        print(model_dic)
+        print("History list : ")
+        print(history_dic)
 
         result_dic = {}
-        result_dic.update(product_list[0])
-        result_dic.update(history_list[0])
+        result_dic.update(product_dic)
+        result_dic.update(model_dic)
+        result_dic.update(history_dic)
         result_list.append(result_dic)
 
+    print("Result list : ")
     print(result_list)
 
     return jsonify(result_list)
