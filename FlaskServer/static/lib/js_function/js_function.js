@@ -24,7 +24,7 @@ function getNoneTable(tableId, colspan) {
     $('#' + tableId + '> tbody:last').empty();
     $('#' + tableId).append(
         $('<tr>').append(
-            $('<td class="text-center" rowspan="5" colspan=' + colspan + '><h1>Table Is Empty</h1></td>')
+            $('<td class="text-center" rowspan="5" colspan=' + colspan + '><h1>테이블이 비었습니다.</h1></td>')
         )
     );
 }
@@ -132,7 +132,7 @@ function state_change_table(table_rows) {
 }
 
 function add_and_delete_row_btn(html) {
-    $('#btn-add-row').click(function () {
+    $('#btn-add-row').on('click', function () {
         var time = new Date().toLocaleTimeString();
         //$('#insert_table > tbody:last').append('<tr><td>{{ a }}</td><td>' + time + '</td></tr>');
         if (html == 'production_main')
@@ -140,7 +140,7 @@ function add_and_delete_row_btn(html) {
         else if (html == 'manufacture')
             insert_manufacture_table();
     });
-    $('#btn-delete-row').click(function () {
+    $('#btn-delete-row').on('click', function () {
         var trCount = $('#insert_table > tbody > tr').size();     // 행삭제 body row count
         if (trCount == 1) {
             alert('더이상 삭제할 수 없습니다.');
@@ -184,7 +184,8 @@ function insert_table() {
 }
 
 function detail_table() {
-    $(".detail_btn_class").click(function () {
+    // $(".detail_btn_class").click(function () {
+    $('.detail_btn_class').on('click', function () {
         // Table initialization
         $('#detail_table > tbody:last').empty();
         $('#detail_info > tbody:last').empty();
@@ -243,7 +244,8 @@ function detail_table() {
 
 
 function state_change_btn_click_event() {
-    $("#state_change_btn").click(function () {
+    // $("#state_change_btn").click(function () {
+    $('#state_change_btn').on('click', function () {
         var rowData = new Array();
         var tdArr = new Array();
         var checkbox = $("input[name=main_checkbox]:checked");
@@ -579,8 +581,7 @@ function insert_manufacture_table() {
     );
 }
 
-function pagination_test(html, number) {
-
+function pagination_for_init(html, number) {
     var specific_row = $('#specific_list').val();
     var rows;
 
@@ -622,7 +623,7 @@ function pagination_test(html, number) {
     // $('.sync-pagination')
 }
 
-function pagination_test_ver(html, number, list) {
+function pagination_for_html(html, number, list) {
     console.log("Test ver");
     var specific_row = list;
     var rows = list;

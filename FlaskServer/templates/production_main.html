@@ -3,7 +3,7 @@
 <script>
     // As Jquery same the [ window.onload = function(){} ]
     $(document).ready(function () {
-        pagination_test('production_main', 20);
+        pagination_for_init('production_main', 20);
         //main_table();
         state_change_btn_click_event();
         //state_change_table();
@@ -11,7 +11,7 @@
         location_filter();
         state_filter();
         //main_table_info();
-        //pagination_test();
+        //pagination_for_init();
         //detect_model_filter();
         //detect_location_filter();
         //detect_state_filter();
@@ -20,19 +20,28 @@
         filtering();
         getInsertModalValueFromManufactureDB();
         detail_modification_btn_event();
+        insert_btn_click_event();
+        detected_empty_value_event();
+        detected_change_value_event();
+        checked_dateBox();
+        filter_add_btn_click_event();
 
-        $('#insert_btn').click(function () {
+    });
+
+    function insert_btn_click_event() {
+        $('#insert_btn').on('click', function () {
             $('#insert_table > tbody:last').empty();
             insert_table();
         });
-        $('#state_submit_btn').click(function () {
-            if ($('#state').val().length == 0) {
+    }
+
+    function detected_empty_value_event() {
+        $('#insert_submit_btn').on('click', function () {
+            if ($('#insert_week0').val().length == 0) {
                 alert("빈 칸을 입력하세요");
-                $('#state').focus();
+                $('#insert_week0').focus();
                 return false;
             }
-        });
-        $('#insert_submit_btn').click(function () {
             if ($('#insert_sn').val().length == 0) {
                 alert("빈 칸을 입력하세요");
                 $('#insert_sn').focus();
@@ -43,38 +52,65 @@
                 $('#insert_header').focus();
                 return false;
             }
-            if ($('#manufactureDB0').val() == 0 || $('#manufactureDB0').val() == false){
+            if ($('#manufactureDB0').val() == 0 || $('#manufactureDB0').val() == false) {
                 alert("미 등록 수량을 벗어났습니다");
                 return false;
             }
         });
-        $('#startDate').change(function () {
+    }
+
+    function detected_change_value_event() {
+        $('#startDate').on('change', function () {
             console.log("Start Date Click");
             var a = $('#startDate').val();
             console.log(a);
-            document.getElementById("sDate").value = $('#startDate').val();
+            /*document.getElementById("sDate").value = $('#startDate').val();
             var b = $('#sDate').val();
-            console.log(b);
+            console.log(b);*/
         });
-        $('#endDate').change(function () {
+        $('#endDate').on('change', function () {
             console.log("End Date Click");
             var a = $('#endDate').val();
             console.log(a);
-            document.getElementById("eDate").value = $('#endDate').val();
+            /*document.getElementById("eDate").value = $('#endDate').val();
             var b = $('#eDate').val();
-            console.log(b);
+            console.log(b);*/
         });
-        $('#filter').change(function () {
+        $('#filter').on('change', function () {
             console.log("Filter Value is Changed");
             itemChange();
         });
+        $(document).on('change', '#second_filter', function () {
+            console.log("Second Filter Value is Changed");
+            second_itemChange();
+        });
+    }
 
-        function filtering() {
-            $('#filter_btn').click(function () {
-                var startDate = $('#startDate').val();
-                var endDate = $('#endDate').val();
-                var filter = $('#filter').val();
-                var sub_filter = $('#sub_filter').val();
+    function checked_dateBox() {
+        $('#filter_btn').on('click', function () {
+            var start_date = $('#startDate').val();
+            var end_date = $('#endDate').val();
+            start_date = start_date.split('-');
+            end_date = end_date.split('-');
+            var date1 = new Date(start_date[0], start_date[1], start_date[2]);
+            var date2 = new Date(end_date[0], end_date[1], end_date[2]);
+            // console.log(date1.getTime());
+            // console.log(date2.getTime());
+            if (date1.getTime() > date2.getTime()) {
+                alert("필터 날짜가 잘못되었습니다.");
+                return false;
+            }
+        });
+    }
+
+    function filtering() {
+        $('#filter_btn').on('click', function () {
+            var startDate = $('#startDate').val();
+            var endDate = $('#endDate').val();
+            var filter = $('#filter').val();
+            var sub_filter = $('#sub_filter').val();
+
+            if ($('#filter_add_space > select').size() <= 0) { // Second Filter On
                 console.log("sDate : " + startDate + " eDate : " + endDate + " filter : " + filter + " sFilter : " + sub_filter);
                 $.ajax({
                     url: "/filtering2",
@@ -82,7 +118,8 @@
                         'sDate': startDate,
                         'eDate': endDate,
                         'filter': filter,
-                        'sub_filter': sub_filter
+                        'sub_filter': sub_filter,
+                        'second_filter_flag': false
                     },
                     type: "GET",
                     dataType: "json"
@@ -90,7 +127,7 @@
                     .done(function (json) {
                         console.log("Filtering Ajax Done : \n" + json);
                         $('#pagination').twbsPagination('destroy');
-                        pagination_test_ver('production_main', 20, json)
+                        pagination_for_html('production_main', 20, json)
                     })
                     .fail(function (xhr, status, errorThrown) {
                         $("#error_text").html("오류발생<br>")
@@ -100,134 +137,225 @@
                     .always(function (xhr, status) {
                         //$("#barChart").html("요청 완료");
                     });
-            });
-        }
-
-
-        function getInsertModalValueFromManufactureDB() {
-            var _week, _model = null;
-            var result = new Array();
-            $(document).on("change", $('#row_count'), function () {
-                console.log("Count : " + $('#row_count').val());
-            });
-
-            $(document).on("change", $('input[name=insert_week]'), function () {
-                _week = $('input[name=insert_week]').val();
-                console.log('Week is changed : ' + _week);
-                if(_week){
-                    result[0] = _week;
-                }
-                else{
-                        //document.getElementById("manufactureDB0").value = ' ';
-                }
-            });
-
-            $(document).on("change", $('select[name=insert_model]'), function () {
-                //_model = $('input[name=insert_model]').eq(0).val();
-                _model = $('#insert_model0').val();
-                console.log('Model is changed : ' + _model);
-                if(_model){
-                    result[1] = _model;
-                }
-                else{
-                    //document.getElementById("manufactureDB0").value = ' ';
-                }
-            });
-
-            $(document).on("change", result, function () {
-                if (_week && _model) {
-                    console.log("Result : " + result);
-                    $.ajax({
-                        url: "/getManufactureDB",
-                        data: {
-                            'week': _week,
-                            'model': _model
-                        },
-                        type: "GET",
-                        dataType: "json"
-                    })
-                        .done(function (json) {
-                            console.log("GetInsertModalValueFromManufactureDB Ajax Done : \n" + json);
-                            var test = $('input[name=insert_manufactureDB]');
-                            console.log(test)
-                            document.getElementById("manufactureDB0").value = json;
-                        })
-                        .fail(function (xhr, status, errorThrown) {
-                            $(".error_text").html("오류발생<br>")
-                                .append("오류명 : " + errorThrown + "<br>")
-                                .append("상태 : " + status);
-                        })
-                        .always(function (xhr, status) {
-                            //$("#barChart").html("요청 완료");
-                        });
-                }
-            });
-
-        }
-
-        function itemChange() {
-            var selectItem = $("#filter").val();
-            var table_rows = $('#main_rows').val();
-            table_rows = JSON_parse_convertor(table_rows);
-            if (table_rows == undefined) {
-                console.log('Table length is empty');
             } else {
-                if (selectItem == "전체") {
-                    $('#sub_filter').empty();
-                    var option = $("<option> </option>");
-                    $('#sub_filter').append(option);
-                } else if (selectItem == "모델") {
-                    var model_list = new Array();
-                    for (var i = 0; i < table_rows.length; i++) {
-                        model_list[i] = table_rows[i]['model'];
-                    }
-                    var model_list_filtering = model_list.filter(function (item, idx, array) {
-                        return array.indexOf(item) === idx;
+                var second_filter = $('#second_filter').val();
+                var second_sub_filter = $('second_sub_filter').val();
+
+                console.log("sDate : " + startDate + " eDate : " + endDate + " filter : " + filter + " sFilter : " + sub_filter);
+                $.ajax({
+                    url: "/filtering2",
+                    data: {
+                        'sDate': startDate,
+                        'eDate': endDate,
+                        'filter': filter,
+                        'sub_filter': sub_filter,
+                        'second_filter': second_filter,
+                        'second_sub_filter': second_sub_filter,
+                        'second_filter_flag': true
+                    },
+                    type: "GET",
+                    dataType: "json"
+                })
+                    .done(function (json) {
+                        console.log("Filtering Ajax Done : \n" + json);
+                        $('#pagination').twbsPagination('destroy');
+                        pagination_for_html('production_main', 20, json)
+                    })
+                    .fail(function (xhr, status, errorThrown) {
+                        $("#error_text").html("오류발생<br>")
+                            .append("오류명 : " + errorThrown + "<br>")
+                            .append("상태 : " + status);
+                    })
+                    .always(function (xhr, status) {
+                        //$("#barChart").html("요청 완료");
                     });
-                    console.log("Model : \n" + model_list_filtering);
-                    $('#sub_filter').empty();
-                    for (var count = 0; count < model_list_filtering.length; count++) {
-                        //var option = $("<option>"+model_list[count]+"</option>");
-                        var model_option = $("<option>").append(model_list_filtering[count]);
-                        $('#sub_filter').append(model_option);
-                    }
-                } else if (selectItem == "위치") {
-                    var location_list = new Array();
-                    for (var i = 0; i < table_rows.length; i++) {
-                        location_list[i] = table_rows[i]['location'];
-                    }
-                    var location_list_filtering = location_list.filter(function (item, idx, array) {
-                        return array.indexOf(item) === idx;
+            }
+        });
+    }
+
+
+    function getInsertModalValueFromManufactureDB() {
+        var _week, _model = null;
+        var result = new Array();
+        $(document).on("change", '#row_count', function () {
+            console.log("Count : " + $('#row_count').val());
+        });
+
+        $(document).on("change", 'input[name=insert_week]', function () {
+            _week = $('input[name=insert_week]').val();
+            console.log('Week is changed : ' + _week);
+            if (_week) {
+                result[0] = _week;
+            } else {
+                //document.getElementById("manufactureDB0").value = ' ';
+            }
+        });
+
+        $(document).on("change", 'select[name=insert_model]', function () {
+            //_model = $('input[name=insert_model]').eq(0).val();
+            _model = $('#insert_model0').val();
+            console.log('Model is changed : ' + _model);
+            if (_model) {
+                result[1] = _model;
+            } else {
+                //document.getElementById("manufactureDB0").value = ' ';
+            }
+        });
+
+        $(document).on("change", result, function () {
+            if (_week && _model) {
+                console.log("Result : " + result);
+                $.ajax({
+                    url: "/getManufactureDB",
+                    data: {
+                        'week': _week,
+                        'model': _model
+                    },
+                    type: "GET",
+                    dataType: "json"
+                })
+                    .done(function (json) {
+                        console.log("GetInsertModalValueFromManufactureDB Ajax Done : \n" + json);
+                        var test = $('input[name=insert_manufactureDB]');
+                        console.log(test)
+                        document.getElementById("manufactureDB0").value = json;
+                    })
+                    .fail(function (xhr, status, errorThrown) {
+                        $(".error_text").html("오류발생<br>")
+                            .append("오류명 : " + errorThrown + "<br>")
+                            .append("상태 : " + status);
+                    })
+                    .always(function (xhr, status) {
+                        //$("#barChart").html("요청 완료");
                     });
-                    console.log("Location : \n" + location_list_filtering);
-                    $('#sub_filter').empty();
-                    for (var count = 0; count < location_list_filtering.length; count++) {
-                        var location_option = $("<option>").append(location_list_filtering[count]);
-                        $('#sub_filter').append(location_option);
-                    }
-                } else if (selectItem == "상태") {
-                    var state_list = new Array();
-                    for (var i = 0; i < table_rows.length; i++) {
-                        state_list[i] = table_rows[i]['state'];
-                    }
-                    var state_list_filtering = state_list.filter(function (item, idx, array) {
-                        return array.indexOf(item) === idx;
-                    });
-                    console.log("State : \n" + state_list_filtering);
-                    $('#sub_filter').empty();
-                    for (var count = 0; count < state_list_filtering.length; count++) {
-                        var state_option = $("<option>").append(state_list_filtering[count]);
-                        $('#sub_filter').append(state_option);
-                    }
+            }
+        });
+
+    }
+
+    function itemChange() {
+        var selectItem = $("#filter").val();
+        var table_rows = $('#main_rows').val();
+        table_rows = JSON_parse_convertor(table_rows);
+        if (table_rows == undefined) {
+            console.log('Table length is empty');
+        } else {
+            if (selectItem == "전체") {
+                $('#sub_filter').empty();
+                var option = $("<option> </option>");
+                $('#sub_filter').append(option);
+            } else if (selectItem == "모델") {
+                var model_list = new Array();
+                for (var i = 0; i < table_rows.length; i++) {
+                    model_list[i] = table_rows[i]['model'];
+                }
+                var model_list_filtering = model_list.filter(function (item, idx, array) {
+                    return array.indexOf(item) === idx;
+                });
+                console.log("Model : \n" + model_list_filtering);
+                $('#sub_filter').empty();
+                for (var count = 0; count < model_list_filtering.length; count++) {
+                    //var option = $("<option>"+model_list[count]+"</option>");
+                    var model_option = $("<option>").append(model_list_filtering[count]);
+                    $('#sub_filter').append(model_option);
+                }
+            } else if (selectItem == "위치") {
+                var location_list = new Array();
+                for (var i = 0; i < table_rows.length; i++) {
+                    location_list[i] = table_rows[i]['location'];
+                }
+                var location_list_filtering = location_list.filter(function (item, idx, array) {
+                    return array.indexOf(item) === idx;
+                });
+                console.log("Location : \n" + location_list_filtering);
+                $('#sub_filter').empty();
+                for (var count = 0; count < location_list_filtering.length; count++) {
+                    var location_option = $("<option>").append(location_list_filtering[count]);
+                    $('#sub_filter').append(location_option);
+                }
+            } else if (selectItem == "상태") {
+                var state_list = new Array();
+                for (var i = 0; i < table_rows.length; i++) {
+                    state_list[i] = table_rows[i]['state'];
+                }
+                var state_list_filtering = state_list.filter(function (item, idx, array) {
+                    return array.indexOf(item) === idx;
+                });
+                console.log("State : \n" + state_list_filtering);
+                $('#sub_filter').empty();
+                for (var count = 0; count < state_list_filtering.length; count++) {
+                    var state_option = $("<option>").append(state_list_filtering[count]);
+                    $('#sub_filter').append(state_option);
                 }
             }
-            // for (var count = 0; count < changeItem.length; count++) {
-            //     var option = $("<option>" + changeItem[count] + "</option>");
-            //     $('#sub_filter').append(option);
-            // }
         }
+        // for (var count = 0; count < changeItem.length; count++) {
+        //     var option = $("<option>" + changeItem[count] + "</option>");
+        //     $('#sub_filter').append(option);
+        // }
+    }
 
-    });
+    function second_itemChange() {
+        var selectItem = $("#second_filter").val();
+        var table_rows = $('#main_rows').val();
+        table_rows = JSON_parse_convertor(table_rows);
+        if (table_rows == undefined) {
+            console.log('Table length is empty');
+        } else {
+            if (selectItem == "전체") {
+                $('#second_sub_filter').empty();
+                var option = $("<option> </option>");
+                $('#second_sub_filter').append(option);
+            } else if (selectItem == "모델") {
+                var model_list = new Array();
+                for (var i = 0; i < table_rows.length; i++) {
+                    model_list[i] = table_rows[i]['model'];
+                }
+                var model_list_filtering = model_list.filter(function (item, idx, array) {
+                    return array.indexOf(item) === idx;
+                });
+                console.log("Model : \n" + model_list_filtering);
+                $('#second_sub_filter').empty();
+                for (var count = 0; count < model_list_filtering.length; count++) {
+                    //var option = $("<option>"+model_list[count]+"</option>");
+                    var model_option = $("<option>").append(model_list_filtering[count]);
+                    $('#second_sub_filter').append(model_option);
+                }
+            } else if (selectItem == "위치") {
+                var location_list = new Array();
+                for (var i = 0; i < table_rows.length; i++) {
+                    location_list[i] = table_rows[i]['location'];
+                }
+                var location_list_filtering = location_list.filter(function (item, idx, array) {
+                    return array.indexOf(item) === idx;
+                });
+                console.log("Location : \n" + location_list_filtering);
+                $('#second_sub_filter').empty();
+                for (var count = 0; count < location_list_filtering.length; count++) {
+                    var location_option = $("<option>").append(location_list_filtering[count]);
+                    $('#second_sub_filter').append(location_option);
+                }
+            } else if (selectItem == "상태") {
+                var state_list = new Array();
+                for (var i = 0; i < table_rows.length; i++) {
+                    state_list[i] = table_rows[i]['state'];
+                }
+                var state_list_filtering = state_list.filter(function (item, idx, array) {
+                    return array.indexOf(item) === idx;
+                });
+                console.log("State : \n" + state_list_filtering);
+                $('#second_sub_filter').empty();
+                for (var count = 0; count < state_list_filtering.length; count++) {
+                    var state_option = $("<option>").append(state_list_filtering[count]);
+                    $('#second_sub_filter').append(state_option);
+                }
+            }
+        }
+        // for (var count = 0; count < changeItem.length; count++) {
+        //     var option = $("<option>" + changeItem[count] + "</option>");
+        //     $('#sub_filter').append(option);
+        // }
+    }
 
     function detail_modification_btn_event() {
         $('#modify_btn').on('click', function () {
@@ -268,7 +396,7 @@
                     )
                 );
                 for (var i = 1; i < json.length; i++) {
-                    if(!json[i]['note']){
+                    if (!json[i]['note']) {
                         json[i]['note'] = '';
                     }
                     $('#detail_modification_table').append(
@@ -277,14 +405,14 @@
                             $('<th size="10" class="text-center"><input type="text" name="modify_location" value=' + json[i]['location'] + '>'),
                             //$('<th class="text-center"><input type="text" name="state" value=' + json[i]['state'] + '>'),
                             //$('<th class="text-center"><input type="text" name="reason" value='+ json[i]['reason'] + '>')
-                            $('<th class="text-center"><select name="modify_state" value=' + json[i]['state'] + '>'+
-                                '<option selected hidden>'+ json[i]['state'] +'</option>' +
+                            $('<th class="text-center"><select name="modify_state" value=' + json[i]['state'] + '>' +
+                                '<option selected hidden>' + json[i]['state'] + '</option>' +
                                 '<option>재고</option>' +
                                 '<option>출고</option>' +
                                 '<option>폐기</option>' +
                                 '</select>'),
                             $('<th class="text-center"><select name="modify_reason" value=' + json[i]['reason'] + '>' +
-                                '<option selected hidden>'+ json[i]['reason'] +'</option>' +
+                                '<option selected hidden>' + json[i]['reason'] + '</option>' +
                                 '<option>신규생산</option>' +
                                 '<option>판매</option>' +
                                 '<option>기증</option>' +
@@ -294,7 +422,7 @@
                                 '<option>반납</option>' +
                                 '<option>이동</option>' +
                                 '</select>'),
-                            $('<th><textarea name="modify_text" rows="4" cols="40" value=' + json[i]['note'] + '>'+ json[i]['note'] +'</textarea>')
+                            $('<th><textarea name="modify_text" rows="4" cols="40" value=' + json[i]['note'] + '>' + json[i]['note'] + '</textarea>')
                         )
                     );
                 }
@@ -307,8 +435,31 @@
             .always(function (xhr, status) {
                 //$("#detail_table").html("요청 완료");
             });
-
     }
+
+    function filter_add_btn_click_event() {
+        $('#filter_add_btn').on('click', function () {
+            if ($('#filter_add_space > select').size() > 0) {
+                alert("필터는 최대 한개까지 추가 가능합니다.");
+            } else if ($('#filter_add_space > select').size() == 0) {
+                $('#filter_add_space').append(
+                    $('<select id="second_filter" name="second_filter" class="btn btn-secondary col-auto" value="">\n' +
+                        '<option selected>전체</option>\n' +
+                        '<option>모델</option>\n' +
+                        '<option>위치</option>\n' +
+                        '<option>상태</option>\n' +
+                        '</select>'),
+                    $('<select id="second_sub_filter" name="second_sub_filter" class="btn btn-secondary col-auto" value="">'),
+                    $('<button type="button" class="btn btn-dark" id="delete_second_filter" >삭 제</button>')
+                )
+            }
+        });
+    }
+
+    $(document).on('click', '#delete_second_filter', function () {
+        console.log("DELETE");
+        $('#filter_add_space').empty();
+    });
 
 </script>
 {% endblock %}
@@ -323,38 +474,46 @@
 <input hidden id="specific_list" value="{{ specific_list }}"/>
 <!--<form class="form-inline" action="/search" method="POST">
 <form class="form-inline" action="/filtering2" method="POST">-->
-<form class="form-inline" action="/filtering" method="POST">
-    <div class="row container-fluid">
-        <input type="date" id="startDate" name="startDate" value={{object.date()}} class="btn col-auto btn-primary">
-        <input type="date" id="endDate" name="endDate" value={{object.date()}}
-               class="btn col-auto1 btn-primary date_box">
-        <input type="hidden" name="page" value="p_page"/>
-        <!--<button type="submit" class="btn col-1 btn-warning">검색</button>-->
-        <!--<button type="button" class="btn btn-primary col-1" onclick="location.href='/all_collection'">전체</button>-->
-        <select id="filter" name="filter" class="btn btn-secondary col-auto" value="">
-            <option selected>전체</option>
-            <option>모델</option>
-            <option>위치</option>
-            <option>상태</option>
-        </select>
-        <select id="sub_filter" name="sub_filter" class="btn btn-secondary col-auto" value="">
-            <!-- Dynamic creation -->
-        </select>
-        <button type="button" id="filter_btn" class="btn btn-secondary col-1">필터 적용</button>
-        <!--<button type="button" id="state_change_btn" class="btn btn-warning col-1" data-toggle="modal"
-                data-target="#shipment_modal">상태 변경-->
-        <button type="button" id="state_change_btn" class="btn btn-warning col-1">상태 변경</button>
-        <button type="button" id="insert_btn" class="btn btn-warning col-1" data-toggle="modal"
-                data-target="#insert_modal"> 등록</button>
-    </div>
-    <!--</form>-->
-    <hr/>
-    <!--<form class="form-inline" action="/filtering2" method="POST">-->
-    <input hidden id="sDate" name="sDate" value={{object.date()}}>
-    <input hidden id="eDate" name="eDate" value={{object.date()}}>
-    <!--<a href="/insert_plan" class="btn btn-warning col-1 offset-6"
-       onclick="winPop(this.href, {name:'insert_excel',width:1500,height:800}); return false;">생산계획입력 </a>-->
-</form>
+<!--<form class="form-inline" action="/filtering" method="POST">-->
+<div class="row container-fluid">
+    <input type="date" id="startDate" name="startDate" value={{object.date()}} class="btn col-auto btn-primary">
+    <input type="date" id="endDate" name="endDate" value={{object.date()}}
+           class="btn col-auto1 btn-primary date_box">
+    <input type="hidden" name="page" value="p_page"/>
+    <!--<button type="submit" class="btn col-1 btn-warning">검색</button>-->
+    <!--<button type="button" class="btn btn-primary col-1" onclick="location.href='/all_collection'">전체</button>-->
+
+    <!--<button type="button" id="state_change_btn" class="btn btn-warning col-1" data-toggle="modal"
+            data-target="#shipment_modal">상태 변경-->
+    <button type="button" id="state_change_btn" class="btn btn-warning offset-1 col-2">상태 변경</button>
+    <button type="button" id="insert_btn" class="btn btn-warning col-1" data-toggle="modal"
+            data-target="#insert_modal"> 등록
+    </button>
+</div>
+<div id="filter_add_space" class="row container-fluid">
+
+</div>
+<div class="row container-fluid">
+    <select id="filter" name="filter" class="btn btn-secondary  col-auto" value="">
+        <option selected>전체</option>
+        <option>모델</option>
+        <option>위치</option>
+        <option>상태</option>
+    </select>
+    <select id="sub_filter" name="sub_filter" class="btn btn-secondary col-auto" value="">
+        <!-- Dynamic creation -->
+    </select>
+    <button type="button" id="filter_btn" class="btn btn-secondary col-auto">필터 적용</button>
+    <button type="button" id="filter_add_btn" class="btn btn-secondary col-auto">필터 추가</button>
+</div>
+<!--</form>-->
+<hr/>
+<!--<form class="form-inline" action="/filtering2" method="POST">-->
+<!--<input hidden id="sDate" name="sDate" value={{object.date()}}>-->
+<!--<input hidden id="eDate" name="eDate" value={{object.date()}}>-->
+<!--<a href="/insert_plan" class="btn btn-warning col-1 offset-6"
+   onclick="winPop(this.href, {name:'insert_excel',width:1500,height:800}); return false;">생산계획입력 </a>-->
+<!--</form>-->
 <hr/>
 <table class="table table-striped table-bordered table-sm text-center tablesorter" id="main_table">
     <thead class="header-sort thead-dark">

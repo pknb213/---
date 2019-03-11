@@ -16,7 +16,7 @@ def filtering():
     _sDate = request.values.get('sDate')
     _eDate = request.values.get('eDate')
 
-    print("Get value : ")
+    print("Filtering1 Get value : ")
     print(_filter + ' ' + _sub_filter + ' ' + _sDate + ' ' + _eDate)
 
     _sDate = _sDate.split('-')
@@ -167,14 +167,23 @@ def filtering():
     return render_template('production_main.html', specific_list=third_filtering_list, object=row_object)
 
 
-@app.route('/filtering2', methods=["GET"])
+@app.route('/filtering2', methods=["GET"]) # Ajax ver
 def filtering2():
     _filter = request.args.get('filter')
     _sub_filter = request.args.get('sub_filter')
     _sDate = request.args.get('sDate')
     _eDate = request.args.get('eDate')
+    _flag = request.args.get('second_filter_flag')
+    print(">>>>>>>>>>> Flag : ", end="")
+    print(_flag)
+    if _flag is True:
+        _second_filter = request.args.get('second_filter')
+        _second_sub_filter = request.args.get('second_sub_filter')
+        print("Hi ", end="")
+        print(_second_filter)
+        print(_second_sub_filter)
 
-    print("Get value : ")
+    print("Filtering2 Get value : ")
     print(_filter + ' ' + _sub_filter + ' ' + _sDate + ' ' + _eDate)
 
     _sDate = _sDate.split('-')
