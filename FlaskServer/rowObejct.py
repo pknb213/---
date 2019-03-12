@@ -130,7 +130,7 @@ class Rows:
         _model_list = []
         _model_id_list = []
 
-        test = []
+        ttt = []
         try:
             product_info_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'product_info')
         except Exception as e:
@@ -152,10 +152,10 @@ class Rows:
                 _model_id_list.append(product_info_dic['model_id'])
                 # _model_list.append(product_info_dic['model'])
 
-                test.append(product_info_dic['model_id'])
+                #ttt.append(product_info_dic['model_id'])
 
         model_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'model')
-        for test_item in test:
+        for test_item in _model_id_list:
             _object = model_collection.find_one({'_id': ObjectId(test_item)})
             _model_list.append(_object['model'])
 

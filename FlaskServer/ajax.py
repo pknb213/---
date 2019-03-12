@@ -167,23 +167,21 @@ def filtering():
     return render_template('production_main.html', specific_list=third_filtering_list, object=row_object)
 
 
-@app.route('/filtering2', methods=["GET"]) # Ajax ver
+@app.route('/filtering2', methods=["GET"])  # Ajax ver
 def filtering2():
     _filter = request.args.get('filter')
     _sub_filter = request.args.get('sub_filter')
     _sDate = request.args.get('sDate')
     _eDate = request.args.get('eDate')
     _flag = request.args.get('second_filter_flag')
-    print(">>>>>>>>>>> Flag : ", end="")
-    print(_flag)
-    if _flag is True:
+    if _flag == 'true':
         _second_filter = request.args.get('second_filter')
         _second_sub_filter = request.args.get('second_sub_filter')
-        print("Hi ", end="")
-        print(_second_filter)
+        print("Get Sub_filter Value : ", end="")
+        print(_second_filter, end=" ")
         print(_second_sub_filter)
 
-    print("Filtering2 Get value : ")
+    print("Filtering2 Get value : ", end="")
     print(_filter + ' ' + _sub_filter + ' ' + _sDate + ' ' + _eDate)
 
     _sDate = _sDate.split('-')
@@ -214,6 +212,7 @@ def filtering2():
         ]
     }
 
+    # Date Value Check
     try:
         _DB_object = MongodbConnection()
         rows_collection = _DB_object.db_conn(_DB_object.db_client(), 'product_info')
@@ -236,7 +235,7 @@ def filtering2():
         query = {"$and": [{"product_id": {'$eq': ObjectId(str(row['_id']))}}, {'show': {'$eq': '1'}}]}
         history_rows.extend(list(history_coll.find(query)))  # cursor type -> list type
 
-    print("Date match rows :")
+    print("\nDate match rows :")
     for row in rows_list:
         print(row)
     print("Reference model rows :")
@@ -262,79 +261,158 @@ def filtering2():
         lis['product_id'] = str(lis['product_id'])
         print(lis)
 
-    if _filter == '전체':
-        m_value = None
-        l_value = None
-        s_value = None
-    elif _filter == '모델':
-        m_value = _sub_filter
-        l_value = None
-        s_value = None
-    elif _filter == '위치':
-        m_value = None
-        l_value = _sub_filter
-        s_value = None
-    elif _filter == '상태':
-        m_value = None
-        l_value = None
-        s_value = _sub_filter
+    def dynamic_filter(dic):
+        result = []
+        print("Filtering Start")
+        for key, val in dic.items():
+            print(key, end=" ")
+            print(val)
+
+            if key == '전체':
+                continue
+            elif key == '모델':
+                result.append({'model': val})
+            elif key == '위치':
+                result.append({'location': val})
+            elif key == '상태':
+                result.append({'state': val})
+            # elif key == '모델':
+            #     result['model'] = val
+            # elif key == '위치':
+            #     result['location'] = val
+            # elif key == '상태':
+            #     result['state'] = val
+        return result
+
+    if _flag == 'false':
+        filter_dic = {_filter: _sub_filter}
     else:
-        m_value = _sub_filter
-        l_value = _sub_filter
-        s_value = _sub_filter
+        filter_dic = {_filter: _sub_filter, _second_filter: _second_sub_filter}
+    print(filter_dic)
 
-    _filter_dic = {'model': m_value, 'location': l_value, 'state': s_value}
+    result_list = merge_list.copy()
+    after_filtering_list = []
+    for item in dynamic_filter(filter_dic):
+        print("\nFiltering : ", end="")
+        print(item)
+        if 'model' in item:
+            print("> Model Filtering")
+            for idx, merge_row in enumerate(result_list):
+                if merge_row.get('model') == item['model']:
+                    print(idx, merge_row)
+                    after_filtering_list.append(merge_row)
+                else:
+                    print("Delete : ", end='')
+                    print(idx, merge_row)
 
-    print(_filter_dic)
+        if 'location' in item:
+            print(">> Location Filtering")
+            for idx, merge_row in enumerate(result_list):
+                if merge_row.get('location') == item['location']:
+                    print(idx, merge_row)
+                    after_filtering_list.append(merge_row)
+                else:
+                    print("Delete : ", end='')
+                    print(idx, merge_row)
 
-    first_filtering_list = []
-    second_filtering_list = []
-    third_filtering_list = []
-    print("> Model Filtering")
-    if _filter_dic['model'] is not None:
-        for idx, merge_row in enumerate(merge_list):
-            if merge_row.get('model') == _filter_dic['model']:
-                print(idx, merge_row)
-                first_filtering_list.append(merge_row)
-            else:
-                print("Delete : ", end='')
-                print(idx, merge_row)
-    else:
-        first_filtering_list = merge_list
+        if 'state' in item:
+            print(">>> State Filtering")
+            for idx, merge_row in enumerate(result_list):
+                if merge_row.get('state') == item['state']:
+                    print(idx, merge_row)
+                    after_filtering_list.append(merge_row)
+                else:
+                    print("Delete : ", end='')
+                    print(idx, merge_row)
 
-    print(">> Location Filtering")
-    if _filter_dic['location'] is not None:
-        for idx, merge_row in enumerate(first_filtering_list):
-            if merge_row.get('location') == _filter_dic['location']:
-                print(idx, merge_row)
-                second_filtering_list.append(merge_row)
-            else:
-                print("Delete : ", end='')
-                print(idx, merge_row)
-    else:
-        second_filtering_list = first_filtering_list
+        result_list.clear()
+        result_list = after_filtering_list.copy()
+        after_filtering_list.clear()
 
-    print(">>> State Filtering")
-    if _filter_dic['state'] is not None:
-        for idx, merge_row in enumerate(second_filtering_list):
-            if merge_row.get('state') == _filter_dic['state']:
-                print(idx, merge_row)
-                third_filtering_list.append(merge_row)
-            else:
-                print("Delete : ", end='')
-                print(idx, merge_row)
-    else:
-        third_filtering_list = second_filtering_list
-
-    print("After Filtering")
-    if not third_filtering_list:
+    print("\nAfter Filtering")
+    if not result_list:
         print("After filtering . . . List is Empty")
     else:
-        for lis in third_filtering_list:
+        for lis in result_list:
             print(lis)
 
-    return jsonify(third_filtering_list)
+    return jsonify(result_list)
 
+    #
+    # # Filtering Start
+    # if _filter == '전체':
+    #     m_value = None
+    #     l_value = None
+    #     s_value = None
+    # elif _filter == '모델':
+    #     m_value = _sub_filter
+    #     l_value = None
+    #     s_value = None
+    # elif _filter == '위치':
+    #     m_value = None
+    #     l_value = _sub_filter
+    #     s_value = None
+    # elif _filter == '상태':
+    #     m_value = None
+    #     l_value = None
+    #     s_value = _sub_filter
+    # else:
+    #     m_value = _sub_filter
+    #     l_value = _sub_filter
+    #     s_value = _sub_filter
+    #
+    # _filter_dic = {'model': m_value, 'location': l_value, 'state': s_value}
+    #
+    # print(_filter_dic)
+    #
+    # first_filtering_list = []
+    # second_filtering_list = []
+    # third_filtering_list = []
+    # print("\n> Model Filtering")
+    # if _filter_dic['model'] is not None:
+    #     for idx, merge_row in enumerate(merge_list):
+    #         if merge_row.get('model') == _filter_dic['model']:
+    #             print(idx, merge_row)
+    #             first_filtering_list.append(merge_row)
+    #         else:
+    #             print("Delete : ", end='')
+    #             print(idx, merge_row)
+    # else:
+    #     first_filtering_list = merge_list
+    #
+    # print(">> Location Filtering")
+    # if _filter_dic['location'] is not None:
+    #     for idx, merge_row in enumerate(first_filtering_list):
+    #         if merge_row.get('location') == _filter_dic['location']:
+    #             print(idx, merge_row)
+    #             second_filtering_list.append(merge_row)
+    #         else:
+    #             print("Delete : ", end='')
+    #             print(idx, merge_row)
+    # else:
+    #     second_filtering_list = first_filtering_list
+    #
+    # print(">>> State Filtering")
+    # if _filter_dic['state'] is not None:
+    #     for idx, merge_row in enumerate(second_filtering_list):
+    #         if merge_row.get('state') == _filter_dic['state']:
+    #             print(idx, merge_row)
+    #             third_filtering_list.append(merge_row)
+    #         else:
+    #             print("Delete : ", end='')
+    #             print(idx, merge_row)
+    # else:
+    #     third_filtering_list = second_filtering_list
+    #
+    # print("After Filtering")
+    # if not third_filtering_list:
+    #     print("After filtering . . . List is Empty")
+    # else:
+    #     for lis in third_filtering_list:
+    #         print(lis)
+    #
+    # return jsonify(third_filtering_list)
+    #
 
 @app.route('/getDetailTable')
 def getDetailTable():
@@ -460,7 +538,7 @@ def getManufactureDB():
             {
                 "$match": {"week": {"$eq": week}, "model": {"$eq": model}}
             }, {
-                "$group": {"_id": "$_id", "number": {"$sum": "$number"}}
+                "$group": {"_id": "$model", "number": {"$sum": "$number"}}
             }
         ]
         #return collection.find(_query)
@@ -473,8 +551,8 @@ def getManufactureDB():
     except Exception as e:
         print("DB_error : getManufactureDB() - manufacture", end=" : ")
         print(e)
-    finally:
-        db_object.db_close()
+
+    print(numberOfManufacture)
 
     if not numberOfManufacture:
         numberOfManufacture = 0
@@ -484,17 +562,25 @@ def getManufactureDB():
     print("Number of result : ", end="")
     print(numberOfManufacture)
 
-    def find_product_count(collection, week, model):
+    try:
+        rows_collection = db_object.db_conn(db_object.db_client(), 'model')
+        model_dic = rows_collection.find_one({'model': _model})
+    except Exception as e:
+        print("DB_error : getManufactureDB() - product", end=" : ")
+        print(e)
+
+    print(model_dic['_id'])
+
+    def find_product_count(collection, week, model_id):
         _query = {
             u"week": week,
-            u"model": model
+            u"model_id": model_id
         }
         return collection.find(_query).count()
 
     try:
-        db_object = MongodbConnection()
         rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-        numberOfProduct = find_product_count(rows_collection, _week, _model)
+        numberOfProduct = find_product_count(rows_collection, _week, model_dic['_id'])
     except Exception as e:
         print("DB_error : getManufactureDB() - product", end=" : ")
         print(e)

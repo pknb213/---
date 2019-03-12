@@ -160,6 +160,7 @@ function insert_table() {
             $('<input type="hidden" id="row_count" name="row_count" value=' + trCount + '>'),
             $('<td><input type="text" class="form-control insert_week" size="10" value="" id=' + "insert_week" + trCount + ' name="insert_week">'),
             $('<td><select class="form-control" value="" id=' + "insert_model" + trCount + ' name="insert_model">' +
+                '<option selected hidden></option>\n' +
                 '<option>STEP2</option>\n' +
                 '<option>Indy3</option>\n' +
                 '<option>Indy5</option>\n' +

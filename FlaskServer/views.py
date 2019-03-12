@@ -185,7 +185,7 @@ def page_not_found(e):
 
 
 @app.route('/product_main')
-@login_required
+#@login_required
 def product_main():
     row_object = Rows()
     return render_template('production_main.html', specific_list=None, object=row_object)
@@ -193,6 +193,7 @@ def product_main():
 
 @app.route('/insert_data', methods=["POST"])
 def insert_data():
+    print("POST - Insert Data :")
     date = datetime.datetime.today().strftime('%Y-%m-%d')
 
     # Input name value
@@ -427,7 +428,7 @@ def sendDetailModificationModalValue():
 
 # 생산 page
 @app.route('/manufacture_main')
-@login_required
+#@login_required
 def manufacture_main():
     object_rows = Rows()
     return render_template('manufacture.html', specific_list=None, object=object_rows)
