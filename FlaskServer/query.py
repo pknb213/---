@@ -6,8 +6,11 @@ import datetime
 
 Query return value
     find function : Cursor Type
+    find_one function : 
     insert function : Object Type
+    insert_one function : 
     update function : Dict Type
+    update_one function : 
     
 #####################################################'''
 

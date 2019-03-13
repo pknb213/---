@@ -142,7 +142,7 @@
                 var second_sub_filter = $('#second_sub_filter').val();
 
                 console.log("sDate : " + startDate + " eDate : " + endDate + " filter : " + filter + " sFilter : " + sub_filter
-                + "second_filter : " + second_filter + " second_sub_filter : " + second_sub_filter);
+                    + "second_filter : " + second_filter + " second_sub_filter : " + second_sub_filter);
                 $.ajax({
                     url: "/filtering2",
                     data: {
@@ -176,66 +176,69 @@
 
 
     function getInsertModalValueFromManufactureDB() {
-        var _week, _model = null;
-        var result = new Array();
-        /*$(document).on("change", '#row_count', function () {
-            console.log("Count : " + $('#row_count').val());
-        });*/
+        var _getWeek, _getModel = null;
+        var _week = new Array();
+        var _model = new Array();
+        var result = null;
 
         $(document).on("change", 'input[name=insert_week]', function () {
-            var trCount = $('#insert_table > tbody > tr').size();
-            console.log("TRC : " + trCount);
-            _week = $('input[name=insert_week]').val();
-            console.log('Week is changed : ' + _week + ' (' + trCount + ')');
-            if (_week) {
-                result[0] = _week;
-            } else {
-                //document.getElementById("manufactureDB0").value = ' ';
-            }
+            var weeks = $('input[name=insert_week]');
+            weeks.each(function (i) {
+                _getWeek = this.value;
+                console.log("WEEK " + i + " : " + _getWeek);
+                _week[i] = _getWeek;
+                result = true;
+            });
         });
 
         $(document).on("change", 'select[name=insert_model]', function () {
-            var trCount = $('#insert_table > tbody > tr').size();
-            console.log("TRC : " + trCount);
-            //_model = $('input[name=insert_model]').eq(0).val();
-            _model = $('#insert_model0').val();
-            console.log('Model is changed : ' + _model + ' (' + trCount + ')');
-            if (_model) {
-                result[1] = _model;
-            } else {
-                //document.getElementById("manufactureDB0").value = ' ';
-            }
+            var models = $('select[name=insert_model]');
+            models.each(function (i) {
+                _getModel = this.value;
+                console.log("Model " + i + " : " + _getModel);
+                _model[i] = _getModel;
+                result = false;
+            });
         });
 
         $(document).on("change", result, function () {
-            if (_week && _model) {
-                console.log("Result : " + result);
-                $.ajax({
-                    url: "/getManufactureDB",
-                    data: {
-                        'week': _week,
-                        'model': _model
-                    },
-                    type: "GET",
-                    dataType: "json"
-                })
-                    .done(function (json) {
-                        console.log("GetInsertModalValueFromManufactureDB Ajax Done : \n" + json);
-                        var test = $('input[name=insert_manufactureDB]');
-                        console.log(test)
-                        document.getElementById("manufactureDB0").value = json;
+            var trCount = $('#insert_table > tbody > tr').size();
+            console.log("number of row : " + trCount);
+            for (var i = 0; i < trCount; i++) {
+                if (_week[i] && _model[i]) {
+                    console.log("Ajax[" + i + "] : " + _week[i] + " " + _model[i]);
+                    $.ajax({
+                        url: "/getManufactureDB",
+                        data: {
+                            'week': _week[i],
+                            'model': _model[i],
+                            'index': i
+                        },
+                        type: "GET",
+                        dataType: "json"
                     })
-                    .fail(function (xhr, status, errorThrown) {
-                        $(".error_text").html("오류발생<br>")
-                            .append("오류명 : " + errorThrown + "<br>")
-                            .append("상태 : " + status);
-                    })
-                    .always(function (xhr, status) {
-                        //$("#barChart").html("요청 완료");
-                    });
+                        .done(function (json) {
+                            var id = "manufactureDB" + json.index;
+                            console.log("GetInsertModalValueFromManufactureDB Ajax Done : \n" + id);
+                            document.getElementById(id).value = json.number;
+                        })
+                        .fail(function (xhr, status, errorThrown) {
+                            $(".error_text").html("오류발생<br>")
+                                .append("오류명 : " + errorThrown + "<br>")
+                                .append("상태 : " + status);
+                        })
+                        .always(function (xhr, status) {
+                            //$("#barChart").html("요청 완료");
+                        });
+                }
             }
         });
 
+        $('#btn-delete-row').on("click", function () {
+            console.log("reset");
+           _week = [];
+           _model = [];
+        });
     }
 
     function itemChange() {
@@ -461,15 +464,15 @@
         });
     }
 
-    function select_date_btn_event(){
+    function select_date_btn_event() {
         $('#select_year_btn').on('click', function () {
             var date = new Date();
             var day = date.getDate();
-            var year = date.getFullYear()-1;
+            var year = date.getFullYear() - 1;
             var month = date.getMonth() + 1;
             month = month.toString();
-            if (month.length === 1){
-                month = '0'+month;
+            if (month.length === 1) {
+                month = '0' + month;
             }
             var time = year + '-' + month + '-' + day;
             console.log(time);
@@ -480,8 +483,8 @@
             var day = date.getDate();
             var year = date.getFullYear();
             var month = date.getMonth().toString();
-            if (month.length === 1){
-                month = '0'+month;
+            if (month.length === 1) {
+                month = '0' + month;
             }
             var time = year + '-' + month + '-' + day;
             console.log(time);
@@ -543,8 +546,8 @@
 </div>
 <!--</form>-->
 <!--<form class="form-inline" action="/filtering2" method="POST">-->
-<!--<input hidden id="sDate" name="sDate" value={{object.date()}}>-->
-<!--<input hidden id="eDate" name="eDate" value={{object.date()}}>-->
+<!--<input hidden id="sDate" name="sDate" value={#object.date()#}>-->
+<!--<input hidden id="eDate" name="eDate" value={#object.date()#}>-->
 <!--<a href="/insert_plan" class="btn btn-warning col-1 offset-6"
    onclick="winPop(this.href, {name:'insert_excel',width:1500,height:800}); return false;">생산계획입력 </a>-->
 <!--</form>-->
@@ -607,8 +610,8 @@
                 </div>
                 <!-- Modal Footer -->
                 <div class="modal-footer">
-                    <button type="button" id='btn-add-row' class="btn offset-4 btn-secondary" >행 추가하기</button>
-                    <button type="button" id='btn-delete-row' class="btn btn-secondary" >행 삭제하기</button>
+                    <button type="button" id='btn-add-row' class="btn offset-4 btn-secondary">행 추가하기</button>
+                    <button type="button" id='btn-delete-row' class="btn btn-secondary">행 삭제하기</button>
                     <button type="submit" id="insert_submit_btn" class="btn btn-warning">확 인</button>
                     <button type="button" class="btn btn-warning" data-dismiss="modal">취 소</button>
                 </div>

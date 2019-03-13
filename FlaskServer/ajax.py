@@ -521,9 +521,11 @@ def getStateChangeTable():
 def getManufactureDB():
     _week = request.args.get("week")
     _model = request.args.get("model")
+    _index = int(request.args.get("index"))
     print("Get ManufactureDB Ajax : ", end="")
     print(_week, end=" ")
-    print(_model)
+    print(_model, end=" ")
+    print(_index)
 
     def find_manufacture_count(collection, week, model):
         _query = {
@@ -590,9 +592,11 @@ def getManufactureDB():
     print("numberOfProduct : ", end="")
     print(numberOfProduct)
 
-    result = numberOfManufacture - numberOfProduct
+    result = {"number": numberOfManufacture - numberOfProduct, "index": _index}
     print("Result : ", end="")
     print(result)
+
+
 
     return jsonify(result)
 
