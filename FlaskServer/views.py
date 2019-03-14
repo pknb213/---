@@ -1,4 +1,3 @@
-from builtins import enumerate
 import flask_login
 from FlaskServer import app
 import os

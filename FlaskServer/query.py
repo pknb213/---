@@ -97,7 +97,7 @@ def update_history(collection, product_id):
 
 def find_number_of_model(coll, arg, arg2):
     query = {
-        u"model": {
+        u"model_id": {
             u"$eq": arg
         },
         u"week": {

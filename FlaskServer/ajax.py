@@ -2,6 +2,7 @@ from FlaskServer.pymongo import MongodbConnection
 from flask import request, render_template, jsonify
 from bson.objectid import ObjectId
 from FlaskServer import app
+from pprint import pprint
 
 # 재고 관리
 from FlaskServer.rowObejct import Rows
@@ -623,19 +624,31 @@ def getProductData():
     # for table_row in _table_list:
     #     print(table_row)
 
+    db_object = MongodbConnection()
+    rows_collection = db_object.db_conn(db_object.db_client(), 'model')
+    obj_list = []
     count_dic = {}
-    try:
-        db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-        for i in range(0, len(_model_list)):
-            count_dic[_model_list[i]] = query.find_number_of_model(rows_collection, _model_list[i], _week_list[i])
-        # for model in _model_list:
-        #    count_dic[model] = find_number_of_model(rows_collection, model)
-    except Exception as e:
-        print("DB_error : insert_manufacture()", end=" : ")
-        print(e)
-    finally:
-        db_object.db_close()
+
+    for model in _model_list:
+        obj = rows_collection.find_one({'model': model})
+        obj_list.append(obj)
+    pprint(obj_list)
+
+    rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
+    for idx, obj in enumerate(obj_list):
+        count_dic[obj['model']] = query.find_number_of_model(rows_collection, obj['_id'], _week_list[idx])
+
+    # try:
+    #     rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
+    #     for i in range(0, len(_model_list)):
+    #         count_dic[_model_list[i]] = query.find_number_of_model(rows_collection, _model_list[i], _week_list[i])
+    #     # for model in _model_list:
+    #     #    count_dic[model] = find_number_of_model(rows_collection, model)
+    # except Exception as e:
+    #     print("DB_error : insert_manufacture()", end=" : ")
+    #     print(e)
+    # finally:
+    #     db_object.db_close()
 
     print("Number of Model Dic : ")
     print(count_dic)
@@ -645,6 +658,20 @@ def getProductData():
         result = list(row.values() & count_dic.keys())
         row[result[0]] = count_dic[result[0]]
         print(row)
+
+
+    a = 0
+    rows_collection = db_object.db_conn(db_object.db_client(), 'manufacture')
+    for model in count_dic.keys(): # Step, Indy Indycb
+        cur = rows_collection.find({'model': model})
+
+        for c in cur:
+            if c['number']:
+                a += c['number']
+        print(model, end="")
+        print(" : ", end="")
+        print(a)
+        a = 0
 
     return jsonify(_table_list)
 
