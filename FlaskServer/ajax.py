@@ -3,6 +3,7 @@ from flask import request, render_template, jsonify
 from bson.objectid import ObjectId
 from FlaskServer import app
 from pprint import pprint
+import ast
 
 # 재고 관리
 from FlaskServer.rowObejct import Rows
@@ -659,21 +660,63 @@ def getProductData():
         row[result[0]] = count_dic[result[0]]
         print(row)
 
-
-    a = 0
     rows_collection = db_object.db_conn(db_object.db_client(), 'manufacture')
-    for model in count_dic.keys(): # Step, Indy Indycb
-        cur = rows_collection.find({'model': model})
+    print("\n---------\n")
+    cur = list(rows_collection.find({}, {'_id': False, 'number': False, 'date': False}))
+    _li = ""
+    _list = []
+    for c in cur:
+        _li += str(c)
+        _list.append(_li)
+        _li = ""
 
-        for c in cur:
-            if c['number']:
-                a += c['number']
-        print(model, end="")
-        print(" : ", end="")
-        print(a)
-        a = 0
+    _list = set(_list)
+    for i in _list:
+        print(i)
 
-    return jsonify(_table_list)
+    print("--------")
+    _list = list(_list)
+    _list2 = []
+    for i in _list:
+        i = ast.literal_eval(i)
+        _list2.append(i)
+
+    print("--------")
+    for i in _list2:
+        print(i)
+
+    def fun(collection, week, model):
+        _pipeline = [
+            {
+                "$match": {"week": {"$eq": week}, "model": {"$eq": model}}
+            }, {
+                "$group": {"_id": "$model", "number": {"$sum": "$number"}}
+            }
+        ]
+        return collection.aggregate(_pipeline)
+
+    for row in _list2:
+        num = list(fun(rows_collection, row['week'], row['model']))
+        row['number'] = num[0]['number']
+        print(row)
+
+    rows_collection = db_object.db_conn(db_object.db_client(), 'model')
+    for row in _list2:
+        model_id = rows_collection.find_one({'model': row['model']})
+        row.update({'model_id': model_id['_id']})
+        print(row)
+
+    rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
+    for idx, obj in enumerate(_list2):
+        num = query.find_number_of_model(rows_collection, obj['model_id'], obj['week'])
+        obj.update({obj['model']: num})
+
+    print("--------")
+    for i in _list2:
+        del i['model_id']
+        print(i)
+
+    return jsonify(_list2)
 
 
 

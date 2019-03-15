@@ -528,8 +528,7 @@ function make_main_manufacture_table(json_table_rows, startRow, endRow) {
                             $('<td class="align-middle">').append(json[i]['number']),
                             $('<td class="align-middle">').append(aging),
                             $('<td class="align-middle">').append(json[i][json[i]['model']]),
-                            $('<td class="align-middle">').append(json[i]['date']),
-                            $('<td class="align-middle"><button type="button" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal">자세히</button>')
+                            $('<td class="align-middle"><button type="button" name="detail_btn" value="" class="detail_btn_class btn btn-warning" data-toggle="modal" data-target="#detail_modal" disabled>자세히</button>')
                         )
                     );
                     //document.getElementsByName("detail_btn")[i].value = json[i]['_id'];
