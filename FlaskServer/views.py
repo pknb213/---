@@ -190,6 +190,13 @@ def product_main():
     return render_template('production_main.html', specific_list=None, object=row_object)
 
 
+@app.route('/chartTable_main')
+#@login_required
+def chartTable_main():
+
+    return render_template('chart_table_main.html')
+
+
 @app.route('/insert_data', methods=["POST"])
 def insert_data():
     print("POST - Insert Data :")

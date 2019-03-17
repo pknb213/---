@@ -1,0 +1,103 @@
+{% extends 'main_base.html' %}
+{% block head %}
+<script>
+    $(document).ready(function () {
+
+    });
+
+    function detail_table() {
+    $('.detail_btn_class').on('click', function () {
+        // Table initialization
+        $('#detail_table > tbody:last').empty();
+        $('#detail_info > tbody:last').empty();
+
+        var received_id = $(this).val();
+        console.log("Received ID : " + received_id);
+        if (received_id == undefined || received_id == 'None')
+            alert("Detail modal error");
+
+        $.ajax({
+            url: "/getDetailTable",
+            data: {
+                'product_info_id': received_id
+            },
+            type: "GET",
+            dataType: "json"
+        })
+            .done(function (json) {
+                console.log("Detail Table Ajax is DONE");
+                console.log(json);
+
+                $('#detail_info').append(
+                    $('<tr>').append(
+                        $('<th class="text-center">').append("Model:  " + json[0]['model']),
+                        $('<th class="text-center">').append("SN:  " + json[0]['sn']),
+                        $('<th class="text-center">').append("생산 Week:  " + json[0]['week']),
+                        $('<th class="text-center">').append("Header:  " + json[0]['header'])
+                    )
+                );
+                for (var i = 1; i < json.length; i++) {
+                    if(!json[i]['note']){
+                        json[i]['note'] = "";
+                    }
+                    $('#detail_table').append(
+                        $('<tr>').append(
+                            $('<td class="text-center">').append(json[i]['date']),
+                            $('<td class="text-center">').append(json[i]['location']),
+                            $('<td class="text-center">').append(json[i]['state']),
+                            $('<td class="text-center">').append(json[i]['reason']),
+                            $('<td class="text-center">').append(json[i]['note'])
+                        )
+                    );
+                }
+                document.getElementById("modify_btn").value = received_id;
+            })
+            .fail(function (xhr, status, errorThrown) {
+                $("#error_text").html("오류발생<br>")
+                    .append("오류명 : " + errorThrown + "<br>")
+                    .append("상태 : " + status);
+            })
+            .always(function (xhr, status) {
+                //$("#detail_table").html("요청 완료");
+            });
+    });
+}
+</script>
+{% endblock %}
+{% block title %} 페이지 {% endblock %}
+{% block body_title %}Title{% endblock %}
+{% block main_title %} ? ? {% endblock %}
+{% block body %}
+<input hidden id="main_rows" value="{{ 1 }}"/>
+<input hidden id="specific_list" value="{{ 1 }}"/>
+<div class="row container-fluid">
+    <button type="button" id="insert_btn" class="btn btn-warning col-2 offset-9" data-toggle="modal"
+            data-target="#insert_modal">등록</button>
+</div>
+<hr/>
+<table class="table table-bordered table-striped table-sm text-center tablesorter" id="main_table">
+    <thead class="header-sort thead-dark">
+    <tr>
+        <!--<th>번호</th>-->
+        <th>1</th>
+        <th>2</th>
+        <th>3</th>
+        <th>4</th>
+        <th>5</th>
+        <th>6</th>
+    </tr>
+    </thead>
+    <tbody>
+        <!--  Call of the Java Script Function (table) -->
+    </tbody>
+</table>
+<!-- Pageination -->
+<div class="text-center center-block">
+    <div id="page_content"></div>
+    <nav aria-label="Page navigation">
+        <ul class="pagination" id="pagination" style="justify-content: center;"></ul>
+    </nav>
+</div>
+<!-- Test Table -->
+<hr/>
+{% endblock %}

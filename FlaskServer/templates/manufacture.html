@@ -80,7 +80,7 @@
 <!--&lt;!&ndash;  Call of the Java Script Function (table) &ndash;&gt;-->
 <!--</tbody>-->
 <!--</table>-->
-<!-- The Product Insert Modal -->
+<!-- The Manufacture Insert Modal -->
 <div class="modal fade" id="insert_modal">
     <div class="modal-dialog modal-lg">
         <form class="form-inline" action="/manufacture_insert" method="POST" enctype=multipart/form-data>
@@ -121,6 +121,51 @@
                 </div>
             </div>
         </form>
+    </div>
+</div>
+<!-- The Detail Console Modal -->
+<div class="modal fade" id="detail_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header table-responsive">
+                <h1>상세 화면</h1>
+            </div>
+            <div>
+                <table class="table table-borderless" id="detail_info">
+                    <tbody>
+                    <!--  Call of the Java Script Function (table) -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered text-center" id="detail_table">
+                        <thead class="thead-dark">
+                        <tr>
+                            <th>날짜</th>
+                            <th>위치</th>
+                            <th>상태</th>
+                            <th>사유</th>
+                            <th>비고</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!--  Call of the Java Script Function (table) -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" id="modify_btn" class="btn btn-warning" value="" data-toggle="modal"
+                        data-target="#detail_modification_modal">수정 모드
+                </button>
+                <button type="button" class="btn btn-warning" data-dismiss="modal">확 인</button>
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}
