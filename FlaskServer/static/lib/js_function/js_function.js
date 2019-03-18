@@ -159,7 +159,7 @@ function insert_table() {
         $('<tr>').append(
             $('<input type="hidden" id="row_count" name="row_count" value=' + trCount + '>'),
             $('<td><input type="text" class="form-control insert_week" size="10" value="" id=' + "insert_week" + trCount + ' name="insert_week">'),
-            $('<td><select class="form-control" value="" id=' + "insert_model" + trCount + ' name="insert_model">' +
+            $('<td><select class="form-control insert_model" value="" id=' + "insert_model" + trCount + ' name="insert_model">' +
                 '<option selected hidden></option>\n' +
                 '<option>STEP2</option>\n' +
                 '<option>Indy3</option>\n' +
@@ -177,9 +177,9 @@ function insert_table() {
                 '<option>LASER400</option>\n' +
                 '<option>LASER650</option>\n' +
                 '</select>'),
-            $('<td><input type="text" readonly class="text-center" size="7" id=' + "manufactureDB" + trCount + ' name="insert_manufactureDB" value="">'),
-            $('<td><input type="text" class="form-control" id="insert_sn" name="insert_sn">'),
-            $('<td><input type="text" class="form-control" size="10" id="insert_header" name="insert_header">')
+            $('<td><input type="text" readonly class="text-center manufactureDB" size="7" id=' + "manufactureDB" + trCount + ' name="insert_manufactureDB" value="">'),
+            $('<td><input type="text" class="form-control insert_sn" id="insert_sn" name="insert_sn">'),
+            $('<td><input type="text" class="form-control insert_header" size="10" id="insert_header" name="insert_header">')
         )
     );
 }
@@ -576,7 +576,7 @@ function insert_manufacture_table() {
                 '<option>LASER400</option>\n' +
                 '<option>LASER650</option>\n' +
                 '</select>'),
-            $('<td><input type="text" class="form-control" id="insert_number" name="number">')
+            $('<td><input type="text" class="form-control insert_number" id="insert_number" name="number">')
         )
     );
 }

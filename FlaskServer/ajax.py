@@ -598,9 +598,56 @@ def getManufactureDB():
     print("Result : ", end="")
     print(result)
 
-
-
     return jsonify(result)
+
+
+@app.route("/filteringForSN")
+def filteringForSN():
+    _sn = request.args.get('sn')
+    print(_sn)
+
+    def find_product_to_sn(collection, sn):
+        query = {
+            'sn': {'$regex': sn, '$options': 'i'}
+        }
+        return collection.find(query)
+    try:
+        _DB_object = MongodbConnection()
+        rows_collection = _DB_object.db_conn(_DB_object.db_client(), 'product_info')
+        rows_list = list(find_product_to_sn(rows_collection, _sn))
+    except Exception as e:
+        print("DB_error : filteringForSN()", end=" : ")
+        print(e)
+    finally:
+        _DB_object.db_close()
+
+    model_rows = []
+    model_coll = _DB_object.db_conn(_DB_object.db_client(), 'model')
+    for row in rows_list:
+        query = {"_id": {'$eq': ObjectId(row['model_id'])}}
+        model_rows.extend(list(model_coll.find(query)))  # cursor type -> list type
+
+    history_rows = []
+    history_coll = _DB_object.db_conn(_DB_object.db_client(), 'history')
+    for row in rows_list:
+        query = {"$and": [{"product_id": {'$eq': ObjectId(str(row['_id']))}}, {'show': {'$eq': '1'}}]}
+        history_rows.extend(list(history_coll.find(query)))  # cursor type -> list type
+
+    merge_list = []
+    for i in range(0, len(rows_list)):
+        new_dic = {}
+        new_dic.update(rows_list[i])
+        new_dic.update(model_rows[i])
+        new_dic.update(history_rows[i])
+        merge_list.append(new_dic)
+
+    for row_dic in merge_list:
+        row_dic['_id'] = str(row_dic['_id'])
+        row_dic['model_id'] = str(row_dic['model_id'])
+        row_dic['product_id'] = str(row_dic['product_id'])
+        print(row_dic)
+
+    return jsonify(merge_list)
 
 
 # 생산 관리

@@ -11,15 +11,13 @@
 
         });
         $('#insert_submit_btn').click(function () {
-            if ($('#insert_model').val().length == 0) {
-                alert("빈 칸을 입력하세요");
-                $('#insert_model').focus();
-                return false;
-            }
-            if ($('#insert_number').val().length == 0) {
-                alert("빈 칸을 입력하세요");
-                $('#insert_number').focus();
-                return false;
+            var i = 0;
+            for (i = 0; i < $('.insert_number').length; i++) {
+                if ($('.insert_number').eq(i).val().length == 0) {
+                    alert("빈 칸을 입력하세요");
+                    $('.insert_number').eq(i).focus();
+                    return false;
+                }
             }
             if ($('#insert_week').val().length == 0) {
                 alert("빈 칸을 입력하세요");
@@ -96,7 +94,7 @@
                             <thead class="thead-light">
                             <tr>
                                 <th style="border-bottom: 3px solid white">주차</th>
-                                <th style="border-bottom: 3px solid white"><input type="text" class="form-control"
+                                <th style="border-bottom: 3px solid white"><input type="text" class="form-control insert_week"
                                                                                   id="insert_week" name="week"
                                                                                   value={{object.week()}}></th>
                             </tr>

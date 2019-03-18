@@ -12,7 +12,7 @@ from flask_login import login_required, current_user, login_user, logout_user
 import FlaskServer.ajax as ajax
 import FlaskServer.query as query
 from FlaskServer.rowObejct import Rows
-from FlaskServer.pymongo import MongodbConnection\
+from FlaskServer.pymongo import MongodbConnection
 
 login_manager = flask_login.LoginManager(app)
 login_manager.init_app(app)
@@ -262,15 +262,34 @@ def insert_data():
 @app.route('/state_change', methods=["POST"])
 def state_change():
     def getStateFromReason(reason):
+        # state_map = {
+        #     '신규생산': '재고',
+        #     '반납': '재고',
+        #     '이동': '재고',
+        #     '판매': '출고',
+        #     '기증': '출고',
+        #     '내수용': '출고',
+        #     'A/S': '출고',
+        #     '불량': '폐기'
+        # }
         state_map = {
-            '신규생산': '재고',
-            '반납': '재고',
-            '이동': '재고',
+            '매입': '입고',
+            '생산': '입고',
+            '교체(입고)': '입고',
+            '이월': '입고',
+            '회수': '입고',
+            '이동(입고)': '입고',
+            '내수': '입고',
+            '기타(입고)': '입고',
+
             '판매': '출고',
+            '대여': '출고',
+            '교체(출고)': '출고',
             '기증': '출고',
-            '내수용': '출고',
-            'A/S': '출고',
-            '불량': '폐기'
+            '과제': '출고',
+            '이동(출고)': '출고',
+            '손상': '출고',
+            '기타(출고)': '출고'
         }
         return state_map[reason]
 
