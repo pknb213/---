@@ -2,90 +2,180 @@
 {% block head %}
 <script>
     $(document).ready(function () {
-
+        create_table_btn_event();
+        filter_add_btn_click_event();
     });
 
-    function detail_table() {
-    $('.detail_btn_class').on('click', function () {
-        // Table initialization
-        $('#detail_table > tbody:last').empty();
-        $('#detail_info > tbody:last').empty();
+    function create_table_btn_event() {
+        $('#create_table').on('click', function () {
+            // Table initialization
+            var startDate = $('#startDate').val();
+            var endDate = $('#endDate').val();
+            var condition_value = $('#condition').val();
+            // if (filter_value == undefined || received_id == 'None')
+            //     alert("Detail modal error");
 
-        var received_id = $(this).val();
-        console.log("Received ID : " + received_id);
-        if (received_id == undefined || received_id == 'None')
-            alert("Detail modal error");
+            $.ajax({
+                url: "/create_table",
+                data: {
+                    // 'sdate': startDate,
+                    // 'edate': endDate,
+                    'condition': condition_value
+                },
+                type: "GET",
+                dataType: "json"
+            })
+                .done(function (json) {
+                    console.log("Detail Table Ajax is DONE");
+                    console.log(json);
 
-        $.ajax({
-            url: "/getDetailTable",
-            data: {
-                'product_info_id': received_id
-            },
-            type: "GET",
-            dataType: "json"
-        })
-            .done(function (json) {
-                console.log("Detail Table Ajax is DONE");
-                console.log(json);
+                    if (json) {
+                        $('#main_table > thead').append(
+                            $('<tr>').append(
+                                $('<td>').append("모델"),
+                                $('<td>').append("수량")
+                            )
+                        );
 
-                $('#detail_info').append(
-                    $('<tr>').append(
-                        $('<th class="text-center">').append("Model:  " + json[0]['model']),
-                        $('<th class="text-center">').append("SN:  " + json[0]['sn']),
-                        $('<th class="text-center">').append("생산 Week:  " + json[0]['week']),
-                        $('<th class="text-center">').append("Header:  " + json[0]['header'])
-                    )
-                );
-                for (var i = 1; i < json.length; i++) {
-                    if(!json[i]['note']){
-                        json[i]['note'] = "";
+                        for (var i = 0; i < json.length; i++) {
+                            $('#main_table').append(
+                                $('<tr>').append(
+                                    $('<td>').append(json[i]['model']),
+                                    $('<td>').append(json[i]['num'])
+                                )
+                            );
+                        }
+                    } else {
+                        alert("Empty");
                     }
-                    $('#detail_table').append(
-                        $('<tr>').append(
-                            $('<td class="text-center">').append(json[i]['date']),
-                            $('<td class="text-center">').append(json[i]['location']),
-                            $('<td class="text-center">').append(json[i]['state']),
-                            $('<td class="text-center">').append(json[i]['reason']),
-                            $('<td class="text-center">').append(json[i]['note'])
-                        )
-                    );
+                })
+                .fail(function (xhr, status, errorThrown) {
+                    $("#error_text").html("오류발생<br>")
+                        .append("오류명 : " + errorThrown + "<br>")
+                        .append("상태 : " + status);
+                })
+                .always(function (xhr, status) {
+                    //$("#detail_table").html("요청 완료");
+                });
+        });
+    }
+
+    function filter_add_btn_click_event() {
+        $(document).on('click', '.delete_filter', function () {
+            console.log("DELETE");
+            $('#filter_add_space > div:last').remove();
+        });
+        $('#filter_add_btn').on('click', function () {
+            if ($('#filter_add_space > div').size() > 2) {
+                alert("필터는 최대 한개까지 추가 가능합니다.");
+            } else if ($('#filter_add_space > div').size() >= 0) {
+                $('#filter_add_space').append(
+                    $('<div>').append(
+                        $('<select id="second_filter" name="second_filter" class="btn btn-secondary col-auto" value="">\n' +
+                            '<option selected>전체</option>\n' +
+                            '<option>위치</option>\n' +
+                            '<option>상태</option>\n' +
+                            '</select>'),
+                        $('<select id="second_sub_filter" name="second_sub_filter" class="btn btn-secondary col-auto" value="">'),
+                        $('<button type="button" class="btn btn-dark delete_filter" id="delete_filter" >삭 제</button>')
+                    )
+                )
+            }
+        });
+    }
+
+
+    /*
+    if (selectItem == "전체") {
+                $('#sub_filter').empty();
+                var option = $("<option> </option>");
+                $('#sub_filter').append(option);
+            } else if (selectItem == "모델") {
+                var model_list = new Array();
+                for (var i = 0; i < table_rows.length; i++) {
+                    model_list[i] = table_rows[i]['model'];
                 }
-                document.getElementById("modify_btn").value = received_id;
-            })
-            .fail(function (xhr, status, errorThrown) {
-                $("#error_text").html("오류발생<br>")
-                    .append("오류명 : " + errorThrown + "<br>")
-                    .append("상태 : " + status);
-            })
-            .always(function (xhr, status) {
-                //$("#detail_table").html("요청 완료");
-            });
-    });
-}
+                var model_list_filtering = model_list.filter(function (item, idx, array) {
+                    return array.indexOf(item) === idx;
+                });
+                console.log("Model : \n" + model_list_filtering);
+                $('#sub_filter').empty();
+                for (var count = 0; count < model_list_filtering.length; count++) {
+                    //var option = $("<option>"+model_list[count]+"</option>");
+                    var model_option = $("<option>").append(model_list_filtering[count]);
+                    $('#sub_filter').append(model_option);
+                }
+            } else if (selectItem == "위치") {
+                var location_list = new Array();
+                for (var i = 0; i < table_rows.length; i++) {
+                    location_list[i] = table_rows[i]['location'];
+                }
+                var location_list_filtering = location_list.filter(function (item, idx, array) {
+                    return array.indexOf(item) === idx;
+                });
+                console.log("Location : \n" + location_list_filtering);
+                $('#sub_filter').empty();
+                for (var count = 0; count < location_list_filtering.length; count++) {
+                    var location_option = $("<option>").append(location_list_filtering[count]);
+                    $('#sub_filter').append(location_option);
+                }
+            } else if (selectItem == "상태") {
+                var state_list = new Array();
+                for (var i = 0; i < table_rows.length; i++) {
+                    state_list[i] = table_rows[i]['state'];
+                }
+                var state_list_filtering = state_list.filter(function (item, idx, array) {
+                    return array.indexOf(item) === idx;
+                });
+                console.log("State : \n" + state_list_filtering);
+                $('#sub_filter').empty();
+                for (var count = 0; count < state_list_filtering.length; count++) {
+                    var state_option = $("<option>").append(state_list_filtering[count]);
+                    $('#sub_filter').append(state_option);
+                }
+            }
+    */
 </script>
 {% endblock %}
-{% block title %} 페이지 {% endblock %}
+{% block title %} 통계 페이지 {% endblock %}
 {% block body_title %}Title{% endblock %}
-{% block main_title %} ? ? {% endblock %}
+{% block main_title %} 테이블 통계 {% endblock %}
 {% block body %}
 <input hidden id="main_rows" value="{{ 1 }}"/>
 <input hidden id="specific_list" value="{{ 1 }}"/>
 <div class="row container-fluid">
-    <button type="button" id="insert_btn" class="btn btn-warning col-2 offset-9" data-toggle="modal"
-            data-target="#insert_modal">등록</button>
+    <input type="date" id="startDate" name="startDate" value={{ object.date() }} class="btn col-auto btn-primary">
+    <input type="date" id="endDate" name="endDate" value={{ object.date() }}
+           class="btn col-auto1 btn-primary date_box">
+    <input type="hidden" name="page" value="p_page"/>
+    <button type="button" id="select_year_btn" class="btn btn-primary offset-1 col-1">1년 전</button>
+    <button type="button" id="select_month_btn" class="btn btn-primary col-1">한달 전</button>
+</div>
+<div class="row container-fluid">
+    <select id="filter" name="filter" class="btn btn-secondary  col-auto" value="">
+        <option selected>전체</option>
+        <option>위치</option>
+        <option>상태</option>
+    </select>
+    <select id="sub_filter" name="sub_filter" class="btn btn-secondary col-auto" value="">
+        <!-- Dynamic creation -->
+    </select>
+    <button type="button" id="filter_btn" class="btn btn-secondary col-auto">필터 적용</button>
+    <button type="button" id="filter_add_btn" class="btn btn-secondary col-auto">필터 추가</button>
+    <select id="condition" name="condition" class="btn btn-secondary  col-auto" value="">
+        <option selected> 1</option>
+        <option> 2</option>
+        <option> 3</option>
+        <option> 4</option>
+    </select>
+    <button type="button" id="create_table" class="btn btn-secondary col-auto">테이블 생성</button>
+</div>
+<div id="filter_add_space" class="container-fluid">
+    <!-- Dynamic Second Filter -->
 </div>
 <hr/>
 <table class="table table-bordered table-striped table-sm text-center tablesorter" id="main_table">
     <thead class="header-sort thead-dark">
-    <tr>
-        <!--<th>번호</th>-->
-        <th>1</th>
-        <th>2</th>
-        <th>3</th>
-        <th>4</th>
-        <th>5</th>
-        <th>6</th>
-    </tr>
     </thead>
     <tbody>
         <!--  Call of the Java Script Function (table) -->

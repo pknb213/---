@@ -660,17 +660,7 @@ def getProductData():
     _model_list = eval(request.args.get('model_list'))
     _week_list = eval(request.args.get('week_list'))
     _table_list = eval(request.args.get('table_list'))
-    print(_model_list)
-
-    # print("Model list : ")
-    # for _model in _model_list:
-    #     print(_model)
-    # print("Week list : ")
-    # for _week in _week_list:
-    #     print(_week)
-    # print("Table row : ")
-    # for table_row in _table_list:
-    #     print(table_row)
+    # print(_model_list)
 
     db_object = MongodbConnection()
     rows_collection = db_object.db_conn(db_object.db_client(), 'model')
@@ -685,18 +675,6 @@ def getProductData():
     rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
     for idx, obj in enumerate(obj_list):
         count_dic[obj['model']] = query.find_number_of_model(rows_collection, obj['_id'], _week_list[idx])
-
-    # try:
-    #     rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-    #     for i in range(0, len(_model_list)):
-    #         count_dic[_model_list[i]] = query.find_number_of_model(rows_collection, _model_list[i], _week_list[i])
-    #     # for model in _model_list:
-    #     #    count_dic[model] = find_number_of_model(rows_collection, model)
-    # except Exception as e:
-    #     print("DB_error : insert_manufacture()", end=" : ")
-    #     print(e)
-    # finally:
-    #     db_object.db_close()
 
     print("Number of Model Dic : ")
     print(count_dic)
@@ -753,10 +731,16 @@ def getProductData():
         row.update({'model_id': model_id['_id']})
         print(row)
 
-    rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-    for idx, obj in enumerate(_list2):
-        num = query.find_number_of_model(rows_collection, obj['model_id'], obj['week'])
-        obj.update({obj['model']: num})
+    try:
+        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
+        for idx, obj in enumerate(_list2):
+            num = query.find_number_of_model(rows_collection, obj['model_id'], obj['week'])
+            obj.update({obj['model']: num})
+    except Exception as e:
+        print("DB_error : getProductData()", end=" : ")
+        print(e)
+    finally:
+        db_object.db_close()
 
     print("--------")
     for i in _list2:
@@ -766,9 +750,46 @@ def getProductData():
     return jsonify(_list2)
 
 
-
-
 # 영업
 
 
 # 통계
+
+
+# 테이블
+
+
+@app.route('/create_table')
+def create_table():
+    condition = request.values.get('condition')
+    def find_model_count(db_object, model):
+        query = {
+            'model': model
+        }
+        collection = db_object.db_conn(db_object.db_client(), 'model')
+        obj = collection.find_one(query)
+        print(obj)
+        collection = db_object.db_conn(db_object.db_client(), 'product_info')
+        query2 = {
+            'model_id': obj['_id']
+        }
+        return collection.find(query2).count()
+
+    db_object = MongodbConnection()
+    if condition == '1':
+        collection = db_object.db_conn(db_object.db_client(), 'model')
+        model_list = collection.distinct('model')
+        dic_list = []
+        total_sum = 0
+        for model in model_list:
+            num = find_model_count(db_object, model)
+            dic = {'model': model, 'num': num}
+            dic_list.append(dic)
+            total_sum += num
+        db_object.db_close()
+        dic_list.append({"model": "총합", "num": total_sum})
+        for dic in dic_list:
+            print(dic)
+
+    return jsonify(dic_list)
+

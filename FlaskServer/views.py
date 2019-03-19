@@ -193,8 +193,8 @@ def product_main():
 @app.route('/chartTable_main')
 #@login_required
 def chartTable_main():
-
-    return render_template('chart_table_main.html')
+    row_object = Rows()
+    return render_template('chart_table_main.html', object=row_object)
 
 
 @app.route('/insert_data', methods=["POST"])
