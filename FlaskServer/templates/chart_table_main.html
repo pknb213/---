@@ -4,13 +4,67 @@
     $(document).ready(function () {
         create_table_btn_event();
         filter_add_btn_click_event();
+        select_date_btn_event();
+        itemChange();
+
+
+        $('#filter').on('change', function () {
+            console.log("Filter Value is Changed");
+            itemChange();
+        });
     });
+
+    function itemChange() {
+        var selectItem = $("#filter").val();
+        var table_rows = $('#main_rows').val();
+        table_rows = JSON_parse_convertor(table_rows);
+        if (table_rows == undefined) {
+            console.log('Table length is empty');
+        } else {
+            if (selectItem == "전체") {
+                $('#sub_filter').empty();
+                var option = $("<option> </option>");
+                $('#sub_filter').append(option);
+            } else if (selectItem == "위치") {
+                var location_list = new Array();
+                for (var i = 0; i < table_rows.length; i++) {
+                    location_list[i] = table_rows[i]['location'];
+                }
+                var location_list_filtering = location_list.filter(function (item, idx, array) {
+                    return array.indexOf(item) === idx;
+                });
+                console.log("Location : \n" + location_list_filtering);
+                $('#sub_filter').empty();
+                for (var count = 0; count < location_list_filtering.length; count++) {
+                    var location_option = $("<option>").append(location_list_filtering[count]);
+                    $('#sub_filter').append(location_option);
+                }
+            } else if (selectItem == "상태") {
+                var state_list = new Array();
+                for (var i = 0; i < table_rows.length; i++) {
+                    state_list[i] = table_rows[i]['state'];
+                }
+                var state_list_filtering = state_list.filter(function (item, idx, array) {
+                    return array.indexOf(item) === idx;
+                });
+                console.log("State : \n" + state_list_filtering);
+                $('#sub_filter').empty();
+                for (var count = 0; count < state_list_filtering.length; count++) {
+                    var state_option = $("<option>").append(state_list_filtering[count]);
+                    $('#sub_filter').append(state_option);
+                }
+            }
+        }
+    }
 
     function create_table_btn_event() {
         $('#create_table').on('click', function () {
+            $('#main_table').empty();
             // Table initialization
             var startDate = $('#startDate').val();
             var endDate = $('#endDate').val();
+            var filter = $('#filter').val();
+            var sub_filter = $('#sub_filter').val();
             var condition_value = $('#condition').val();
             // if (filter_value == undefined || received_id == 'None')
             //     alert("Detail modal error");
@@ -18,8 +72,10 @@
             $.ajax({
                 url: "/create_table",
                 data: {
-                    // 'sdate': startDate,
-                    // 'edate': endDate,
+                    'sdate': startDate,
+                    'edate': endDate,
+                    'filter': filter,
+                    'sub_filter': sub_filter,
                     'condition': condition_value
                 },
                 type: "GET",
@@ -84,6 +140,33 @@
         });
     }
 
+    function select_date_btn_event() {
+        $('#select_year_btn').on('click', function () {
+            var date = new Date();
+            var day = date.getDate();
+            var year = date.getFullYear() - 1;
+            var month = date.getMonth() + 1;
+            month = month.toString();
+            if (month.length === 1) {
+                month = '0' + month;
+            }
+            var time = year + '-' + month + '-' + day;
+            console.log(time);
+            document.getElementById("startDate").value = time;
+        });
+        $('#select_month_btn').on('click', function () {
+            var date = new Date();
+            var day = date.getDate();
+            var year = date.getFullYear();
+            var month = date.getMonth().toString();
+            if (month.length === 1) {
+                month = '0' + month;
+            }
+            var time = year + '-' + month + '-' + day;
+            console.log(time);
+            document.getElementById("startDate").value = time;
+        });
+    }
 
     /*
     if (selectItem == "전체") {
@@ -141,7 +224,7 @@
 {% block body_title %}Title{% endblock %}
 {% block main_title %} 테이블 통계 {% endblock %}
 {% block body %}
-<input hidden id="main_rows" value="{{ 1 }}"/>
+<input hidden id="main_rows" value="{{ object.main_table_rows() }}"/>
 <input hidden id="specific_list" value="{{ 1 }}"/>
 <div class="row container-fluid">
     <input type="date" id="startDate" name="startDate" value={{ object.date() }} class="btn col-auto btn-primary">

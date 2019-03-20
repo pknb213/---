@@ -761,7 +761,26 @@ def getProductData():
 
 @app.route('/create_table')
 def create_table():
+    start_date = request.values.get('sdate')
+    end_date = request.values.get('edate')
+    filter = request.values.get('filter')
+    sub_filter = request.values.get('sub_filter')
     condition = request.values.get('condition')
+    print("POST:", end=" ")
+    print(start_date, end=" ")
+    print(end_date, end=" ")
+    print(filter, end=" ")
+    print(sub_filter, end=" ")
+    print(condition)
+
+    start_date = start_date.split('-')
+    end_date = end_date.split('-')
+    for i in range(0, 3):
+        start_date[i] = int(start_date[i])
+        end_date[i] = int(end_date[i])
+    sWeek = week_num(start_date[0], start_date[1], start_date[2])
+    eWeek = week_num(end_date[0], end_date[1], end_date[2])
+
     def find_model_count(db_object, model):
         query = {
             'model': model
@@ -774,6 +793,97 @@ def create_table():
             'model_id': obj['_id']
         }
         return collection.find(query2).count()
+
+    def find_model_count2(db_object, sWeek, eWeek, model):
+        query = {
+            "$and": [
+                {
+                    u"week": {
+                        u"$gte": sWeek
+                    }
+                },
+                {
+                    u"week": {
+                        u"$lte": eWeek
+                    }
+                },
+                {
+                    u"model_id": {
+                        u"$eq": model
+                    }
+                },
+                {
+                    u"show": {
+                        u"$eq": '1'
+                    }
+                }
+            ]
+        }
+        collection = db_object.db_conn(db_object.db_client(), 'product_info')
+        return collection.find(query).count()
+
+    def find_week_search(db_object, sWeek, eWeek):
+        query = {
+            "$and": [
+                {
+                    u"week": {
+                        u"$gte": sWeek
+                    }
+                },
+                {
+                    u"week": {
+                        u"$lte": eWeek
+                    }
+                },
+                {
+                    u"show": {
+                        u"$eq": '1'
+                    }
+                }
+            ]
+        }
+        collection = db_object.db_conn(db_object.db_client(), 'product_info')
+        cursor = list(collection.find(query))
+        collection = db_object.db_conn(db_object.db_client(), 'model')
+        model_list = []
+        model_dic_list = []
+        print("\n------------------")
+        filtering_list = []
+        if filter != '전체':
+            if filter == '위치':
+                filter = 'location'
+            elif filter == '상태':
+                filter = 'state'
+            collection = db_object.db_conn(db_object.db_client(), 'history')
+            for obj in cursor:
+                history_obj = collection.find_one({'product_id': obj['_id'], 'show': '1', filter: sub_filter})
+                print(history_obj)
+        for obj in cursor:
+            model_obj = collection.find_one({'_id': obj['model_id']})
+            model_dic_list.append({'model': model_obj['model']})
+            model_list.append(obj['model_id'])
+            print(obj)
+        print("\n------------------")
+        model_list = set(model_list)
+        dic_list = []
+        total_sum = 0
+        for _list in model_list:
+            num = find_model_count2(db_object, sWeek, eWeek, _list)
+            dic = {'model_id': _list, 'num': num}
+            dic_list.append(dic)
+            total_sum += num
+            print (num)
+        print("\n------------------")
+        collection = db_object.db_conn(db_object.db_client(), 'model')
+        for dic in dic_list:
+            obj = collection.find_one({'_id': dic['model_id']})
+            dic.update({'model': obj['model']})
+            del dic['model_id']
+            print(dic)
+        db_object.db_close()
+        dic_list.append({"model": "총합", "num": total_sum})
+
+        return dic_list
 
     db_object = MongodbConnection()
     if condition == '1':
@@ -790,6 +900,9 @@ def create_table():
         dic_list.append({"model": "총합", "num": total_sum})
         for dic in dic_list:
             print(dic)
+
+    if condition == '2':
+        dic_list = find_week_search(db_object, sWeek, eWeek)
 
     return jsonify(dic_list)
 
