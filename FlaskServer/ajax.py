@@ -763,14 +763,14 @@ def getProductData():
 def create_table():
     start_date = request.values.get('sdate')
     end_date = request.values.get('edate')
-    filter = request.values.get('filter')
-    sub_filter = request.values.get('sub_filter')
+    _filter = request.values.get('filter')
+    _sub_filter = request.values.getlist('sub_filter')
     condition = request.values.get('condition')
     print("POST:", end=" ")
     print(start_date, end=" ")
     print(end_date, end=" ")
-    print(filter, end=" ")
-    print(sub_filter, end=" ")
+    print(_filter, end=" ")
+    print(_sub_filter, end=" ")
     print(condition)
 
     start_date = start_date.split('-')
@@ -822,7 +822,44 @@ def create_table():
         collection = db_object.db_conn(db_object.db_client(), 'product_info')
         return collection.find(query).count()
 
-    def find_week_search(db_object, sWeek, eWeek):
+    def find_model_count3(db_object, sWeek, eWeek, model, filter, sub_filter):
+        query = {
+            "$and": [
+                {
+                    u"week": {
+                        u"$gte": sWeek
+                    }
+                },
+                {
+                    u"week": {
+                        u"$lte": eWeek
+                    }
+                },
+                {
+                    u"model_id": {
+                        u"$eq": model
+                    }
+                },
+                {
+                    u"show": {
+                        u"$eq": '1'
+                    }
+                }
+            ]
+        }
+        collection = db_object.db_conn(db_object.db_client(), 'product_info')
+        cursor = collection.find(query)
+        collection = db_object.db_conn(db_object.db_client(), 'history')
+        count = 0
+        for obj in cursor:
+            for _sub_filter in sub_filter:
+                history_obj = collection.find_one({'product_id': obj['_id'], filter: _sub_filter, 'show': '1'})
+                if history_obj is not None:
+                    print(history_obj)
+                    count += 1
+        return count
+
+    def find_week_search(db_object, sWeek, eWeek, _filter, _sub_filter):
         query = {
             "$and": [
                 {
@@ -844,36 +881,55 @@ def create_table():
         }
         collection = db_object.db_conn(db_object.db_client(), 'product_info')
         cursor = list(collection.find(query))
+        history_obj_list = []
+        print("\n---해당 기간동안의 Obj와 Id 그리고 조건이 일치하는 데이터가 있으면 history_obj_list에 추가 ----")
+        filtering_list = []
+        flag = False
+        if _filter != '전체':
+            flag = True
+            if _filter == '위치':
+                _filter = 'location'
+            elif _filter == '상태':
+                _filter = 'state'
+            collection = db_object.db_conn(db_object.db_client(), 'history')
+            for sub_filter in _sub_filter:
+                for obj in cursor:
+                    history_obj = collection.find_one({'product_id': obj['_id'], 'show': '1', _filter: sub_filter})
+                    if history_obj is not None:
+                        _dic = {}
+                        _dic.update(obj)
+                        _dic.update(history_obj)
+                        history_obj_list.append(_dic)
+
+            for obj in history_obj_list:
+                print(obj)
+            cursor = history_obj_list
+        else:
+            print("\n----------------")
+
+        print("\n---id와 일치하는 model 찾아서 model_list에 저장---")
         collection = db_object.db_conn(db_object.db_client(), 'model')
         model_list = []
         model_dic_list = []
-        print("\n------------------")
-        filtering_list = []
-        if filter != '전체':
-            if filter == '위치':
-                filter = 'location'
-            elif filter == '상태':
-                filter = 'state'
-            collection = db_object.db_conn(db_object.db_client(), 'history')
-            for obj in cursor:
-                history_obj = collection.find_one({'product_id': obj['_id'], 'show': '1', filter: sub_filter})
-                print(history_obj)
         for obj in cursor:
             model_obj = collection.find_one({'_id': obj['model_id']})
-            model_dic_list.append({'model': model_obj['model']})
+            #model_dic_list.append({'model': model_obj['model']})
             model_list.append(obj['model_id'])
-            print(obj)
-        print("\n------------------")
+        print("\n----model_list 중복 제거하고 해당 모델과 맞는 수량 검색----")
         model_list = set(model_list)
         dic_list = []
         total_sum = 0
         for _list in model_list:
-            num = find_model_count2(db_object, sWeek, eWeek, _list)
+            if flag is True:
+                num = find_model_count3(db_object, sWeek, eWeek, _list, _filter, _sub_filter)
+            else:
+                num = find_model_count2(db_object, sWeek, eWeek, _list)
             dic = {'model_id': _list, 'num': num}
             dic_list.append(dic)
             total_sum += num
+            print(_list, end=" : ")
             print (num)
-        print("\n------------------")
+        print("\n------- 결과 -----")
         collection = db_object.db_conn(db_object.db_client(), 'model')
         for dic in dic_list:
             obj = collection.find_one({'_id': dic['model_id']})
@@ -902,7 +958,7 @@ def create_table():
             print(dic)
 
     if condition == '2':
-        dic_list = find_week_search(db_object, sWeek, eWeek)
+        dic_list = find_week_search(db_object, sWeek, eWeek, _filter, _sub_filter)
 
     return jsonify(dic_list)
 

@@ -1,5 +1,7 @@
 {% extends 'main_base.html' %}
 {% block head %}
+<link href="../static/lib/fastselect-master/dist/fastselect.css" rel="stylesheet">
+<script src="../static/lib/fastselect-master/dist/fastselect.standalone.js"></script>
 <script>
     $(document).ready(function () {
         create_table_btn_event();
@@ -8,11 +10,60 @@
         itemChange();
 
 
+        $('.multipleSelect').fastselect();
         $('#filter').on('change', function () {
             console.log("Filter Value is Changed");
+            $('#sub_filter').data('fastselect').destroy();
             itemChange();
+            $('.multipleSelect').fastselect();
         });
     });
+
+    function configSelectDropdown() {
+        $('#sub_filter').selectDropdown({
+
+            // max number of options to display within the dropdown button
+            //maxListLength: 4,
+
+            // hide the select
+            hideSelect: true,
+
+            // keeps dropdown open for multiselects.
+            multiselectStayOpen: true,
+
+            'badges': false,
+
+            // enables fuzzy search
+            search: true,
+
+            // respects dynamic changes to the select options.
+            observeDomMutations: false,
+
+            // max height of the dropdown
+            maxHeight: 'auto',
+
+            // custom text
+            textNoneSelected: "None selected",
+            textMultipleSelected: "Multiple selected",
+            textNoResults: "No results",
+            htmlClear: "Clear search",
+
+            // default CSS classes
+            classDropdown: "dropdown",
+            classBtnClear: "btn btn-outline-secondary",
+            classBtnSearch: "btn btn-primary",
+            classItem: "dropdown-item"
+        });
+
+        /*$("#condition").selectDropdown({
+            'maxListLength': 4,
+            'badges': false,
+            'selectButtons': true,
+            'htmlDeselectAll': '<svg class="ion"><use xlink:href="#ion-close-circled"></use></svg>',
+            'htmlSelectAll': '<svg class="ion"><use xlink:href="#ion-checkmark-circled"></use></svg>'
+        });*/
+
+    }
 
     function itemChange() {
         var selectItem = $("#filter").val();
@@ -36,8 +87,10 @@
                 console.log("Location : \n" + location_list_filtering);
                 $('#sub_filter').empty();
                 for (var count = 0; count < location_list_filtering.length; count++) {
-                    var location_option = $("<option>").append(location_list_filtering[count]);
+                    var val = location_list_filtering[count];
+                    var location_option = $("<option id=" + 'opt' + count + ">").append(val);
                     $('#sub_filter').append(location_option);
+                    $('#opt' + count).val(val);
                 }
             } else if (selectItem == "상태") {
                 var state_list = new Array();
@@ -50,11 +103,17 @@
                 console.log("State : \n" + state_list_filtering);
                 $('#sub_filter').empty();
                 for (var count = 0; count < state_list_filtering.length; count++) {
-                    var state_option = $("<option>").append(state_list_filtering[count]);
+                    var val = state_list_filtering[count].toString();
+                    var state_option = $("<option id=" + 'opt' + count + ">").append(val);
                     $('#sub_filter').append(state_option);
+                    $('#opt' + count).val(val);
                 }
             }
         }
+
+        //$('#sub_filter').selectDropdown();
+        //configSelectDropdown();
+
     }
 
     function create_table_btn_event() {
@@ -66,6 +125,9 @@
             var filter = $('#filter').val();
             var sub_filter = $('#sub_filter').val();
             var condition_value = $('#condition').val();
+            console.log("Sub Filter : " + typeof(sub_filter));
+            console.log(sub_filter);
+            console.log(condition_value);
             // if (filter_value == undefined || received_id == 'None')
             //     alert("Detail modal error");
 
@@ -79,6 +141,7 @@
                     'condition': condition_value
                 },
                 type: "GET",
+                traditional: true,
                 dataType: "json"
             })
                 .done(function (json) {
@@ -235,22 +298,24 @@
     <button type="button" id="select_month_btn" class="btn btn-primary col-1">한달 전</button>
 </div>
 <div class="row container-fluid">
-    <select id="filter" name="filter" class="btn btn-secondary  col-auto" value="">
+    <select id="filter" name="filter" class="btn btn-secondary col-auto" value="">
         <option selected>전체</option>
         <option>위치</option>
         <option>상태</option>
     </select>
-    <select id="sub_filter" name="sub_filter" class="btn btn-secondary col-auto" value="">
-        <!-- Dynamic creation -->
-    </select>
+        <select multiple id="sub_filter" name="sub_filter" class="multipleSelect" value="">
+            <!-- Dynamic creation -->
+        </select>
     <button type="button" id="filter_btn" class="btn btn-secondary col-auto">필터 적용</button>
     <button type="button" id="filter_add_btn" class="btn btn-secondary col-auto">필터 추가</button>
-    <select id="condition" name="condition" class="btn btn-secondary  col-auto" value="">
-        <option selected> 1</option>
-        <option> 2</option>
-        <option> 3</option>
-        <option> 4</option>
-    </select>
+    <div class="form-group">
+        <select id="condition" name="condition" class="form-control col-auto" value="">
+            <option value="1" selected> A</option>
+            <option value="2"> B</option>
+            <option value="3"> C</option>
+            <option value="4"> D</option>
+        </select>
+    </div>
     <button type="button" id="create_table" class="btn btn-secondary col-auto">테이블 생성</button>
 </div>
 <div id="filter_add_space" class="container-fluid">

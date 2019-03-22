@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <title>Multiple - MagicSearch</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="css/normalize.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet">
+        <link href="../dist/css/jquery.magicsearch.css" rel="stylesheet">
+    </head>
+    <body class="theme2">
+        <div id="container">
+            <div class="adjust"></div>
+            <h1>MagicSearch</h1>
+            <nav>
+                <a href="basic.html">Basic</a>
+                <a class="active" href="multiple.html">Multiple</a>
+                <a href="dropdownBtn.html">DropdownBtn</a>
+                <a href="focusShow.html">FocusShow</a>
+                <a href="https://www.dingyi1993.com/blog/magicsearch">More</a>
+            </nav>
+            <section>
+                <input class="magicsearch" id="basic" placeholder="search names...">
+                <button id="set-btn" type="button">set a value</button>
+            </section>
+        </div>
+    <script src="lib/jquery-2.2.3.min.js"></script>
+    <script src="../dist/js/jquery.magicsearch.js"></script>
+    <script>
+        $(function() {
+            var dataSource = [
+                {id: 1, firstName: 'Tim', lastName: 'Cook'},
+                {id: 2, firstName: 'Eric', lastName: 'Baker'},
+                {id: 3, firstName: 'Victor', lastName: 'Brown'},
+                {id: 4, firstName: 'Lisa', lastName: 'White'},
+                {id: 5, firstName: 'Oliver', lastName: 'Bull'},
+                {id: 6, firstName: 'Zade', lastName: 'Stock'},
+                {id: 7, firstName: 'David', lastName: 'Reed'},
+                {id: 8, firstName: 'George', lastName: 'Hand'},
+                {id: 9, firstName: 'Tony', lastName: 'Well'},
+                {id: 10, firstName: 'Bruce', lastName: 'Wayne'},
+            ];
+            $('#basic').magicsearch({
+                dataSource: dataSource,
+                fields: ['firstName', 'lastName'],
+                id: 'id',
+                format: '%firstName% · %lastName%',
+                multiple: true,
+                multiField: 'firstName',
+                multiStyle: {
+                    space: 5,
+                    width: 80
+                }
+            });
+            $('#set-btn').click(function() {
+                $('#basic').trigger('set', { id: '3,4' });
+            });
+        });
+    </script>
+    </body>
+</html>
