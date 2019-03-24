@@ -110,14 +110,30 @@ function state_change_table(table_rows) {
                     $('<td><input type="text" class="form-control" name="location" value=' + table_rows[i]['location'] + ' >'),
                     $('<td><select class="form-control" name="reason" id=' + "reason" + i + ' value=' + table_rows[i]['reason'] + '>' +
                         '<option selected hidden>' + table_rows[i]['reason'] + '</option>' +
-                        '<option>신규생산</option>' +
+                        /*'<option>신규생산</option>' +
                         '<option>판매</option>' +
                         '<option>기증</option>' +
                         '<option>내수용</option>' +
                         '<option>A/S</option>' +
                         '<option>불량</option>' +
                         '<option>반납</option>' +
-                        '<option>이동</option>' +
+                        '<option>이동</option>' +*/
+                        '<option>생산</option>' +
+                        '<option>매입</option>' +
+                        '<option>이월</option>' +
+                        '<option>회수</option>' +
+                        '<option>내수</option>' +
+                        '<option>교체(입고)</option>' +
+                        '<option>이동(입고)</option>' +
+                        '<option>기타(입고)</option>' +
+                        '<option>판매</option>' +
+                        '<option>대여</option>' +
+                        '<option>기증</option>' +
+                        '<option>과제</option>' +
+                        '<option>손상</option>' +
+                        '<option>교체(출고)</option>' +
+                        '<option>이동(출고)</option>' +
+                        '<option>기타(출고)</option>' +
                         '</select>'),
                     $('<td><textarea id="text" name="text" value="" rows="4" cols="40">'+ table_rows[i]['note'] +'</textarea>')
                 )
@@ -141,7 +157,7 @@ function add_and_delete_row_btn(html) {
             insert_manufacture_table();
     });
     $('#btn-delete-row').on('click', function () {
-        var trCount = $('#insert_table > tbody > tr').size();     // 행삭제 body row count
+        var trCount = $('#insert_table > tbody > tr').length;     // 행삭제 body row count
         if (trCount == 1) {
             alert('더이상 삭제할 수 없습니다.');
             return;
@@ -152,7 +168,7 @@ function add_and_delete_row_btn(html) {
 
 function insert_table() {
     console.log("Called the Insert Table\n Size : ");
-    var trCount = $('#insert_table > tbody > tr').size();
+    var trCount = $('#insert_table > tbody > tr').length;
     console.log(trCount);
     $('#insert_table > tbody > tr > input').empty();
     $('#insert_table').append(

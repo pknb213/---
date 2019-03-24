@@ -127,7 +127,7 @@
             var filter = $('#filter').val();
             var sub_filter = $('#sub_filter').val();
 
-            if ($('#filter_add_space > select').size() <= 0) { // Second Filter On
+            if ($('#filter_add_space > select').length <= 0) { // Second Filter On
                 console.log("sDate : " + startDate + " eDate : " + endDate + " filter : " + filter + " sFilter : " + sub_filter);
                 $.ajax({
                     url: "/filtering2",
@@ -219,7 +219,7 @@
         });
 
         $(document).on("change", result, function () {
-            var trCount = $('#insert_table > tbody > tr').size();
+            var trCount = $('#insert_table > tbody > tr').length;
             console.log("number of row : " + trCount);
             for (var i = 0; i < trCount; i++) {
                 if (_week[i] && _model[i]) {
@@ -464,9 +464,9 @@
 
     function filter_add_btn_click_event() {
         $('#filter_add_btn').on('click', function () {
-            if ($('#filter_add_space > select').size() > 0) {
+            if ($('#filter_add_space > select').length > 0) {
                 alert("필터는 최대 한개까지 추가 가능합니다.");
-            } else if ($('#filter_add_space > select').size() == 0) {
+            } else if ($('#filter_add_space > select').length == 0) {
                 $('#filter_add_space').append(
                     $('<select id="second_filter" name="second_filter" class="btn btn-secondary col-auto" value="">\n' +
                         '<option selected>전체</option>\n' +
@@ -549,7 +549,8 @@
 </script>
 {% endblock %}
 {% block title %} 재고관리 페이지 {% endblock %}
-{% block body_title %}Title{% endblock %}
+{% block body_title %}Title {% endblock %}
+
 {% block main_title %}재고 관리{% endblock %}
 {% block body %}
 <!--<input hidden id="info_list" value="{# object.production_main_info_list() #}"/>-->

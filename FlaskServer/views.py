@@ -22,6 +22,15 @@ login_manager.needs_refresh_message = u"Session timed out, please re-login"
 login_manager.needs_refresh_message_category = "info"
 
 
+@app.route('/user/<username>')
+def showUserProfile(username):
+    app.logger.debug('RETRIEVE DATA - USER ID : %s' % username)
+    app.logger.debug('RETRIEVE DATA - Check Compelete')
+    app.logger.warn('RETRIEVE DATA - Warning... User Not Found.')
+    app.logger.error('RETRIEVE DATA - ERR! User unauthenification.')
+    return 'USER : %s' % username
+
+
 @app.before_first_request
 def before_request():
     session.permanent = True
@@ -75,6 +84,7 @@ USERS = {
 }
 
 
+# 사용자 DB로 바꿔야함
 @login_manager.user_loader
 def user_loader(user_id):
     return USERS[user_id]
@@ -109,7 +119,8 @@ def login():
     else:
         json_res = {'ok': True, 'msg': 'user <%s> logined' % user_id}
         USERS[user_id].authenticated = True
-        login_user(USERS[user_id], remember=True)
+        login_user(USERS[user_id], remember=True)  # remember is cookie
+
     if not json_res['ok']:
         #return jsonify(json_res)
         return render_template('error.html', title='Login Fail :(', str='Please... retry the login.', url='main_login')
@@ -149,6 +160,7 @@ def main_login():
 @app.route('/menu')
 @login_required
 def testing():
+
     return render_template('menu.html')
 
 
@@ -183,15 +195,25 @@ def page_not_found(e):
     return render_template('error.html', title='Route Fail :(', str='Please... rewrite the path.', url='main_menu'), 404
 
 
+@app.errorhandler(405)
+def page_not_found(e):
+    return render_template('error.html', title='405 method not allowed :(', str='Please... re try the login.', url='main_login'), 404
+
+
 @app.route('/product_main')
-#@login_required
+@login_required
 def product_main():
     row_object = Rows()
-    return render_template('production_main.html', specific_list=None, object=row_object)
+    if current_user.is_authenticated:
+        print(current_user)
+        return render_template('production_main.html', specific_list=None, object=row_object)
+    else:
+        return render_template('error.html', title='405 method not allowed :(', str='Please... re try the login.',
+                               url='main_login'), 404
 
 
 @app.route('/chartTable_main')
-#@login_required
+@login_required
 def chartTable_main():
     row_object = Rows()
     return render_template('chart_table_main.html', object=row_object)
@@ -213,51 +235,53 @@ def insert_data():
             'model': model
         }
         return collection.find_one(query)
+    if current_user.is_authenticated:
+        print(current_user)
+        for i in range(0, len(_model)):
+            try:
+                db_object = MongodbConnection()
+                rows_collection = db_object.db_conn(db_object.db_client(), 'model')
+                _model_dic = find_model(rows_collection, _model[i])
+                print(_model_dic)
+            except Exception as e:
+                db_object.db_close()
+                print("DB_error : insert_model()", end=" : ")
+                print(e)
 
-    for i in range(0, len(_model)):
-        try:
-            db_object = MongodbConnection()
-            rows_collection = db_object.db_conn(db_object.db_client(), 'model')
-            _model_dic = find_model(rows_collection, _model[i])
-            print(_model_dic)
-        except Exception as e:
-            db_object.db_close()
-            print("DB_error : insert_model()", end=" : ")
-            print(e)
+            # Auto value
+            _quality = 'N'
+            _show = '1'
+            auto_values = [_model_dic['_id'], _sn[i], _header[i], _week[i], _quality, _show]
 
-        # Auto value
-        _quality = 'N'
-        _show = '1'
-        auto_values = [_model_dic['_id'], _sn[i], _header[i], _week[i], _quality, _show]
+            try:
+                rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
+                _product_id = query.insert_product_info(rows_collection, auto_values)
+                print(_product_id)
+            except Exception as e:
+                print("DB_error : insert_product_info()", end=" >> ")
+                print(e)
+            finally:
+                db_object.db_close()
 
-        try:
-            rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')
-            _product_id = query.insert_product_info(rows_collection, auto_values)
-            print(_product_id)
-        except Exception as e:
-            print("DB_error : insert_product_info()", end=" >> ")
-            print(e)
-        finally:
-            db_object.db_close()
+            # History value
+            _date = date
+            _location = '대전'
+            _state = '재고'  # 재고, 출고, 폐기
+            _reason = '신규생산'  # 신규생산, 판매, 기증, 내수용, A/S, 불량, 반납, 이동
+            _note = ' '
+            history_values = [_product_id, _date, _location, _state, _reason, _note]
 
-        # History value
-        _date = date
-        _location = '대전'
-        _state = '재고'  # 재고, 출고, 폐기
-        _reason = '신규생산'  # 신규생산, 판매, 기증, 내수용, A/S, 불량, 반납, 이동
-        _note = ' '
-        history_values = [_product_id, _date, _location, _state, _reason, _note]
+            try:
+                rows_collection = db_object.db_conn(db_object.db_client(), 'history')
+                query.insert_history(rows_collection, history_values)
+            except Exception as e:
+                db_object.db_close()
+                print("DB_error : insert_history()", end=" : ")
+                print(e)
 
-        try:
-            rows_collection = db_object.db_conn(db_object.db_client(), 'history')
-            query.insert_history(rows_collection, history_values)
-        except Exception as e:
-            db_object.db_close()
-            print("DB_error : insert_history()", end=" : ")
-            print(e)
-
-    return redirect(url_for('product_main'))
-
+        return redirect(url_for('product_main'))
+    else:
+        return render_template('error.html', title='405 method not allowed :(', str='Please... re try the login.', url='main_login'), 404
 
 @app.route('/state_change', methods=["POST"])
 def state_change():
@@ -293,62 +317,67 @@ def state_change():
         }
         return state_map[reason]
 
-    # if not len(request.values.getlist("check_box")):
-    #     print("state_change rows is empty")
-    #     return redirect('/')
-    # else:
-    try:
-        date = datetime.datetime.today().strftime('%Y-%m-%d')
-        _date = {'date': date}
-        # _checked_id = request.values.getlist("check_box")  # Checked the Object _id value
-        _id = request.values.getlist("id")
-        _location = request.values.getlist("location")
-        _reason = request.values.getlist("reason")
-        _note = request.values.getlist("text")
-        row_list = []
-        print("GET State Change List : ",end="")
-        print(_id, end=" ")
-        print(_location, end=" ")
-        print(_reason, end=" ")
-        print(_note)
-        for i in range(0, len(_id)):
-            _state = getStateFromReason(_reason[i])
-            row_list.append({'id': _id[i], 'location': _location[i],
-                             'state': _state, 'reason': _reason[i], 'note': _note[i]})
-    except Exception as e:
-        print("POST_error : state_change()", end=" >> ")
-        print(e)
+    if current_user.is_authenticated:
+        print(current_user)
+        # if not len(request.values.getlist("check_box")):
+        #     print("state_change rows is empty")
+        #     return redirect('/')
+        # else:
+        try:
+            date = datetime.datetime.today().strftime('%Y-%m-%d')
+            _date = {'date': date}
+            # _checked_id = request.values.getlist("check_box")  # Checked the Object _id value
+            _id = request.values.getlist("id")
+            _location = request.values.getlist("location")
+            _reason = request.values.getlist("reason")
+            _note = request.values.getlist("text")
+            row_list = []
+            print("GET State Change List : ",end="")
+            print(_id, end=" ")
+            print(_location, end=" ")
+            print(_reason, end=" ")
+            print(_note)
+            for i in range(0, len(_id)):
+                _state = getStateFromReason(_reason[i])
+                row_list.append({'id': _id[i], 'location': _location[i],
+                                 'state': _state, 'reason': _reason[i], 'note': _note[i]})
+        except Exception as e:
+            print("POST_error : state_change()", end=" >> ")
+            print(e)
+        else:
+            # print(_checked_id, end=" ")
+            print("POST row_list : ")
+            for row in row_list:
+                print(row)
+        try:
+            db_object = MongodbConnection()
+            rows_collection = db_object.db_conn(db_object.db_client(), 'history')
+            # for i in range(0, len(_checked_id)):
+            for j in range(0, len(row_list)):
+                # if _checked_id[i] == row_list[j]['id']:
+                print("Change !! - ", end=" ")
+                # print(_checked_id[i], end=" <-- ")
+                print(row_list[j])
+                # return find() -> Cursor Type
+                # return insert() -> Object Type
+                # return update() -> Dict Type
+
+                p_id = row_list[j]['id']
+                query.update_history(rows_collection, p_id)
+                data = [row_list[j]['id'], date, row_list[j]['location'],
+                        row_list[j]['state'], row_list[j]['reason'], row_list[j]['note']]
+                query.insert_history(rows_collection, data)
+
+        except Exception as e:
+            print("DB_error : state_change()", end=" >> ")
+            print(e)
+        finally:
+            db_object.db_close()
+
+        return redirect(url_for('product_main'))
+
     else:
-        # print(_checked_id, end=" ")
-        print("POST row_list : ")
-        for row in row_list:
-            print(row)
-    try:
-        db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'history')
-        # for i in range(0, len(_checked_id)):
-        for j in range(0, len(row_list)):
-            # if _checked_id[i] == row_list[j]['id']:
-            print("Change !! - ", end=" ")
-            # print(_checked_id[i], end=" <-- ")
-            print(row_list[j])
-            # return find() -> Cursor Type
-            # return insert() -> Object Type
-            # return update() -> Dict Type
-
-            p_id = row_list[j]['id']
-            query.update_history(rows_collection, p_id)
-            data = [row_list[j]['id'], date, row_list[j]['location'],
-                    row_list[j]['state'], row_list[j]['reason'], row_list[j]['note']]
-            query.insert_history(rows_collection, data)
-
-    except Exception as e:
-        print("DB_error : state_change()", end=" >> ")
-        print(e)
-    finally:
-        db_object.db_close()
-
-    return redirect(url_for('product_main'))
+        return render_template('error.html', title='405 method not allowed :(', str='Please... re try the login.', url='main_login'), 404
 
 
 @app.route('/sendDetailModificationModalValue', methods=["POST"])
@@ -366,134 +395,143 @@ def sendDetailModificationModalValue():
     print(_header, end=" ")
     print(_product_id)
 
-    modify_list = []
-    if not _sn and _week and _header:
-        print("Post value is Empty")
-    if _sn:
-        modify_list.append(_sn)
+    if current_user.is_authenticated:
+        modify_list = []
+        if not _sn and _week and _header:
+            print("Post value is Empty")
+        if _sn:
+            modify_list.append(_sn)
+        else:
+            modify_list.append(None)
+        if _week:
+            modify_list.append(_week)
+        else:
+            modify_list.append(None)
+        if _header:
+            modify_list.append(_header)
+        else:
+            modify_list.append(None)
+
+        print("Modify_list : ")
+        print(modify_list)
+
+        try:
+            db_object = MongodbConnection()
+            rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')  # test db : Copy_of_product_info
+            _DicTypeResult = query.update_product_info(rows_collection, _product_id, modify_list)
+        except Exception as e:
+            print("DB_error : insert_manufacture()", end=" : ")
+            print(e)
+
+        print("Result : ")
+        print(_DicTypeResult)
+
+        _date = request.values.getlist('modify_date')
+        _location = request.values.getlist('modify_location')
+        _state = request.values.getlist('modify_state')
+        _reason = request.values.getlist('modify_reason')
+        _text = request.values.getlist("modify_text")
+        history_list = []
+
+        print("Get modification list data : ", end="")
+        print(_date, end=" ")
+        print(_location, end=" ")
+        print(_state, end=" ")
+        print(_reason, end=" ")
+        print(_text)
+
+        for i in range(0, len(_date)):
+            history_list.append({'date': _date[i], 'location': _location[i], 'state': _state[i],
+                                 'reason': _reason[i], 'note': _text[i]})
+
+        print("history List : ")
+        for result in history_list:
+            print(result)
+
+        # 지금은 Index 방법으로 update를 하지만 추 후에는 ajax과정에서 id들도 같이 넘여주어서 id를 통해 update를 해야한다.
+
+        try:
+            rows_collection = db_object.db_conn(db_object.db_client(), 'history')   # test db : Copy_of_history
+            _CurTypeResult = rows_collection.find({'product_id': ObjectId(_product_id)})
+        except Exception as e:
+            print("DB_error : rows_collection.find()", end=" : ")
+            print(e)
+
+        print("Result : ")
+        historyId = []
+        for result in _CurTypeResult:
+            historyId.append(result['_id'])
+            print(result)
+
+        print("History Id : ")
+        print(historyId)
+
+        try:
+            rows_collection = db_object.db_conn(db_object.db_client(), 'history')  # test db = Copy_of_history
+            for i in range(0, len(historyId)):
+                _DicTypeResult = query.update_modification_history(rows_collection, historyId[i], history_list[i])
+                print("Modify !!")
+                print(_DicTypeResult)
+        except Exception as e:
+            print("DB_error : update_modification_history()", end=" : ")
+            print(e)
+        finally:
+            db_object.db_close()
+
+        return redirect(url_for('product_main'))
     else:
-        modify_list.append(None)
-    if _week:
-        modify_list.append(_week)
-    else:
-        modify_list.append(None)
-    if _header:
-        modify_list.append(_header)
-    else:
-        modify_list.append(None)
-
-    print("Modify_list : ")
-    print(modify_list)
-
-    try:
-        db_object = MongodbConnection()
-        rows_collection = db_object.db_conn(db_object.db_client(), 'product_info')  # test db : Copy_of_product_info
-        _DicTypeResult = query.update_product_info(rows_collection, _product_id, modify_list)
-    except Exception as e:
-        print("DB_error : insert_manufacture()", end=" : ")
-        print(e)
-
-    print("Result : ")
-    print(_DicTypeResult)
-
-    _date = request.values.getlist('modify_date')
-    _location = request.values.getlist('modify_location')
-    _state = request.values.getlist('modify_state')
-    _reason = request.values.getlist('modify_reason')
-    _text = request.values.getlist("modify_text")
-    history_list = []
-
-    print("Get modification list data : ", end="")
-    print(_date, end=" ")
-    print(_location, end=" ")
-    print(_state, end=" ")
-    print(_reason, end=" ")
-    print(_text)
-
-    for i in range(0, len(_date)):
-        history_list.append({'date': _date[i], 'location': _location[i], 'state': _state[i],
-                             'reason': _reason[i], 'note': _text[i]})
-
-    print("history List : ")
-    for result in history_list:
-        print(result)
-
-    # 지금은 Index 방법으로 update를 하지만 추 후에는 ajax과정에서 id들도 같이 넘여주어서 id를 통해 update를 해야한다.
-
-    try:
-        rows_collection = db_object.db_conn(db_object.db_client(), 'history')   # test db : Copy_of_history
-        _CurTypeResult = rows_collection.find({'product_id': ObjectId(_product_id)})
-    except Exception as e:
-        print("DB_error : rows_collection.find()", end=" : ")
-        print(e)
-
-    print("Result : ")
-    historyId = []
-    for result in _CurTypeResult:
-        historyId.append(result['_id'])
-        print(result)
-
-    print("History Id : ")
-    print(historyId)
-
-    try:
-        rows_collection = db_object.db_conn(db_object.db_client(), 'history')  # test db = Copy_of_history
-        for i in range(0, len(historyId)):
-            _DicTypeResult = query.update_modification_history(rows_collection, historyId[i], history_list[i])
-            print("Modify !!")
-            print(_DicTypeResult)
-    except Exception as e:
-        print("DB_error : update_modification_history()", end=" : ")
-        print(e)
-    finally:
-        db_object.db_close()
-
-    return redirect(url_for('product_main'))
-
+        return render_template('error.html', title='405 method not allowed :(', str='Please... re try the login.', url='main_login'), 404
 
 # 생산 page
 @app.route('/manufacture_main')
-#@login_required
+@login_required
 def manufacture_main():
     object_rows = Rows()
-    return render_template('manufacture.html', specific_list=None, object=object_rows)
-
+    if current_user.is_authenticated:
+        print(current_user)
+        return render_template('manufacture.html', specific_list=None, object=object_rows)
+    else:
+        return render_template('error.html', title='405 method not allowed :(', str='Please... re try the login.', url='main_login'), 404
 
 @app.route('/manufacture_insert', methods=["POST"])
 def manufacture_insert():
     date = datetime.datetime.today().strftime('%Y-%m-%d')
 
-    # Input name value
-    _week = request.values.get("week")
-    _model = request.values.getlist("model")
-    _number = request.values.getlist("number")
+    if current_user.is_authenticated:
+        print(current_user)
+        # Input name value
+        _week = request.values.get("week")
+        _model = request.values.getlist("model")
+        _number = request.values.getlist("number")
 
-    print("Insert Get Data : ", end='')
-    print(_week, end=' ')
-    print(_model, end=' ')
-    print(_number, end=' ')
-    print(type(_number), end=' ')
-    print(len(_model))
-    _data_list = []
-    for i in range(0, len(_model)):
-        _list = [_week, _model[i], int(_number[i]), date]
-        _data_list.append(_list)
-    print("Data List : ")
-    for data in _data_list:
-        print(data)
-    try:
-        db_object = MongodbConnection()
-        for i in range(0, len(_data_list)):
-            rows_collection = db_object.db_conn(db_object.db_client(), 'manufacture')
-            _insert_id = query.insert_manufacture_info(rows_collection, _data_list[i])
-    except Exception as e:
-        print("DB_error : insert_manufacture()", end=" : ")
-        print(e)
-    finally:
-        db_object.db_close()
+        print("Insert Get Data : ", end='')
+        print(_week, end=' ')
+        print(_model, end=' ')
+        print(_number, end=' ')
+        print(type(_number), end=' ')
+        print(len(_model))
+        _data_list = []
+        for i in range(0, len(_model)):
+            _list = [_week, _model[i], int(_number[i]), date]
+            _data_list.append(_list)
+        print("Data List : ")
+        for data in _data_list:
+            print(data)
+        try:
+            db_object = MongodbConnection()
+            for i in range(0, len(_data_list)):
+                rows_collection = db_object.db_conn(db_object.db_client(), 'manufacture')
+                _insert_id = query.insert_manufacture_info(rows_collection, _data_list[i])
+        except Exception as e:
+            print("DB_error : insert_manufacture()", end=" : ")
+            print(e)
+        finally:
+            db_object.db_close()
 
-    return redirect(url_for('manufacture_main'))
+        return redirect(url_for('manufacture_main'))
 
+    else:
+        return render_template('error.html', title='405 method not allowed :(', str='Please... re try the login.', url='main_login'), 404
 
 '''
 
