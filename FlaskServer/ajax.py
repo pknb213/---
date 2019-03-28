@@ -11,6 +11,25 @@ from FlaskServer.rowObejct import Rows
 from FlaskServer.rowObejct import week_num
 import FlaskServer.query as query
 
+
+@app.route('/getModelList')
+def getModelList():
+    model_list = []
+    try:
+        _DB_object = MongodbConnection()
+        model_collection = _DB_object.db_conn(_DB_object.db_client(), 'model')
+        cursor = model_collection.find({}, {'_id': False})
+    except Exception as e:
+        print("DB_error : Class Rows.manufacture()", end=" >> ")
+        print(e)
+    finally:
+        _DB_object.db_close()
+
+    for _dic in cursor:
+        model_list.append(_dic['model'])
+    return jsonify(model_list)
+
+
 @app.route('/filtering', methods=["POST"])
 def filtering():
     _filter = request.values.get('filter')
@@ -217,47 +236,30 @@ def filtering2():
             ]
         }
 
-        # Date Value Check
         try:
             _DB_object = MongodbConnection()
             rows_collection = _DB_object.db_conn(_DB_object.db_client(), 'product_info')
-            rows_list = list(rows_collection.find(query))  # cursor type -> list type
+            rows_cursor = rows_collection.find(query)
+            _list = []
+            for row in rows_cursor:
+                _list.append(row)
+            print("--------------------------")
+            model_coll = _DB_object.db_conn(_DB_object.db_client(), 'model')
+            for _item in _list:
+                query = {"_id": {'$eq': _item['model_id']}}
+                _item.update(model_coll.find_one(query, {'_id': False}))
+            history_coll = _DB_object.db_conn(_DB_object.db_client(), 'history')
+            print("--------------------------")
+            for _item in _list:
+                query = {"$and": [{"product_id": {'$eq': _item['_id']}}, {'show': {'$eq': '1'}}]}
+                a = history_coll.find_one(query, {'_id': False})
+                _item.update(a)
+            merge_list = _list.copy()
         except Exception as e:
-            print("DB_error : Class Rows.manufacture()", end=" >> ")
+            print("DB_error : filtering()", end=" >> ")
             print(e)
         finally:
             _DB_object.db_close()
-
-        model_rows = []
-        model_coll = _DB_object.db_conn(_DB_object.db_client(), 'model')
-        for row in rows_list:
-            query = {"_id": {'$eq': ObjectId(row['model_id'])}}
-            model_rows.extend(list(model_coll.find(query)))  # cursor type -> list type
-
-        history_rows = []
-        history_coll = _DB_object.db_conn(_DB_object.db_client(), 'history')
-        for row in rows_list:
-            query = {"$and": [{"product_id": {'$eq': ObjectId(str(row['_id']))}}, {'show': {'$eq': '1'}}]}
-            history_rows.extend(list(history_coll.find(query)))  # cursor type -> list type
-
-        print("\nDate match rows :")
-        for row in rows_list:
-            print(row)
-        print("Reference model rows :")
-        for row in model_rows:
-            print(row)
-
-        print("Reference history rows :")
-        for row in history_rows:
-            print(row)
-
-        merge_list = []
-        for i in range(0, len(rows_list)):
-            new_dic = {}
-            new_dic.update(rows_list[i])
-            new_dic.update(model_rows[i])
-            new_dic.update(history_rows[i])
-            merge_list.append(new_dic)
 
         print("Merge List")
         for lis in merge_list:
@@ -959,6 +961,8 @@ def create_table():
 
             return dic_list
 
+        # -----------------------------------------------------------------------------------
+
         db_object = MongodbConnection()
         if condition == '1':
             collection = db_object.db_conn(db_object.db_client(), 'model')
@@ -974,6 +978,8 @@ def create_table():
             dic_list.append({"model": "총합", "num": total_sum})
             for dic in dic_list:
                 print(dic)
+
+        # -----------------------------------------------------------------------------------
 
         if condition == '2':
             dic_list = find_week_search(db_object, sWeek, eWeek, _filter, _sub_filter)

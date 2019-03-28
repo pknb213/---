@@ -27,6 +27,7 @@
         filter_add_btn_click_event();
         select_date_btn_event();
         sn_search_btn_click_event();
+        //dynamic_model_option();
     });
 
     function insert_btn_click_event() {
@@ -68,8 +69,8 @@
                 }
             }
             for (i = 0; i < $('.manufactureDB').length; i++) {
-                if ($('.manufactureDB').eq(i).val() === 0 || $('.manufactureDB').eq(i).val() === false) {
-                    alert("미 등록 수량을 벗어났습니다");
+                if ($('.manufactureDB').eq(i).val() === '0' || $('.manufactureDB').eq(i).val() === false) {
+                    alert("등록될 생산 수량이 없습니다.");
                     return false;
                 }
             }
@@ -257,6 +258,45 @@
             _model = [];
         });
     }
+
+    function dynamic_model_option() {
+        $.ajax({
+            url: "/getModelList",
+            data: {},
+            type: "GET",
+            dataType: "json"
+        })
+            .done(function (json) {
+                console.log("Dynamic Model Option Ajax is DONE");
+                console.log(json);
+                var trCount = $('#insert_table > tbody > tr').length;
+                var option_string = '';
+                for (var i = 0; i < json.length; i++) {
+                    option_string += '<option>' + json[i] + '</option>'
+                }
+                //console.log(option_string)
+                $('#insert_table').append(
+                    $('<tr>').append(
+                        $('<input type="hidden" id="row_count" name="row_count" value=' + trCount + '>'),
+                        $('<td><input type="text" class="form-control insert_week" size="10" value="" id=' + "insert_week" + trCount + ' name="insert_week">'),
+                        $('<td><select class="form-control insert_model" value="" id=' + "insert_model" + trCount + ' name="insert_model">' + option_string + '</select>'),
+                        $('<td><input type="text" readonly class="text-center manufactureDB" id=' + "manufactureDB" + trCount + ' name="insert_manufactureDB" value="">'),
+                        $('<td><input type="text" class="form-control insert_sn" id="insert_sn" name="insert_sn">'),
+                        $('<td><input type="text" class="form-control insert_header" size="10" id="insert_header" name="insert_header">')
+                    )
+                );
+                return option_string;
+            })
+            .fail(function (xhr, status, errorThrown) {
+                $("#error_text").html("오류발생<br>")
+                    .append("오류명 : " + errorThrown + "<br>")
+                    .append("상태 : " + status);
+            })
+            .always(function (xhr, status) {
+                //$("#detail_table").html("요청 완료");
+            });
+    }
+
 
     function itemChange() {
         var selectItem = $("#filter").val();
@@ -599,7 +639,8 @@
 </div>
 <!--</form>-->
 <!--<form class="form-inline" action="/filtering2" method="POST">-->
-<!--<input hidden id="sDate" name="sDate" value={#object.date()#}>-->
+<!--<input hidden id="sDate" name="sDate" value={{object.model_list()}}>-->
+<!--<input hidden id="sDate" name="sDate" value={{object.reason_list()}}>-->
 <!--<input hidden id="eDate" name="eDate" value={#object.date()#}>-->
 <!--<a href="/insert_plan" class="btn btn-warning col-1 offset-6"
    onclick="winPop(this.href, {name:'insert_excel',width:1500,height:800}); return false;">생산계획입력 </a>-->

@@ -130,7 +130,6 @@ class Rows:
         _model_list = []
         _model_id_list = []
 
-        ttt = []
         try:
             product_info_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'product_info')
         except Exception as e:
@@ -139,20 +138,18 @@ class Rows:
         for product_id in _product_id_list:
             query = {"_id": {'$eq': ObjectId(product_id)}}
             try:
-                product_info_cursor = product_info_collection.find(query)  # cursor type
+                product_info_obj = product_info_collection.find_one(query)  # obj type
             except Exception as e:
                 print("DB_error : Class Rows.model()", end=" >> ")
                 print(e)
 
-            for product_info_dic in product_info_cursor:
+            if product_info_obj is not None:
                 # print("info_dic : ", end="")
                 # print(product_info_dic)
-                _week_list.append(product_info_dic['week'])
-                _sn_list.append(product_info_dic['sn'])
-                _model_id_list.append(product_info_dic['model_id'])
+                _week_list.append(product_info_obj['week'])
+                _sn_list.append(product_info_obj['sn'])
+                _model_id_list.append(product_info_obj['model_id'])
                 # _model_list.append(product_info_dic['model'])
-
-                #ttt.append(product_info_dic['model_id'])
 
         model_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'model')
         for test_item in _model_id_list:
@@ -233,6 +230,38 @@ class Rows:
             return render_template('404.html'), 404
 
         # print("date list")
+        return rows_list
+
+    def model_list(self):
+        print('Load - Class model_list()')
+        try:
+            # db_object = Mongodb_connection()
+            rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'model')
+            rows_list = list(rows_collection.distinct('model'))  # cursor type -> list type
+        except Exception as e:
+            print("DB_error : Class Rows.info()", end=" >> ")
+            print(e)
+        finally:
+            self._DB_object.db_close()
+        # print("all info list")
+        for _list in rows_list:
+            print(_list)
+        return rows_list
+
+    def reason_list(self):
+        print('Load - Class model_list()')
+        try:
+            # db_object = Mongodb_connection()
+            rows_collection = self._DB_object.db_conn(self._DB_object.db_client(), 'history')
+            rows_list = list(rows_collection.distinct('reason'))  # cursor type -> list type
+        except Exception as e:
+            print("DB_error : Class Rows.info()", end=" >> ")
+            print(e)
+        finally:
+            self._DB_object.db_close()
+        # print("all info list")\
+        for _list in rows_list:
+            print(_list)
         return rows_list
 
     def week(self):

@@ -171,33 +171,18 @@ function insert_table() {
     var trCount = $('#insert_table > tbody > tr').length;
     console.log(trCount);
     $('#insert_table > tbody > tr > input').empty();
-    $('#insert_table').append(
-        $('<tr>').append(
-            $('<input type="hidden" id="row_count" name="row_count" value=' + trCount + '>'),
-            $('<td><input type="text" class="form-control insert_week" size="10" value="" id=' + "insert_week" + trCount + ' name="insert_week">'),
-            $('<td><select class="form-control insert_model" value="" id=' + "insert_model" + trCount + ' name="insert_model">' +
-                '<option selected hidden></option>\n' +
-                '<option>STEP2</option>\n' +
-                '<option>Indy3</option>\n' +
-                '<option>Indy5</option>\n' +
-                '<option>Indy7</option>\n' +
-                '<option>Indy10</option>\n' +
-                '<option>Indy-RP2</option>\n' +
-                '<option>IndyCB</option>\n' +
-                '<option>OPTi5</option>\n' +
-                '<option>OPTi10</option>\n' +
-                '<option>CORE100</option>\n' +
-                '<option>CORE200</option>\n' +
-                '<option>CORE500</option>\n' +
-                '<option>CORE1000</option>\n' +
-                '<option>LASER400</option>\n' +
-                '<option>LASER650</option>\n' +
-                '</select>'),
-            $('<td><input type="text" readonly class="text-center manufactureDB" size="7" id=' + "manufactureDB" + trCount + ' name="insert_manufactureDB" value="">'),
-            $('<td><input type="text" class="form-control insert_sn" id="insert_sn" name="insert_sn">'),
-            $('<td><input type="text" class="form-control insert_header" size="10" id="insert_header" name="insert_header">')
-        )
-    );
+    var options = dynamic_model_option();
+    console.log(options);
+    // $('#insert_table').append(
+    //     $('<tr>').append(
+    //         $('<input type="hidden" id="row_count" name="row_count" value=' + trCount + '>'),
+    //         $('<td><input type="text" class="form-control insert_week" size="10" value="" id=' + "insert_week" + trCount + ' name="insert_week">'),
+    //         $('<td><select class="form-control insert_model" value="" id=' + "insert_model" + trCount + ' name="insert_model">' + options + '</select>'),
+    //         $('<td><input type="text" readonly class="text-center manufactureDB" id=' + "manufactureDB" + trCount + ' name="insert_manufactureDB" value="">'),
+    //         $('<td><input type="text" class="form-control insert_sn" id="insert_sn" name="insert_sn">'),
+    //         $('<td><input type="text" class="form-control insert_header" size="10" id="insert_header" name="insert_header">')
+    //     )
+    // );
 }
 
 function detail_table() {
@@ -573,28 +558,40 @@ function main_manufacture_table(rows, specific_rows, startRow, endRow) {
 }
 
 function insert_manufacture_table() {
-    $('#insert_table').append(
+    dynamic_model_option2();
+    /*$('#insert_table').append(
         $('<tr>').append(
             $('<td><select class="form-control" id="insert_model" name="model">' +
                 '<option>STEP2</option>\n' +
+                '<option>STEP3</option>\n' +
                 '<option>Indy3</option>\n' +
                 '<option>Indy5</option>\n' +
                 '<option>Indy7</option>\n' +
                 '<option>Indy10</option>\n' +
-                '<option>Indy-RP2</option>\n' +
                 '<option>IndyCB</option>\n' +
+                '<option>Indy-RP</option>\n' +
+                '<option>Indy-RP2</option>\n' +
+                '<option>Indy-RP CB</option>\n' +
+                '<option>CB</option>\n' +
                 '<option>OPTi5</option>\n' +
                 '<option>OPTi10</option>\n' +
                 '<option>CORE100</option>\n' +
                 '<option>CORE200</option>\n' +
                 '<option>CORE500</option>\n' +
                 '<option>CORE1000</option>\n' +
+                '<option>LASER250</option>\n' +
                 '<option>LASER400</option>\n' +
                 '<option>LASER650</option>\n' +
+                '<option>LiSA06</option>\n' +
+                '<option>LiSA12</option>\n' +
+                '<option>LiSA30</option>\n' +
+                '<option>LiSA50</option>\n' +
+                '<option>eMoDi</option>\n' +
+                '<option>Gripper</option>\n' +
                 '</select>'),
             $('<td><input type="text" class="form-control insert_number" id="insert_number" name="number">')
         )
-    );
+    );*/
 }
 
 function pagination_for_init(html, number) {

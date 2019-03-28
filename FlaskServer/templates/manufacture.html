@@ -26,6 +26,40 @@
             }
         });
     });
+
+    function dynamic_model_option2() {
+        $.ajax({
+            url: "/getModelList",
+            data: {},
+            type: "GET",
+            dataType: "json"
+        })
+            .done(function (json) {
+                console.log("Dynamic Model Option Ajax is DONE");
+                console.log(json);
+                var option_string = '';
+                var trCount = $('#insert_table > tbody > tr').length;
+                for (var i = 0; i < json.length; i++) {
+                    option_string += '<option>' + json[i] + '</option>'
+                }
+                //console.log(option_string)
+                $('#insert_table').append(
+                    $('<tr>').append(
+                        $('<td><select class="form-control insert_model" value="" id=' + "insert_model" + trCount + ' name="insert_model">' + option_string + '</select>'),
+                        $('<td><input type="text" class="form-control insert_number" id="insert_number" name="number">')
+                    )
+                );
+                return option_string;
+            })
+            .fail(function (xhr, status, errorThrown) {
+                $("#error_text").html("오류발생<br>")
+                    .append("오류명 : " + errorThrown + "<br>")
+                    .append("상태 : " + status);
+            })
+            .always(function (xhr, status) {
+                //$("#detail_table").html("요청 완료");
+            });
+    }
 </script>
 {% endblock %}
 {% block title %} 생산 페이지 {% endblock %}
@@ -36,7 +70,8 @@
 <input hidden id="specific_list" value="{{ specific_list }}"/>
 <div class="row container-fluid">
     <button type="button" id="insert_btn" class="btn btn-warning col-2 offset-9" data-toggle="modal"
-            data-target="#insert_modal">등록</button>
+            data-target="#insert_modal">등록
+    </button>
 </div>
 <hr/>
 <table class="table table-bordered table-striped table-sm text-center tablesorter" id="main_table">
@@ -94,7 +129,8 @@
                             <thead class="thead-light">
                             <tr>
                                 <th style="border-bottom: 3px solid white">주차</th>
-                                <th style="border-bottom: 3px solid white"><input type="text" class="form-control insert_week"
+                                <th style="border-bottom: 3px solid white"><input type="text"
+                                                                                  class="form-control insert_week"
                                                                                   id="insert_week" name="week"
                                                                                   value={{object.week()}}></th>
                             </tr>
