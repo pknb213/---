@@ -1,0 +1,128 @@
+{% extends 'main_base.html' %}
+{% block head %}
+    <script>
+        $(document).ready(function () {
+
+        });
+    </script>
+    <link rel="stylesheet" href="../static/chart_style.css">
+{% endblock %}
+{% block title %} Chart Page {% endblock %}
+{% block body_title %} 재고 관리 시스템 {% endblock %}
+{% block main_title %} Chart Table {% endblock %}
+{% block body %}
+    <div>
+        {#  Filter
+        <div class="row">
+            <input type="date" id="pastDate" class="btn col-auto btn-primary">
+            <input type="date" id="nowDate" class="btn col-auto btn-primary">
+            <script>
+                const now = new Date().toISOString().substring(0, 10);
+                const past = new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().substring(0, 10);
+                document.getElementById('pastDate').value = past;
+                document.getElementById('nowDate').value = now;
+            </script>
+            <button id="submitBtn" class="col-auto">Button</button>
+            <script>
+                $('#submitBtn').on('click', function () {
+                    const pastDate = $('#pastDate').val();
+                    const nowData = $('#nowDate').val();
+                    if (pastDate > nowData) {
+                        alert("날짜가 잘못되었습니다.");
+                        return false;
+                    }
+                    $('#jsGrid').jsGrid("loadData", {pastDate: pastDate, nowDate: nowData}).done(function () { });
+                });
+            </script>
+        </div>
+        <hr/>#}
+        <div id="chart_box" class="">
+            <div class="row">
+                <div class="box col">
+                    <div class="imgBox">
+                        <button class="imgBtn" onclick="window.open('/chart_one','chart_one','width=800,height=1000,toolbar=no,location=no,status=no,scrollbars=yes');">
+                            </button>
+                    </div>
+                    <div class="details">
+                        <div class="content">
+                            <h2>전체 수량</h2>
+                            <p>모델 : 수량</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="box col">
+                    <div class="imgBox">
+                        <button  class="imgBtn" onclick="window.open('/chart_two','chart_two','width=800,height=1000,location=no,status=no,scrollbars=yes');">
+                            </button>
+                    </div>
+                    <div class="details">
+                        <div class="content">
+                            <h2>상태 차트</h2>
+                            <p>재고, 출고</p>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="box col">
+                    <div class="imgBox">
+                        <button  class="imgBtn" onclick="window.open('/chart_three','chart_three','width=800,height=1000,location=no,status=no,scrollbars=yes');">
+                            </button>
+                    </div>
+                    <div class="details">
+                        <div class="content">
+                            <h2>Test 차트</h2>
+                            <p>압구정, 포항, 대전</p>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="box col">
+                    <div class="imgBox">
+                        <button  class="imgBtn" onclick="window.open('/chart_four','chart_four','width=800,height=1000,location=no,status=no,scrollbars=yes');">
+                            </button>
+                    </div>
+                    <div class="details">
+                        <div class="content">
+                            <h2>원인 차트</h2>
+                            <p>출하가능, 납품완료, 생산, 검증</p>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="box col">
+                    <div class="imgBox">
+                        <button  class="imgBtn" onclick="window.open('/chart_five','chart_five','width=800,height=1100,location=no,status=no,scrollbars=yes');">
+                            </button>
+                    </div>
+                    <div class="details">
+                        <div class="content">
+                            <h2>Site 차트</h2>
+                            <p>압구정, 포항, 대전</p>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="box col">
+                    <div class="imgBox">
+                        <button  class="imgBtn" onclick="window.open('/chart_six','chart_six','width=800,height=1000,location=no,status=no,scrollbars=yes');">
+                            </button>
+                    </div>
+                    <div class="details">
+                        <div class="content">
+                            <h2>Test</h2>
+                            <p>a b c d e f g</p>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+
+
+        </script>
+        <hr/>
+    </div>
+{% endblock %}

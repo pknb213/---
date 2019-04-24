@@ -1,0 +1,59 @@
+{% extends 'chart_base.html' %}
+{% block head %}
+    <script>
+        $(document).ready(function () {
+
+        });
+    </script>
+{% endblock %}
+{% block body_title %} 재고 관리 시스템 {% endblock %}
+{% block main_title %} Chart {% endblock %}
+{% block body %}
+    {# JsGrid Table #}
+    <div id="jsGrid"></div>
+    <script>
+        let postData = {pastDate: $('#pastDate').val(), nowDate: $('#nowDate').val(), location: true};
+        console.log(postData);
+        const fields = [];
+        $.get('/chart/chart_one/' + JSON.stringify(postData), {flag: true}, function (data) {
+            console.log(data);
+            for (let i = 0; i <= data.length; i++) {
+                console.log("Column" + i + "    Data[" + i + "]: " + data[i]);
+                console.log(data[i]);
+                let field = {name: 'column' + i, title: data[i], type: "text", width: 20, align: "center"};
+                if (i === 0 || data[i] === "재고" || data[i] === "출고") {
+                    fields.push(field);
+                }
+            }
+            console.log(fields);
+        }).done(function (json) {
+            $("#jsGrid").jsGrid({
+                width: "100%",
+                height: "800px",
+                controller: mydb('/chart/chart_one/' + JSON.stringify(postData)),
+                //fields: fields,
+                fields: [
+                    {name: "모델", type: "text", width: 20, align: "center"},
+                    {name: "재고", type: "text", width: 20, align: "center"},
+                    {name: "출고", type: "text", width: 20, align: "center"},
+                    {name: '합 계', type: "text", width: 20, align: "center",
+                        itemTemplate: function (v, i) {
+                            console.log(i);
+                            let a = i["재고"];
+                            let b = i["출고"];
+                            return a + b;
+                        }
+                    }
+                ],
+                filtering: false,
+                inserting: false,
+                editing: false,
+                sorting: true,
+                paging: true,
+                autoload: true,
+                pageSize: 17,
+                loadMessage: "텍스트 로딩중"
+            });
+        });
+    </script>
+{% endblock %}
