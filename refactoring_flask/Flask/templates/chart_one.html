@@ -1,0 +1,42 @@
+{% extends 'chart_base.html' %}
+{% block head %}
+    <script>
+        $(document).ready(function () {
+
+        });
+    </script>
+{% endblock %}
+{% block body_title %} 재고 관리 시스템 {% endblock %}
+{% block main_title %} Chart {% endblock %}
+{% block body %}
+    {# JsGrid Table #}
+    <div id="jsGrid"></div>
+    <script>
+        let postData = {};
+        // Dic 추가
+        // Dic['Item'] = 'String etc;'
+        // delete Dic['Item'];
+        // 모든 Key 가져오기 -> Object.keys(Dic)
+
+        console.log(postData);
+        let field = {'0': '모델명', '1': '수량'};
+        const fields = [
+            {name: 'column0', title: field['0'], type: "text", width: 100, align: "center"},
+            {name: 'column1', title: field['1'], type: "text", width: 100, align: "center"}];
+
+        $("#jsGrid").jsGrid({
+            width: "100%",
+            height: "800px",
+            controller: mydb('/chart/' + JSON.stringify(postData)),
+            filtering: false,
+            inserting: false,
+            editing: false,
+            sorting: true,
+            paging: true,
+            autoload: true,
+            pageSize: 20,
+            loadMessage: "텍스트 로딩중",
+            fields: fields
+        });
+    </script>
+{% endblock %}

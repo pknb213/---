@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 위 3개의 메타 태그는 *반드시* head 태그의 처음에 와야합니다; 어떤 다른 콘텐츠들은 반드시 이 태그들 *다음에* 와야 합니다 -->
+    <script src="../static/jquery-3.3.1.min.js"></script>
+    <script src="../static/bootstrap.min.js"></script>
+    <script src="../static/jsgrid.min.js"></script>
+    <script src="../static/mygrid-util.js"></script>
+    <link rel="stylesheet" href="../static/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/jsgrid-theme.min.css">
+    <link rel="stylesheet" href="../static/jsgrid.min.css">
+    {% block head %}
+
+    {% endblock %}
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<!------------------------------------------------------------------------------------------>
+<body>
+<style type="text/css">
+    body {
+        background-color: #0072ce;
+    }
+
+    .chart_base {
+        margin: 5%;
+        padding: 5%;
+        border-radius: 25px 25px 25px 25px;
+        background-color: white;
+    }
+
+    .chart_base h1 {
+        background-color: #0056b3;
+        color: white;
+        border-radius: 25px 25px 25px 25px;
+    }
+
+    .chart_base #jsGrid{
+
+    }
+
+    .btn {
+        margin-right: 2%;
+        margin-bottom: 5%;
+        margin-top: 5%;
+        border-radius: 25px 25px 25px 25px;
+    }
+
+</style>
+<div class="chart_base">
+    <h1><img src="../static/img/pie.png" alt="My Image" width="50" height="50">{% block main_title %}{% endblock %}</h1>
+
+    {% block body %}
+
+    {% endblock %}
+</div>
+</body>
+</html>

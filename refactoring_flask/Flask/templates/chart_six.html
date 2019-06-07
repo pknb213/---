@@ -1,0 +1,95 @@
+{% extends 'chart_base.html' %}
+{% block head %}
+    <script>
+        $(document).ready(function () {
+
+        });
+    </script>
+{% endblock %}
+{% block body_title %} 재고 관리 시스템 {% endblock %}
+{% block main_title %} Chart {% endblock %}
+{% block body %}
+    <div class="container">
+        {#  Filter #}
+        <div class="row">
+            <input type="date" id="pastDate" class="btn col-auto btn-primary">
+            <input type="date" id="nowDate" class="btn col-auto btn-primary">
+            <script>
+                const now = new Date().toISOString().substring(0, 10);
+                const past = new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().substring(0, 10);
+                document.getElementById('pastDate').value = past;
+                document.getElementById('nowDate').value = now;
+            </script>
+            <button id="submitBtn" class="btn btn-success offset-2">Button</button>
+            <script>
+                const option = '<option selected>전체</option><option>SN</option><option>모델</option><option>상태</option>';
+                $('#addFilterBtn').on('click', function () {
+                    $('#filter').append(
+                        $("<select id='mfilter' class='col-auto'>" + option + "</select><hr/>")
+                    );
+                });
+
+                $('#submitBtn').on('click', function () {
+                    let pastDate = $('#pastDate').val();
+                    let nowData = $('#nowDate').val();
+                    if (pastDate > nowData) {
+                        alert("날짜가 잘못되었습니다.");
+                        return false;
+                    }
+                    postData = {pastDate: pastDate, nowDate: nowData};
+                    console.log(postData);
+
+                    let postData = {pastDate: $('#pastDate').val(), nowDate: $('#nowDate').val(), location: true};
+                    console.log(postData);
+                    const fields = [];
+                    $.get('/chart/chart_one/' + JSON.stringify(postData), {flag: true}, function (data) {
+                        console.log(data);
+                        for (let i = 0; i <= data.length; i++) {
+                            console.log("Column" + i + "    Data[" + i + "]: " + data[i]);
+                            console.log(data[i]);
+                            let field = {name: 'column' + i, title: data[i], type: "text", width: 20, align: "center"};
+                            if (i === 0 || data[i] === "재고" || data[i] === "출고") {
+                                fields.push(field);
+                            }
+                        }
+                        console.log(fields);
+                    }).done(function (json) {
+                        $("#jsGrid").jsGrid({
+                            width: "100%",
+                            height: "800px",
+                            controller: mydb('/chart/chart_six/' + JSON.stringify(postData)),
+                            //fields: fields,
+                            fields: [
+                                {name: "모델", type: "text", width: 20, align: "center"},
+                                {name: "재고", type: "text", width: 20, align: "center"},
+                                {name: "출고", type: "text", width: 20, align: "center"},
+                                {
+                                    name: '합 계', type: "text", width: 20, align: "center",
+                                    itemTemplate: function (v, i) {
+                                        console.log(i);
+                                        let a = i["재고"];
+                                        let b = i["출고"];
+                                        return a + b;
+                                    }
+                                }
+                            ],
+                            filtering: false,
+                            inserting: false,
+                            editing: false,
+                            sorting: true,
+                            paging: true,
+                            autoload: true,
+                            pageSize: 17,
+                            loadMessage: "텍스트 로딩중"
+                        });
+                    });
+                });
+            </script>
+        </div>
+    </div>
+    {# JsGrid Table #}
+    <div id="jsGrid"></div>
+    <script>
+
+    </script>
+{% endblock %}

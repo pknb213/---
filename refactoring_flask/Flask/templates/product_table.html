@@ -1,0 +1,250 @@
+{% extends 'main_base.html' %}
+{% block head %}
+    <script>
+        $(document).ready(function () {
+
+        });
+    </script>
+{% endblock %}
+{% block title %} 재고 Page {% endblock %}
+{% block body_title %} 재고 관리 시스템 {% endblock %}
+{% block main_title %} Product Management {% endblock %}
+{% block body %}
+    <div class="product_body">
+        {#  Filter #}
+        <div class="row">
+            <input type="date" id="pastDate" class="btn col-auto btn-primary">
+            <input type="date" id="nowDate" class="btn col-auto btn-primary">
+            <script>
+                const now = new Date().toISOString().substring(0, 10);
+                const past = new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().substring(0, 10);
+                document.getElementById('pastDate').value = past;
+                document.getElementById('nowDate').value = now;
+            </script>
+            <button id="submitBtn" class="btn btn-info col-1"> 적  용 </button>
+            <button id="addFilterBtn" class="btn btn-success col-1">필터 추가</button>
+            <img src="../static/img/icon_3.png" alt="My Image" width="15%" height="60" class="offset-4">
+            <script>
+                const option = '<option selected>전체</option><option>SN</option><option>모델</option><option>상태</option>';
+                $('#addFilterBtn').on('click', function () {
+                    let size = $('#filter input').length;
+                    if (size >= 1) {
+                        $("#filter").empty();
+                        return false;
+                    } else {
+                        $('#filter').append(
+                            $("<tr>").append(
+                                $("<td class='ftd btn btn-success offset-1'>").append("모델"),
+                                $("<td>").append($("<input type='text' id='modelFilter' value='' class='qfilter btn btn-success offset-1'>"))),
+                            $("<tr>").append(
+                                $("<td class='ftd btn btn-success offset-1'>").append("위치"),
+                                $("<td>").append($("<input type='text' id='locationFilter' value='' class='qfilter btn btn-success offset-1'>"))),
+                            $("<tr>").append(
+                                $("<td class='ftd btn btn-success offset-1'>").append("상태"),
+                                $("<td>").append($("<input type='text' id='stateFilter' value='' class='qfilter btn btn-success offset-1'>"))),
+                            $("<tr>").append(
+                                $("<td class='ftd btn btn-success offset-1'>").append("이유"),
+                                $("<td>").append($("<input type='text' id='reasonFilter' value='' class='qfilter btn btn-success offset-1'>")))
+                        )
+                    }
+                });
+                $('#submitBtn').on('click', function () {
+                    const pastDate = $('#pastDate').val();
+                    const nowData = $('#nowDate').val();
+                    const model_query = $('#modelFilter').val();
+                    const location_query = $('#locationFilter').val();
+                    const state_query = $('#stateFilter').val();
+                    const reason_query = $('#reasonFilter').val();
+                    if (pastDate > nowData) {
+                        alert("날짜가 잘못되었습니다.");
+                        return false;
+                    }
+                    $('#jsGrid').jsGrid("loadData", {
+                        pastDate: pastDate,
+                        nowDate: nowData,
+                        model: model_query,
+                        location: location_query,
+                        state: state_query,
+                        reason: reason_query
+                    }).done(function () {
+                    });
+                });
+            </script>
+        </div>
+        <table class="" id="filter">
+            {# Dynamic Filter #}
+        </table>
+        {# JsGrid Table #}
+        <div id="jsGrid"></div>
+    </div>
+    <script>
+        $(function () {
+            $("#jsGrid").jsGrid({
+                width: "100%",
+                height: "800px",
+                controller: mydb('/product'),
+                inserting: true,
+                editing: true,
+                filtering: true,
+                sorting: true,
+                paging: true,
+                autoload: true,
+                pageSize: 12,
+                loadMessage: "텍스트 로딩중",
+
+                onItemInvalid: function (args) {
+                    console.log('invalid item\n');
+                    alert("빈 칸을 채워주세요.");
+                },
+                onError: function (args) {
+                    console.log("Error args\n");
+                    alert(args.args[0].responseText);
+                },
+                onItemEditing: function (args) {
+                    console.log("editing item\n");
+                    console.log(args.item);
+                },
+                onItemUpdating: function (args) {
+                    console.log("updating item\n");
+                    console.log(args.item);
+                },
+                onItemInserted: function (args) {
+                    alert("데이터가 정상적으로 입력되었습니다.");
+                    $('#jsGrid').jsGrid("loadData");
+                },
+                onItemUpdated: function (args) {
+                    alert("데이터가 정상적으로 업데이트 되었습니다.");
+                    $('#jsGrid').jsGrid("loadData");
+                },
+                onItemDeleted: function (args) {
+                    alert("데이터가 정상적으로 삭제되었습니다.");
+                    $('#jsGrid').jsGrid("loadData");
+                },
+
+                fields: [
+                    {
+                        name: "model", type: "select",
+                        items: [
+                            {Name: ''},
+                            {Name: "Indy3"},
+                            {Name: "Indy5"},
+                            {Name: "Indy7"},
+                            {Name: "Indy10"},
+                            {Name: "Indy-RP", Id: 4},
+                            {Name: "Indy-RP2", Id: 5},
+                            {Name: "LiSA06", Id: 6},
+                            {Name: "LiSA12", Id: 7},
+                            {Name: "LiSA30", Id: 8},
+                            {Name: "LiSA50", Id: 9},
+                            {Name: "OPTi5", Id: 10},
+                            {Name: "OPTi10", Id: 11},
+                            {Name: "LASER250", Id: 12},
+                            {Name: "LASER400", Id: 13},
+                            {Name: "LASER650", Id: 14},
+                            {Name: "eMoDi", Id: 15},
+                            {Name: "Tablet PC", Id: 16},
+                            {Name: "STEP2", Id: 17},
+                            {Name: "STEP3", Id: 18},
+                            {Name: "Old CB", Id: 19},
+                            {Name: "CB", Id: 20},
+                            {Name: "IndyCB", Id: 21},
+                            {Name: "Indy CB", Id: 22},
+                            {Name: "Indy-RP CB", Id: 23},
+                            {Name: "Gripper", Id: 24},
+                            {Name: "F/T Sensor", Id: 25},
+                            {Name: "CORE100", Id: 26},
+                            {Name: "CORE200", Id: 27},
+                            {Name: "CORE500", Id: 28},
+                            {Name: "CORE1000", Id: 29}],
+                        valueType: "text", valueField: "Name", textField: "Name", align: "center",
+                        width: 150, autosearch: true, validate: "required"
+                    },
+                    {name: "sn", type: "text", width: 100, align: "center", validate: "required"},
+                    {name: "week", type: "text", width: 100, align: "center", validate: "required"},
+                    {name: "location", type: "text", width: 100, align: "center", validate: "required"},
+                    {name: "state", type: "text", width: 100, align: "center", validate: "required"},
+                    {name: "reason", type: "text", width: 100, align: "center", validate: "required"},
+                    {type: "control"},
+                    {
+                        name: "Detail", width: 100, align: "center", itemTemplate: function (_, item) {
+                            return $("<button class='btn btn-primary'>").text("Detail").on("click", function () {
+                                console.log('detail modal');
+                                console.log(item.product_id);
+                                $('#detailModal').modal('show');
+                                $("#jsGridDetailTable").jsGrid({
+                                    width: "100%",
+                                    height: "500px",
+                                    controller: modaldb('/product/detailModal/' + item.product_id),
+                                    filtering: false,
+                                    inserting: true,
+                                    editing: true,
+                                    sorting: true,
+                                    paging: true,
+                                    autoload: true,
+                                    pageSize: 8,
+                                    loadMessage: "텍스트 로딩중",
+                                    fields: [
+                                        {name: 'date', type: "text", width: 100, align: "center", validate: "required"},
+                                        {
+                                            name: 'location',
+                                            type: "text",
+                                            width: 100,
+                                            align: "center",
+                                            validate: "required"
+                                        },
+                                        {
+                                            name: 'state',
+                                            type: "text",
+                                            width: 100,
+                                            align: "center",
+                                            validate: "required"
+                                        },
+                                        {
+                                            name: 'reason',
+                                            type: "text",
+                                            width: 100,
+                                            align: "center",
+                                            validate: "required"
+                                        },
+                                        {name: 'note', type: "text", width: 100, align: "center"},
+                                        {type: "control"}
+                                    ]
+                                });
+                                {#$.post("/product/detailModal", {product_id: item.product_id}, function () {
+
+                                }).done(function (json) {
+
+                                }).fail(function (error) {
+
+                                });#}
+                            });
+                        }
+                    }
+                ]
+            })
+            $('#jsGrid').jsGrid("sort", 'week');
+        });
+
+    </script>
+    <div class="modal fade" id="detailModal">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                {# Modal Header #}
+                <div class="modal-header">
+                    <h1>과거 이력 추적</h1>
+                </div>
+                {# Modal Body #}
+                <div class="modal-body">
+                    <div id="jsGridDetailTable"></div>
+                </div>
+                <script>
+
+                </script>
+                {# Modal Footer #}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

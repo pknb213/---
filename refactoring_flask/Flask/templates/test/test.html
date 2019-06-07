@@ -1,0 +1,86 @@
+{% extends 'main_base.html' %}
+{% block head %}
+
+{% endblock %}
+{% block title %} Page Not Found {% endblock %}
+{% block body_title %}
+{% endblock %}
+{% block main_title %} Test {% endblock %}
+{% block body %}
+    <p style="font-size: 60px; color: white;">{{ title }}</p>
+    <p style="font-size: 40px; color: #7b7665;">{{ str }}</p>
+    <a style="font-size: 30px; color: #bd2130;" href="{{ url_for(url) }}">Return</a>
+    <div id="jsGrid"></div>
+    <div id="jsGrid2"></div>
+    <script>
+        var clients = [
+            {"Name": "Otto Clay", "Age": 25, "Country": 1, "Address": "Ap #897-1459 Quam Avenue", "Married": false},
+            {"Name": "Connor Johnston", "Age": 45, "Country": 2, "Address": "Ap #370-4647 Dis Av.", "Married": true},
+            {"Name": "Lacey Hess", "Age": 29, "Country": 3, "Address": "Ap #365-8835 Integer St.", "Married": false},
+            {"Name": "Timothy Henson", "Age": 56, "Country": 1, "Address": "911-5143 Luctus Ave", "Married": true},
+            {
+                "Name": "Ramona Benton",
+                "Age": 32,
+                "Country": 3,
+                "Address": "Ap #614-689 Vehicula Street",
+                "Married": false
+            }
+        ];
+
+        var countries = [
+            {Name: "", Id: 0},
+            {Name: "United States", Id: 1},
+            {Name: "Canada", Id: 2},
+            {Name: "United Kingdom", Id: 3}
+        ];
+
+        $(function () {
+            $("#jsGrid").jsGrid({
+                width: "100%",
+                height: "400px",
+
+                inserting: true,
+                editing: true,
+                sorting: true,
+                paging: true,
+
+                data: clients,
+
+                fields: [
+                    {name: "Name", type: "text", width: 150, validate: "required"},
+                    {name: "Age", type: "number", width: 50},
+                    {name: "Address", type: "text", width: 200},
+                    {name: "Country", type: "select", items: countries, valueField: "Id", textField: "Name"},
+                    {name: "Married", type: "checkbox", title: "Is Married", sorting: false},
+                    {type: "control"}
+                ]
+            });
+        })
+
+        $(function () {
+            $("#jsGrid2").jsGrid({
+                width: "100%",
+                height: "400px",
+
+                filtering: true,
+                inserting: true,
+                editing: true,
+                sorting: true,
+                paging: true,
+                autoload: true,
+
+                deleteConfirm: "고객 정보를 정말로 삭제할까요?",
+
+                controller: mydb('/admin/customer'),
+
+                fields: [
+                    {name: 'name', title: "고객명", type: "text", width: 150, validate: "required"},
+                    {name: 'location', title: "위치", type: "text", width: 200},
+                    {name: 'info', title: "정보", type: "text", width: 200},
+                    {name: 'sites', title: "비고", type: "text", width: 50, editing: false},
+                    {type: "control"}
+                ]
+            });
+        })
+    </script>
+{% endblock %}
