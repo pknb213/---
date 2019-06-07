@@ -4,6 +4,7 @@
 *.bak
 *.pyc
 
+.FlaskServer/venv
 .FlaskServer/__pycache__/
 .FlaskServer/static/excel/
 .idea/
